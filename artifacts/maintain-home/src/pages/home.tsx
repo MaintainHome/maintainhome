@@ -73,7 +73,7 @@ export default function Home() {
                 </div>
                 
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-black text-foreground leading-[1.1] mb-6 tracking-tight">
-                  AI-Powered <br/>
+                  Ai-Powered <br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">
                     Personalized
                   </span><br/>
@@ -81,7 +81,7 @@ export default function Home() {
                 </h1>
                 
                 <p className="text-xl text-muted-foreground leading-relaxed mb-8 max-w-lg">
-                  Never forget air filters, roof checks, crawl space moisture, smoke detectors, lawn care & more. 
+                  Never forget air filters, smoke detector batteries, roof checks, crawl space moisture, lawn care & more. 
                   <span className="font-semibold text-foreground"> Tailored specifically to your state and climate.</span>
                 </p>
 
