@@ -1,0 +1,18 @@
+packages:
+  "framer-motion": "For premium scroll animations and form state transitions"
+  "react-hook-form": "For robust waitlist form state management"
+  "@hookform/resolvers": "For Zod validation integration"
+  "canvas-confetti": "For a delightful success state after joining the waitlist"
+  "@types/canvas-confetti": "TypeScript definitions for canvas-confetti"
+
+images:
+  - path: "artifacts/maintain-home/public/images/logo.png"
+    description: "Minimalist, modern, premium line-art logo of a house roof intertwined with a subtle sparkle or checkmark, vibrant royal blue color on a completely transparent background"
+    aspect_ratio: "1:1"
+  - path: "artifacts/maintain-home/public/images/hero-bg.png"
+    description: "Abstract, clean, high-end architectural 3D background in extremely light soft grays and whites, with very subtle modern blue ambient lighting and soft depth of field, minimalist and premium"
+    aspect_ratio: "16:9"
+
+notes:
+  - "The waitlist endpoint returns 409 Conflict if the email is already registered."
+  - "API React Query hooks are imported from @workspace/api-client-react as specified in implementation notes."

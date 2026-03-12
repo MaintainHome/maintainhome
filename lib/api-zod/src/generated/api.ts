@@ -14,3 +14,22 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Sign up for early access
+ * @summary Join waitlist
+ */
+export const JoinWaitlistBody = zod.object({
+  name: zod.string(),
+  email: zod.string().email(),
+  zip: zod.string().optional(),
+  userType: zod.enum(["homeowner", "broker_agent", "builder"]).optional(),
+});
+
+/**
+ * Returns number of signups so far
+ * @summary Get waitlist count
+ */
+export const GetWaitlistCountResponse = zod.object({
+  count: zod.number(),
+});

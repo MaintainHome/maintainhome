@@ -8,3 +8,37 @@
 export interface HealthStatus {
   status: string;
 }
+
+export type WaitlistEntryUserType =
+  (typeof WaitlistEntryUserType)[keyof typeof WaitlistEntryUserType];
+
+export const WaitlistEntryUserType = {
+  homeowner: "homeowner",
+  broker_agent: "broker_agent",
+  builder: "builder",
+} as const;
+
+export interface WaitlistEntry {
+  name: string;
+  email: string;
+  zip?: string;
+  userType?: WaitlistEntryUserType;
+}
+
+export interface WaitlistEntryResponse {
+  id: number;
+  name: string;
+  email: string;
+  zip?: string;
+  userType?: string;
+  signupNumber: number;
+  createdAt: string;
+}
+
+export interface WaitlistCount {
+  count: number;
+}
+
+export interface ErrorResponse {
+  error: string;
+}

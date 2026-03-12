@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MaintainHome.ai – AI Home Maintenance Reminders</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 0; background: #f8f9fa; color: #333; line-height: 1.6; }
+    header { background: linear-gradient(to right, #007bff, #00c6ff); color: white; text-align: center; padding: 80px 20px; }
+    h1 { margin: 0; font-size: 3rem; }
+    h2 { font-size: 2.2rem; }
+    .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+    .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin: 40px 0; }
+    .feature { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); text-align: center; }
+    form { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 500px; margin: 0 auto; }
+    input, button { width: 100%; padding: 14px; margin: 10px 0; border-radius: 6px; border: 1px solid #ddd; font-size: 1.1rem; }
+    button { background: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #0056b3; }
+    footer { text-align: center; padding: 30px; font-size: 0.9rem; color: #666; border-top: 1px solid #eee; margin-top: 60px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>MaintainHome.ai</h1>
+    <p style="font-size: 1.4rem; margin-top: 20px;">AI-Powered Personalized Home Maintenance Reminders</p>
+    <p>Never forget air filters, roof checks, crawl space moisture, smoke detectors, lawn care & more. Tailored to your state/climate.</p>
+  </header>
+
+  <div class="container">
+    <h2 style="text-align:center;">Prevent Costly Repairs – Coming Soon</h2>
+    
+    <div class="features">
+      <div class="feature">
+        <h3>2-Min Quiz → Custom Calendar</h3>
+        <p>AI builds your 12-24 month plan instantly.</p>
+      </div>
+      <div class="feature">
+        <h3>Smart Reminders</h3>
+        <p>Email/SMS so you never miss a task.</p>
+      </div>
+      <div class="feature">
+        <h3>State-Specific Tips</h3>
+        <p>NC humidity, FL hurricanes, CA wildfires—auto-adjusted.</p>
+      </div>
+      <div class="feature">
+        <h3>Broker White-Label</h3>
+        <p>For real estate teams & builders—your branding + preferred pros.</p>
+      </div>
+    </div>
+
+    <h2 style="text-align:center;">Join the Waitlist</h2>
+    <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">  <!-- Replace with your Formspree/MailerLite/etc endpoint -->
+      <input type="text" name="name" placeholder="Your Name" required>
+      <input type="email" name="email" placeholder="Your Email" required>
+      <input type="text" name="zip" placeholder="ZIP Code (for state detection)">
+      <select name="type">
+        <option value="">I'm a...</option>
+        <option>Homeowner</option>
+        <option>Real Estate Broker/Agent</option>
+        <option>Builder</option>
+      </select>
+      <button type="submit">Get Early Access & Discount</button>
+    </form>
+
+    <p style="text-align:center; margin-top:30px;">First 50 signups get 50% off forever!</p>
+  </div>
+
+  <footer>
+    <p>MaintainHome.ai provides general reminders only & is not responsible for maintenance, repairs, damage, or losses. Not professional advice—consult experts.</p>
+    <p>© 2026 MaintainHome.ai – Powered by real estate expertise</p>
+  </footer>
+
+</body>
+</html>
