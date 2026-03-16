@@ -214,7 +214,7 @@ export default function Home() {
             >
               <div className="absolute inset-0 bg-accent rounded-[2rem] transform translate-x-4 translate-y-4 opacity-20"></div>
               <img 
-                src={`${import.meta.env.BASE_URL}images/team-office-diverse.png`}
+                src={`${import.meta.env.BASE_URL}images/team-office-four.png`}
                 alt="Our professional team" 
                 className="relative z-10 rounded-[2rem] shadow-2xl object-cover w-full aspect-[4/3]"
               />
