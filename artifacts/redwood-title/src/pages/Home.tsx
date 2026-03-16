@@ -40,11 +40,11 @@ export default function Home() {
             </div>
             
             <h1 className="text-5xl md:text-7xl font-display font-bold text-white leading-tight mb-6 text-balance">
-              Your Trusted Partner in <span className="text-accent italic">Title Insurance</span>
+              Your Trusted Partner in <span className="text-accent italic">Title Search & Insurance</span>
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-200 mb-10 max-w-2xl font-light">
-              Growing with you across North Carolina, Florida, Kansas, Oklahoma, and Missouri.
+              Connect to cutting edge technology to empower unmatched thoroughness and efficiency.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
