@@ -4,7 +4,7 @@ export function Footer() {
   return (
     <footer className="bg-[#1A1A1A] text-white pt-16 pb-8 border-t-4 border-accent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
           <div className="space-y-6">
             <Link href="/" className="inline-block relative">
               <img
@@ -28,14 +28,6 @@ export function Footer() {
             </ul>
           </div>
           
-          <div>
-            <h4 className="font-display text-xl font-semibold mb-6 text-accent">Contact Us</h4>
-            <ul className="space-y-3 text-gray-400">
-              <li>1-800-555-TITLE</li>
-              <li>info@redwoodtitle.com</li>
-              <li>Serving NC, FL, KS, OK, MO</li>
-            </ul>
-          </div>
         </div>
 
         {/* ALTA Logos */}
