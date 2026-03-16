@@ -64,15 +64,15 @@ export default function Home() {
           <div className="w-[200%] flex animate-marquee">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="flex-1 flex justify-around items-center text-white/80 font-medium text-sm md:text-base tracking-widest uppercase">
-                <span>North Carolina</span>
+                <span className="whitespace-nowrap">North Carolina</span>
                 <span className="text-accent">•</span>
-                <span>Florida</span>
+                <span className="whitespace-nowrap">Florida</span>
                 <span className="text-accent">•</span>
-                <span>Kansas</span>
+                <span className="whitespace-nowrap">Kansas</span>
                 <span className="text-accent">•</span>
-                <span>Oklahoma</span>
+                <span className="whitespace-nowrap">Oklahoma</span>
                 <span className="text-accent">•</span>
-                <span>Missouri</span>
+                <span className="whitespace-nowrap">Missouri</span>
                 <span className="text-accent">•</span>
               </div>
             ))}
