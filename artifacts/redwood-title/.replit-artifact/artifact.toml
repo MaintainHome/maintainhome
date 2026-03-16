@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/redwood-title/"
+title = "Redwood Title"
+version = "1.0.0"
+id = "artifacts/redwood-title"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 21377
+name = "web"
+paths = ["/redwood-title/"]
+
+[services.development]
+run = "pnpm --filter @workspace/redwood-title run dev"
+
+[services.env]
+PORT = "21377"
+BASE_PATH = "/redwood-title/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/redwood-title", "run", "build"]
+publicDir = "artifacts/redwood-title/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
