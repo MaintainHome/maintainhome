@@ -30,7 +30,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export function WaitlistForm() {
-  const [successData, setSuccessData] = useState<{ signupNumber: number } | null>(null);
+  const [joined, setJoined] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { mutate: joinWaitlist, isPending } = useJoinWaitlist();
@@ -50,44 +50,30 @@ export function WaitlistForm() {
     joinWaitlist(
       { data },
       {
-        onSuccess: (response) => {
-          setSuccessData({ signupNumber: response.signupNumber });
-          
-          // Trigger celebration if they are in the first 50
-          if (response.signupNumber <= 50) {
-            const duration = 3 * 1000;
-            const end = Date.now() + duration;
-
-            const frame = () => {
-              confetti({
-                particleCount: 5,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 },
-                colors: ['#2563eb', '#f59e0b', '#10b981']
-              });
-              confetti({
-                particleCount: 5,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 },
-                colors: ['#2563eb', '#f59e0b', '#10b981']
-              });
-
-              if (Date.now() < end) {
-                requestAnimationFrame(frame);
-              }
-            };
-            frame();
-          } else {
-            // Standard success confetti
+        onSuccess: () => {
+          setJoined(true);
+          const duration = 3 * 1000;
+          const end = Date.now() + duration;
+          const frame = () => {
             confetti({
-              particleCount: 100,
-              spread: 70,
-              origin: { y: 0.6 },
-              colors: ['#2563eb', '#60a5fa', '#ffffff']
+              particleCount: 5,
+              angle: 60,
+              spread: 55,
+              origin: { x: 0 },
+              colors: ['#2563eb', '#f59e0b', '#10b981']
             });
-          }
+            confetti({
+              particleCount: 5,
+              angle: 120,
+              spread: 55,
+              origin: { x: 1 },
+              colors: ['#2563eb', '#f59e0b', '#10b981']
+            });
+            if (Date.now() < end) {
+              requestAnimationFrame(frame);
+            }
+          };
+          frame();
         },
         onError: (error: any) => {
           // Extract specific error message if it's a 409 or similar
@@ -106,7 +92,7 @@ export function WaitlistForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       <AnimatePresence mode="wait">
-        {successData ? (
+        {joined ? (
           <motion.div
             key="success"
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -117,34 +103,23 @@ export function WaitlistForm() {
             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
               <PartyPopper className="w-10 h-10 text-primary" />
             </div>
-            
+
             <h3 className="text-3xl font-display font-bold mb-3 text-foreground">
-              You're on the list!
+              Congratulations!
             </h3>
-            
+
             <p className="text-lg text-muted-foreground mb-6">
-              Thank you for joining the MaintainHome.ai waitlist.
+              You've officially joined the MaintainHome.ai waitlist and locked in your <span className="font-semibold text-foreground">early bird discount</span>.
             </p>
-            
-            <div className="bg-slate-50 rounded-2xl p-6 border border-border">
-              <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                Your Signup Number
-              </p>
-              <div className="text-5xl font-display font-black text-primary mb-2">
-                #{successData.signupNumber}
-              </div>
-              
-              {successData.signupNumber <= 50 ? (
-                <div className="mt-4 inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-orange-500/25">
-                  <PartyPopper className="w-4 h-4" />
-                  You secured the 50% lifetime discount!
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground mt-2">
-                  We'll notify you as soon as your account is ready.
-                </p>
-              )}
+
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 text-white px-5 py-3 rounded-xl text-sm font-semibold shadow-lg shadow-orange-500/25">
+              <PartyPopper className="w-4 h-4" />
+              50% off — yours for life when we launch!
             </div>
+
+            <p className="text-sm text-muted-foreground mt-6">
+              We'll be in touch soon with updates and early access details.
+            </p>
           </motion.div>
         ) : (
           <motion.div
