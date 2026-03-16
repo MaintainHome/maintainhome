@@ -39,7 +39,7 @@ export default function Home() {
               <span className="text-sm font-semibold tracking-wide text-white">Rooted in Trust. Built for Protection.</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-display font-bold text-white leading-tight mb-6 text-balance">
+            <h1 className="text-4xl md:text-6xl font-display font-bold text-white leading-tight mb-6 text-balance">
               Your Trusted Partner in <span className="text-accent italic">Title Search & Insurance</span>
             </h1>
             
