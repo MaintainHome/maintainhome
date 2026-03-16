@@ -19,7 +19,7 @@ export default function Home() {
       <section className="relative pt-32 pb-20 md:pt-40 md:pb-28 overflow-hidden min-h-[85vh] flex items-center">
         <div className="absolute inset-0 z-0">
           <img 
-            src={`${import.meta.env.BASE_URL}images/hero-suburban.png`} 
+            src={`${import.meta.env.BASE_URL}images/hero-suburban-luxury.png`} 
             alt="Beautiful suburban neighborhood" 
             className="w-full h-full object-cover"
           />
