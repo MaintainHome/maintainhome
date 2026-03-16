@@ -24,16 +24,16 @@ export default function Home() {
       {/* Navigation */}
       <nav className="w-full border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img 
               src={`${import.meta.env.BASE_URL}images/logo.png`} 
               alt="MaintainHome.ai Logo" 
-              className="w-10 h-10 object-contain"
+              className="w-14 h-14 object-contain"
             />
-            <span className="text-xl font-display font-bold text-foreground tracking-tight">
+            <span className="text-2xl font-display font-bold text-foreground tracking-tight">
               MaintainHome<span className="text-primary">.ai</span>
             </span>
-          </div>
+          </a>
           <button 
             onClick={scrollToForm}
             className="hidden sm:flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-slate-50"
