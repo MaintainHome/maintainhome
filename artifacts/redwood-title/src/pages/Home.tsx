@@ -267,37 +267,15 @@ export default function Home() {
 
       {/* CONTACT SECTION */}
       <section id="contact" className="py-24 bg-secondary">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-16">
-            <div className="lg:w-5/12 lg:pt-10">
-              <h2 className="text-primary font-bold tracking-wider uppercase text-sm mb-3">Get In Touch</h2>
-              <h3 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-6">
-                Ready to Get Started?
-              </h3>
-              <p className="text-lg text-muted-foreground mb-8">
-                Contact us today to discover how Redwood Title can streamline your next real estate transaction with trust and precision.
-              </p>
-              
-              <div className="space-y-6">
-                <div>
-                  <h5 className="font-bold text-foreground text-lg">Call Us</h5>
-                  <p className="text-primary font-medium text-xl">1-800-555-TITLE</p>
-                </div>
-                <div>
-                  <h5 className="font-bold text-foreground text-lg">Email Us</h5>
-                  <p className="text-muted-foreground">info@redwoodtitle.com</p>
-                </div>
-                <div>
-                  <h5 className="font-bold text-foreground text-lg">Office Hours</h5>
-                  <p className="text-muted-foreground">Monday - Friday: 9:00 AM - 5:00 PM</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="lg:w-7/12">
-              <ContactForm />
-            </div>
-          </div>
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-primary font-bold tracking-wider uppercase text-sm mb-3">Get In Touch</h2>
+          <h3 className="text-4xl md:text-5xl font-display font-bold text-foreground mb-4">
+            Ready to Get Started?
+          </h3>
+          <p className="text-lg text-muted-foreground mb-10">
+            Contact us today to discover how Redwood Title can streamline your next real estate transaction with trust and precision.
+          </p>
+          <ContactForm />
         </div>
       </section>
 
