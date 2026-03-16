@@ -7,11 +7,10 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           <div className="space-y-6">
             <Link href="/" className="inline-block relative">
-              {/* Using mix-blend-screen for the white logo with black bg to make it transparent, or just rendering it normally if it's a true PNG */}
               <img
                 src={`${import.meta.env.BASE_URL}images/redwood-logo-white.png`}
                 alt="Redwood Title Logo"
-                className="h-12 w-auto object-contain mix-blend-screen opacity-90"
+                className="h-24 w-auto object-contain mix-blend-screen opacity-90"
               />
             </Link>
             <p className="text-gray-400 max-w-sm">
@@ -38,8 +37,17 @@ export function Footer() {
             </ul>
           </div>
         </div>
+
+        {/* ALTA Logos */}
+        <div className="py-6 border-t border-gray-800 flex justify-center">
+          <img
+            src={`${import.meta.env.BASE_URL}images/alta-logos.png`}
+            alt="ALTA Member and ALTA Registry"
+            className="h-16 w-auto object-contain"
+          />
+        </div>
         
-        <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="pt-6 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-500">
             &copy; {new Date().getFullYear()} Redwood Title. All rights reserved.
           </p>
