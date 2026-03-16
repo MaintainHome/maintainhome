@@ -10,7 +10,7 @@ export function Footer() {
               <img
                 src={`${import.meta.env.BASE_URL}images/redwood-logo-white.png`}
                 alt="Redwood Title Logo"
-                className="h-24 w-auto object-contain mix-blend-screen opacity-90"
+                className="h-48 w-auto object-contain mix-blend-screen opacity-90"
               />
             </Link>
             <p className="text-gray-400 max-w-sm">
