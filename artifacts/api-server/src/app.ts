@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === "production") {
     }
   });
 
-  app.get("*", (req: Request, res: Response) => {
+  app.get("/{*path}", (req: Request, res: Response) => {
     const staticDir = getStaticDir(req.hostname || "");
     const indexPath = path.join(staticDir, "index.html");
     if (existsSync(indexPath)) {
