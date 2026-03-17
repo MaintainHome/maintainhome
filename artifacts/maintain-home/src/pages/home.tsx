@@ -46,7 +46,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <main className="flex-1">
-        <section className="relative w-full pt-8 pb-32 overflow-hidden">
+        <section className="relative w-full pt-8 pb-12 overflow-hidden">
           {/* Background Image & Overlay */}
           <div className="absolute inset-0 z-0">
             <img 
