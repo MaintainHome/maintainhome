@@ -23,12 +23,12 @@ export default function Home() {
 
       {/* Navigation */}
       <nav className="w-full border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-32 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img 
               src={`${import.meta.env.BASE_URL}images/logo.png`} 
               alt="MaintainHome.ai Logo" 
-              className="w-14 h-14 object-contain"
+              className="w-28 h-28 object-contain"
             />
             <span className="text-2xl font-display font-bold text-foreground tracking-tight">
               MaintainHome<span className="text-primary">.ai</span>
@@ -67,8 +67,8 @@ export default function Home() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="max-w-2xl"
               >
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-semibold mb-6 border border-primary/20">
-                  <ShieldCheck className="w-4 h-4" />
+                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 text-primary text-base font-semibold mb-6 border border-primary/20">
+                  <ShieldCheck className="w-5 h-5" />
                   Prevent costly repairs before they happen
                 </div>
                 
