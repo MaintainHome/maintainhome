@@ -104,7 +104,7 @@ export default function Home() {
                         ))}
                       </div>
                       <p className="text-sm font-medium text-slate-600">
-                        Join <span className="text-primary font-bold">{count}+</span> others
+                        Join <span className="text-primary font-bold">thousands</span> of others
                       </p>
                     </div>
                   )}
