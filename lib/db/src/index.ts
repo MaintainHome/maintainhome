@@ -4,12 +4,20 @@ import * as schema from "./schema";
 
 const { Pool } = pg;
 
-function getConnectionString(): string {
+function getPoolConfig(): pg.PoolConfig {
   const { PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT, DATABASE_URL } = process.env;
 
-  if (PGHOST && PGHOST !== "helium" && PGUSER && PGPASSWORD && PGDATABASE) {
-    const port = PGPORT || "5432";
-    return `postgresql://${PGUSER}:${encodeURIComponent(PGPASSWORD)}@${PGHOST}:${port}/${PGDATABASE}`;
+  const isProduction = PGHOST && PGHOST !== "helium";
+
+  if (isProduction && PGUSER && PGPASSWORD && PGDATABASE) {
+    return {
+      host: PGHOST,
+      port: Number(PGPORT) || 5432,
+      user: PGUSER,
+      password: PGPASSWORD,
+      database: PGDATABASE,
+      ssl: { rejectUnauthorized: false },
+    };
   }
 
   if (!DATABASE_URL) {
@@ -18,10 +26,10 @@ function getConnectionString(): string {
     );
   }
 
-  return DATABASE_URL;
+  return { connectionString: DATABASE_URL };
 }
 
-export const pool = new Pool({ connectionString: getConnectionString() });
+export const pool = new Pool(getPoolConfig());
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";
