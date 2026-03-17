@@ -26,7 +26,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-32 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img 
-              src={`${import.meta.env.BASE_URL}images/logo.png`} 
+              src={`${import.meta.env.BASE_URL}images/logo-new.jpg`} 
               alt="MaintainHome.ai Logo" 
               className="w-28 h-28 object-contain"
             />
@@ -74,7 +74,7 @@ export default function Home() {
                 
                 <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-black text-foreground leading-[1.1] mb-6 tracking-tight">
                   Ai-Powered <br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
                     Personalized
                   </span><br/>
                   Home Reminders.
@@ -195,9 +195,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
           <div className="flex items-center gap-2 mb-6 opacity-80">
             <img 
-              src={`${import.meta.env.BASE_URL}images/logo.png`} 
+              src={`${import.meta.env.BASE_URL}images/logo-new.jpg`} 
               alt="Logo" 
-              className="w-8 h-8 filter grayscale invert brightness-200"
+              className="w-8 h-8 object-contain brightness-200"
             />
             <span className="text-xl font-display font-bold text-white tracking-tight">
               MaintainHome<span className="text-primary">.ai</span>
