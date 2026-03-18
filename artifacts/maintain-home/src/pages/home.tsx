@@ -31,7 +31,7 @@ export default function Home() {
               alt="MaintainHome.ai Logo" 
               className="w-28 h-28 object-contain"
             />
-            <span className="text-2xl font-display font-bold text-foreground tracking-tight">
+            <span className="text-4xl font-display font-bold text-foreground tracking-tight">
               MaintainHome<span className="text-primary">.ai</span>
             </span>
           </a>
