@@ -23,8 +23,9 @@ export default function Home() {
 
       {/* Navigation */}
       <nav className="w-full border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-32 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-32 flex items-center relative">
+          <div className="flex-1" />
+          <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity absolute left-1/2 -translate-x-1/2">
             <img 
               src={`${import.meta.env.BASE_URL}images/logo-icon.png`} 
               alt="MaintainHome.ai Logo" 
@@ -34,13 +35,15 @@ export default function Home() {
               MaintainHome<span className="text-primary">.ai</span>
             </span>
           </a>
-          <button 
-            onClick={scrollToForm}
-            className="hidden sm:flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-slate-50"
-          >
-            Join Waitlist
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex-1 flex justify-end">
+            <button 
+              onClick={scrollToForm}
+              className="hidden sm:flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-slate-50"
+            >
+              Join Waitlist
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </nav>
 
