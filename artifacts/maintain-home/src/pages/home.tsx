@@ -26,7 +26,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-32 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img 
-              src={`${import.meta.env.BASE_URL}images/logo.png`} 
+              src={`${import.meta.env.BASE_URL}images/logo-icon.png`} 
               alt="MaintainHome.ai Logo" 
               className="w-28 h-28 object-contain"
             />
@@ -195,13 +195,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
           <div className="flex items-center gap-2 mb-6 opacity-80">
             <img 
-              src={`${import.meta.env.BASE_URL}images/logo.png`} 
-              alt="Logo" 
-              className="w-8 h-8 object-contain brightness-200"
+              src={`${import.meta.env.BASE_URL}images/logo-white.png`} 
+              alt="MaintainHome Logo" 
+              className="h-24 object-contain"
             />
-            <span className="text-xl font-display font-bold text-white tracking-tight">
-              MaintainHome<span className="text-primary">.ai</span>
-            </span>
           </div>
           
           <p className="text-slate-400 text-sm max-w-2xl mb-6 leading-relaxed">
