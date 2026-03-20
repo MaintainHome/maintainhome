@@ -25,6 +25,7 @@ const formSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   zip: z.string().optional(),
   userType: z.enum(["homeowner", "broker_agent", "builder"] as const).optional(),
+  website: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -145,6 +146,14 @@ export function WaitlistForm() {
             )}
 
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 text-left">
+              {/* Honeypot — hidden from real users, catches bots */}
+              <input
+                type="text"
+                {...form.register("website")}
+                style={{ display: "none" }}
+                tabIndex={-1}
+                autoComplete="off"
+              />
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-foreground font-medium">Full Name</Label>
                 <Input

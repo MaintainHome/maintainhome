@@ -3,10 +3,73 @@ import { db } from "@workspace/db";
 import { waitlistTable } from "@workspace/db";
 import { JoinWaitlistBody } from "@workspace/api-zod";
 import { eq, count } from "drizzle-orm";
+import { Resend } from "resend";
 
 const router: IRouter = Router();
 
+function getResend(): Resend | null {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return null;
+  return new Resend(key);
+}
+
+async function sendOwnerNotification(entry: {
+  name: string;
+  email: string;
+  zip: string | null;
+  userType: string | null;
+  signupNumber: number;
+}) {
+  const resend = getResend();
+  const ownerEmail = process.env.NOTIFY_EMAIL;
+  if (!resend || !ownerEmail) return;
+
+  await resend.emails.send({
+    from: "MaintainHome.ai <onboarding@resend.dev>",
+    to: ownerEmail,
+    subject: `New waitlist signup #${entry.signupNumber} — ${entry.name}`,
+    html: `
+      <h2>New Waitlist Signup</h2>
+      <table style="border-collapse:collapse;font-family:sans-serif">
+        <tr><td style="padding:6px 12px;font-weight:bold">Signup #</td><td style="padding:6px 12px">${entry.signupNumber}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:bold">Name</td><td style="padding:6px 12px">${entry.name}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:bold">Email</td><td style="padding:6px 12px">${entry.email}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:bold">ZIP</td><td style="padding:6px 12px">${entry.zip ?? "—"}</td></tr>
+        <tr><td style="padding:6px 12px;font-weight:bold">Type</td><td style="padding:6px 12px">${entry.userType ?? "—"}</td></tr>
+      </table>
+    `,
+  }).catch((err: Error) => {
+    console.error("Failed to send notification email:", err.message);
+  });
+}
+
+async function sendConfirmationEmail(name: string, email: string, signupNumber: number) {
+  const resend = getResend();
+  if (!resend) return;
+
+  await resend.emails.send({
+    from: "MaintainHome.ai <onboarding@resend.dev>",
+    to: email,
+    subject: "You're on the MaintainHome.ai waitlist!",
+    html: `
+      <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+        <h2 style="color:#1a1a2e">Hi ${name}, you're in! 🎉</h2>
+        <p>You're <strong>#${signupNumber}</strong> on the MaintainHome.ai waitlist and have locked in your <strong>50% early bird discount</strong> for life.</p>
+        <p>We'll reach out as soon as early access is ready.</p>
+        <p style="color:#888;font-size:13px">— The MaintainHome.ai Team</p>
+      </div>
+    `,
+  }).catch((err: Error) => {
+    console.error("Failed to send confirmation email:", err.message);
+  });
+}
+
 router.post("/waitlist", async (req, res) => {
+  if (req.body.website) {
+    res.status(200).json({ ok: true });
+    return;
+  }
+
   const parsed = JoinWaitlistBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid request body" });
@@ -40,6 +103,9 @@ router.post("/waitlist", async (req, res) => {
       signupNumber,
     })
     .returning();
+
+  sendOwnerNotification({ ...entry, zip: entry.zip, userType: entry.userType });
+  sendConfirmationEmail(entry.name, entry.email, entry.signupNumber);
 
   res.status(201).json({
     id: entry.id,
