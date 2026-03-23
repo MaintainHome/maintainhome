@@ -9,8 +9,15 @@ const router: IRouter = Router();
 
 function getResend(): Resend | null {
   const key = process.env.RESEND_API_KEY;
-  if (!key) return null;
+  if (!key) {
+    console.log("[email] RESEND_API_KEY not set — skipping email");
+    return null;
+  }
   return new Resend(key);
+}
+
+function getFromAddress(): string {
+  return process.env.RESEND_FROM_EMAIL ?? "MaintainHome.ai <onboarding@resend.dev>";
 }
 
 async function sendOwnerNotification(entry: {
@@ -22,10 +29,16 @@ async function sendOwnerNotification(entry: {
 }) {
   const resend = getResend();
   const ownerEmail = process.env.NOTIFY_EMAIL;
-  if (!resend || !ownerEmail) return;
+  if (!resend) return;
+  if (!ownerEmail) {
+    console.log("[email] NOTIFY_EMAIL not set — skipping owner notification");
+    return;
+  }
 
-  await resend.emails.send({
-    from: "MaintainHome.ai <onboarding@resend.dev>",
+  console.log(`[email] Sending owner notification to ${ownerEmail} for signup #${entry.signupNumber}`);
+
+  const result = await resend.emails.send({
+    from: getFromAddress(),
     to: ownerEmail,
     subject: `New waitlist signup #${entry.signupNumber} — ${entry.name}`,
     html: `
@@ -38,17 +51,23 @@ async function sendOwnerNotification(entry: {
         <tr><td style="padding:6px 12px;font-weight:bold">Type</td><td style="padding:6px 12px">${entry.userType ?? "—"}</td></tr>
       </table>
     `,
-  }).catch((err: Error) => {
-    console.error("Failed to send notification email:", err.message);
   });
+
+  if (result.error) {
+    console.error("[email] Owner notification failed:", JSON.stringify(result.error));
+  } else {
+    console.log("[email] Owner notification sent, id:", result.data?.id);
+  }
 }
 
 async function sendConfirmationEmail(name: string, email: string, signupNumber: number) {
   const resend = getResend();
   if (!resend) return;
 
-  await resend.emails.send({
-    from: "MaintainHome.ai <onboarding@resend.dev>",
+  console.log(`[email] Sending confirmation to ${email} for signup #${signupNumber}`);
+
+  const result = await resend.emails.send({
+    from: getFromAddress(),
     to: email,
     subject: "You're on the MaintainHome.ai waitlist!",
     html: `
@@ -59,13 +78,18 @@ async function sendConfirmationEmail(name: string, email: string, signupNumber: 
         <p style="color:#888;font-size:13px">— The MaintainHome.ai Team</p>
       </div>
     `,
-  }).catch((err: Error) => {
-    console.error("Failed to send confirmation email:", err.message);
   });
+
+  if (result.error) {
+    console.error("[email] Confirmation email failed:", JSON.stringify(result.error));
+  } else {
+    console.log("[email] Confirmation sent, id:", result.data?.id);
+  }
 }
 
 router.post("/waitlist", async (req, res) => {
   if (req.body.website) {
+    console.log("[honeypot] Bot submission blocked");
     res.status(200).json({ ok: true });
     return;
   }
@@ -103,6 +127,8 @@ router.post("/waitlist", async (req, res) => {
       signupNumber,
     })
     .returning();
+
+  console.log(`[waitlist] New signup #${signupNumber}: ${name} <${email}>`);
 
   sendOwnerNotification({ ...entry, zip: entry.zip, userType: entry.userType });
   sendConfirmationEmail(entry.name, entry.email, entry.signupNumber);
