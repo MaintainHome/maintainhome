@@ -68,56 +68,24 @@ router.post("/generate-calendar", async (req, res) => {
 
   console.log(`[calendar] Generating for ZIP ${zip} → ${state}, ${homeTypeLabel}, ${homeAgeLabel}`);
 
-  const systemPrompt = `You are MaintainHome AI, an expert 2026 home maintenance scheduler.
-User location: ${state}.
-Home age: ${homeAgeLabel}.
-Home type: ${homeTypeLabel}.
-Square footage: ${sqftLabel}.
-Pets/allergies: ${allergiesText}.
-Crawl space: ${crawlSpaceText}.
-Landscaping: ${landscapingLabel}.
+  const systemPrompt = `You are MaintainHome AI, a home maintenance scheduler.
+Location: ${state}. Home age: ${homeAgeLabel}. Type: ${homeTypeLabel}. Size: ${sqftLabel}. Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.
 
-Generate a personalized 12-month maintenance calendar adjusted for the specific climate, seasons, pests, and building practices of ${state}.
+Generate a 12-month maintenance calendar for ${state}. Spread tasks across all 12 months. Include 2-4 tasks per month maximum. Be CONCISE — keep "why" and "tip" fields under 15 words each.
 
-Always include these tasks with state-specific timing and tips:
-- Air filters (HVAC)
-- Roof and gutters inspection/cleaning
-- Crawl space moisture checks (especially important in humid states)
-- Smoke and CO detector batteries
-- Lawn care and natural area refresh (mulch, planting)
-- Exterior paint and siding inspection
-- Window seals and caulking
-- Major appliances (filters, vents, hoses)
+Distribute these across the year at state-appropriate times: HVAC filter changes, roof/gutter inspection, crawl space moisture check, smoke/CO detector batteries, lawn care, exterior inspection, window caulking, appliance maintenance.
 
-For each task include: month(s), difficulty (DIY or Pro), estimated cost range, 1-sentence why it matters in this state, short how-to tip.
+Output ONLY valid compact JSON, no markdown, no code fences:
+{"state":"${state}","calendar":[{"month":"January","tasks":[{"task":"string","difficulty":"DIY or Pro","cost":"$X-Y","why":"≤15 words","tip":"≤15 words"}]}],"big_ticket_alerts":["string"],"one_time_tasks":["string"]}
 
-Output ONLY valid JSON in this exact structure with no markdown, no code fences, no extra text:
-{
-  "state": "${state}",
-  "calendar": [
-    {
-      "month": "January",
-      "tasks": [
-        {
-          "task": "Task name",
-          "difficulty": "DIY",
-          "cost": "$20-40",
-          "why": "Why it matters in ${state}",
-          "tip": "Short how-to tip"
-        }
-      ]
-    }
-  ],
-  "big_ticket_alerts": ["alert1", "alert2"],
-  "one_time_tasks": ["task1", "task2"]
-}`;
+big_ticket_alerts: 3 items max. one_time_tasks: 3 items max.`;
 
   try {
     const anthropic = new Anthropic({ apiKey });
 
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: systemPrompt,
       messages: [
         { role: "user", content: "Generate my personalized home maintenance calendar." },
@@ -127,6 +95,12 @@ Output ONLY valid JSON in this exact structure with no markdown, no code fences,
     const text =
       message.content[0]?.type === "text" ? message.content[0].text : "";
 
+    if (message.stop_reason === "max_tokens") {
+      console.error("[calendar] Response truncated — hit max_tokens. Raw length:", text.length);
+      res.status(500).json({ error: "The AI response was too long and got cut off. Please try again — it usually works on retry." });
+      return;
+    }
+
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       console.error("[calendar] No JSON found in Claude response:", text.slice(0, 200));
@@ -134,7 +108,15 @@ Output ONLY valid JSON in this exact structure with no markdown, no code fences,
       return;
     }
 
-    const calendar = JSON.parse(jsonMatch[0]);
+    let calendar;
+    try {
+      calendar = JSON.parse(jsonMatch[0]);
+    } catch (parseErr) {
+      console.error("[calendar] JSON parse failed. stop_reason:", message.stop_reason, "text length:", text.length);
+      res.status(500).json({ error: "Failed to parse AI response. Please try again." });
+      return;
+    }
+
     console.log(`[calendar] Generated successfully for ${state}, ${calendar.calendar?.length ?? 0} months`);
     res.json(calendar);
   } catch (err: unknown) {
