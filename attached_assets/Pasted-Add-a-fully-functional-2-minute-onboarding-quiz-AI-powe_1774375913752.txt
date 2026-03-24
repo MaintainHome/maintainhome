@@ -1,0 +1,61 @@
+Add a fully functional 2-minute onboarding quiz + AI-powered personalized maintenance calendar to my landing page using Claude API.
+
+Create a new section or "Try the Demo" button below the waitlist form. When clicked, show a clean multi-step quiz (progress bar is nice but optional):
+
+Quiz fields (in order):
+1. ZIP Code (text input, required)
+2. Home age: New construction, Resale (built in last 10 years), Resale (10+ years old) 
+3. Home type: Single family house, Townhome, Condo/Apartment, Other
+4. Approx square footage (dropdown: Under 1500, 1500-2500, 2500-4000, Over 4000)
+5. Any pets or family members with allergies? (Yes/No + optional details)
+6. Does the home have a crawl space? (Yes/No)
+7. Lawn/landscaping type: Mostly grass, Natural areas/mulch beds, Minimal landscaping
+
+On form submit:
+- Use a free ZIP-to-state API (like https://api.zippopotam.us/us/{zip}) to detect the state.
+- Call the Anthropic Claude API using the secret ANTHROPIC_API_KEY.
+- Use model: claude-3-5-haiku-20241022 (fast and cheap)
+- Use this exact system prompt for Claude:
+
+"""
+You are MaintainHome AI, an expert 2026 home maintenance scheduler. 
+User location: [STATE]. 
+Home age: [new construction / resale / years]. 
+Home type: [type]. 
+Square footage: [sqft]. 
+Pets/allergies: [details]. 
+Crawl space: [yes/no]. 
+Landscaping: [type].
+
+Generate a personalized 12-month maintenance calendar adjusted for the specific climate, seasons, pests, and building practices of [STATE]. 
+
+Always include these tasks with state-specific timing and tips:
+- Air filters (HVAC)
+- Roof and gutters inspection/cleaning
+- Crawl space moisture checks (especially important in humid states)
+- Smoke and CO detector batteries
+- Lawn care and natural area refresh (mulch, planting)
+- Exterior paint and siding inspection
+- Window seals and caulking
+- Major appliances (filters, vents, hoses)
+
+For each task include: month(s), difficulty (DIY or Pro), estimated cost range, 1-sentence why it matters in this state, short how-to tip.
+
+Output ONLY valid JSON in this structure:
+{
+  "state": "North Carolina",
+  "calendar": [ array of monthly objects ],
+  "big_ticket_alerts": [array],
+  "one_time_tasks": [array]
+}
+"""
+
+- Parse the JSON response and display it nicely on a new results page/section with clean cards or a table.
+- Show month name, task list with icons if possible, cost, tip, and "Why it matters".
+- Add a "Generate New Calendar" button and a disclaimer at the bottom: "This is general information only and not professional advice. Always consult licensed professionals for your home."
+
+Make the UI clean, mobile-friendly, and match the existing design style (blue accents, modern cards). 
+
+Use fetch to call Claude. Handle loading state and basic errors. 
+
+After implementing, tell me how to test it on the live site.

@@ -1,15 +1,25 @@
 import { motion } from "framer-motion";
-import { Sparkles, ArrowRight, ShieldCheck, BellRing, MapPin } from "lucide-react";
+import { useState } from "react";
+import { Sparkles, ArrowRight, ShieldCheck, BellRing, MapPin, Zap } from "lucide-react";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { Features } from "@/components/Features";
+import { DemoQuiz } from "@/components/DemoQuiz";
 import { useGetWaitlistCount } from "@workspace/api-client-react";
 
 export default function Home() {
   const { data: waitlistData } = useGetWaitlistCount();
   const count = waitlistData?.count || 0;
+  const [showDemo, setShowDemo] = useState(false);
 
   const scrollToForm = () => {
     document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const scrollToDemo = () => {
+    setShowDemo(true);
+    setTimeout(() => {
+      document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   };
 
   return (
@@ -91,6 +101,13 @@ export default function Home() {
                     className="px-8 py-4 rounded-xl font-bold text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-1 active:translate-y-0"
                   >
                     Get Early Access
+                  </button>
+                  <button
+                    onClick={scrollToDemo}
+                    className="flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg border-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-300 hover:-translate-y-0.5"
+                  >
+                    <Zap className="w-5 h-5" />
+                    Try the AI Demo
                   </button>
                   
                   {count > 0 && (
@@ -181,11 +198,57 @@ export default function Home() {
         {/* Form Section */}
         <section id="waitlist-form" className="py-24 relative">
           <div className="absolute inset-0 bg-slate-900 z-0" />
-          {/* Subtle glow effect behind form */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-full max-h-96 bg-primary/20 blur-[120px] rounded-full z-0" />
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <WaitlistForm />
+          </div>
+        </section>
+
+        {/* Demo Section */}
+        <section id="demo-section" className="py-24 bg-gradient-to-b from-slate-50 to-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {!showDemo ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="text-center"
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-6">
+                  <Zap className="w-4 h-4" />
+                  Live AI Preview — No signup needed
+                </div>
+                <h2 className="text-4xl sm:text-5xl font-display font-black text-foreground mb-4">
+                  See it in action
+                </h2>
+                <p className="text-xl text-muted-foreground max-w-xl mx-auto mb-10">
+                  Answer 7 quick questions about your home and get a real AI-generated 12-month maintenance calendar — personalized to your state and climate.
+                </p>
+                <button
+                  onClick={() => setShowDemo(true)}
+                  className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-bold text-xl bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 hover:-translate-y-1"
+                >
+                  <Sparkles className="w-6 h-6" />
+                  Try the AI Demo
+                </button>
+                <p className="mt-4 text-sm text-slate-400">Takes about 2 minutes · Free · No account required</p>
+              </motion.div>
+            ) : (
+              <div>
+                <div className="text-center mb-10">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-4">
+                    <Zap className="w-4 h-4" />
+                    AI Demo
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-display font-black text-foreground">
+                    Your Personalized Home Calendar
+                  </h2>
+                </div>
+                <DemoQuiz />
+              </div>
+            )}
           </div>
         </section>
       </main>
