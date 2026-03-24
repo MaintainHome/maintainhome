@@ -44,13 +44,22 @@ export default function Home() {
               MaintainHome<span className="text-primary">.ai</span>
             </span>
           </a>
-          <button 
-            onClick={scrollToForm}
-            className="hidden sm:flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-slate-50"
-          >
-            Join Waitlist
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={scrollToDemo}
+              className="sm:hidden flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              Try it!
+            </button>
+            <button 
+              onClick={scrollToForm}
+              className="hidden sm:flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-slate-50"
+            >
+              Join Waitlist
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </nav>
 
