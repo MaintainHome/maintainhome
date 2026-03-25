@@ -27,6 +27,30 @@ const HOME_TYPE_LABELS: Record<string, string> = {
   other: "Other",
 };
 
+const ROOF_TYPE_LABELS: Record<string, string> = {
+  asphalt: "Asphalt shingles",
+  metal: "Metal roof",
+  tile: "Tile roof",
+  flat: "Flat roof",
+  other: "Other/Unknown",
+};
+
+const WATER_SOURCE_LABELS: Record<string, string> = {
+  municipal: "Municipal/city water",
+  well: "Private well",
+};
+
+const SEWER_LABELS: Record<string, string> = {
+  municipal: "Municipal sewer",
+  septic: "Septic system",
+};
+
+const PEST_LABELS: Record<string, string> = {
+  yes: "Yes, on a regular monthly/quarterly schedule",
+  no: "No pest prevention schedule",
+  not_sure: "Not sure",
+};
+
 const SQFT_LABELS: Record<string, string> = {
   under_1500: "Under 1,500 sq ft",
   "1500_2500": "1,500–2,500 sq ft",
@@ -40,8 +64,17 @@ const LANDSCAPING_LABELS: Record<string, string> = {
   minimal: "Minimal landscaping",
 };
 
+const CRAWL_SEALED_LABELS: Record<string, string> = {
+  yes: "Yes, sealed/encapsulated",
+  no: "No, open/vented",
+  not_sure: "Not sure",
+};
+
 router.post("/generate-calendar", async (req, res) => {
-  const { zip, homeAge, homeType, sqft, allergies, allergiesDetails, crawlSpace, landscaping } = req.body;
+  const {
+    zip, homeAge, homeType, roofType, waterSource, sewerSystem, pestSchedule,
+    sqft, allergies, allergiesDetails, crawlSpace, crawlSpaceSealed, landscaping,
+  } = req.body;
 
   if (!zip) {
     res.status(400).json({ error: "ZIP code is required" });
@@ -56,24 +89,39 @@ router.post("/generate-calendar", async (req, res) => {
   }
 
   const state = await getStateFromZip(zip) ?? "your state";
-  const homeAgeLabel = HOME_AGE_LABELS[homeAge] ?? homeAge ?? "Unknown";
-  const homeTypeLabel = HOME_TYPE_LABELS[homeType] ?? homeType ?? "Unknown";
-  const sqftLabel = SQFT_LABELS[sqft] ?? sqft ?? "Unknown";
-  const landscapingLabel = LANDSCAPING_LABELS[landscaping] ?? landscaping ?? "Unknown";
-  const allergiesText =
-    allergies === "yes"
-      ? `Yes${allergiesDetails ? ` — ${allergiesDetails}` : ""}`
-      : "No";
-  const crawlSpaceText = crawlSpace === "yes" ? "Yes" : "No";
+  const homeAgeLabel      = HOME_AGE_LABELS[homeAge]           ?? homeAge        ?? "Unknown";
+  const homeTypeLabel     = HOME_TYPE_LABELS[homeType]         ?? homeType       ?? "Unknown";
+  const roofTypeLabel     = ROOF_TYPE_LABELS[roofType]         ?? roofType       ?? "Unknown";
+  const waterSourceLabel  = WATER_SOURCE_LABELS[waterSource]   ?? waterSource    ?? "Unknown";
+  const sewerLabel        = SEWER_LABELS[sewerSystem]          ?? sewerSystem    ?? "Unknown";
+  const pestLabel         = PEST_LABELS[pestSchedule]          ?? pestSchedule   ?? "Unknown";
+  const sqftLabel         = SQFT_LABELS[sqft]                  ?? sqft           ?? "Unknown";
+  const landscapingLabel  = LANDSCAPING_LABELS[landscaping]    ?? landscaping    ?? "Unknown";
+  const allergiesText     = allergies === "yes"
+    ? `Yes${allergiesDetails ? ` — ${allergiesDetails}` : ""}`
+    : "No";
+  const crawlSpaceText    = crawlSpace === "yes"
+    ? `Yes (${CRAWL_SEALED_LABELS[crawlSpaceSealed] ?? "status unknown"})`
+    : "No";
 
-  console.log(`[calendar] Generating for ZIP ${zip} → ${state}, ${homeTypeLabel}, ${homeAgeLabel}`);
+  console.log(`[calendar] Generating for ZIP ${zip} → ${state}, ${homeTypeLabel}, ${homeAgeLabel}, roof: ${roofTypeLabel}`);
 
   const systemPrompt = `You are MaintainHome AI, a home maintenance scheduler.
-Location: ${state}. Home age: ${homeAgeLabel}. Type: ${homeTypeLabel}. Size: ${sqftLabel}. Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.
+Location: ${state}. Home age: ${homeAgeLabel}. Type: ${homeTypeLabel}. Roof: ${roofTypeLabel}. Size: ${sqftLabel}.
+Water: ${waterSourceLabel}. Sewer: ${sewerLabel}. Pest prevention: ${pestLabel}.
+Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.
 
 Generate a 12-month maintenance calendar for ${state}. Spread tasks across all 12 months. Include 2-4 tasks per month maximum. Be CONCISE — keep "why" and "tip" fields under 15 words each.
 
-Distribute these across the year at state-appropriate times: HVAC filter changes, roof/gutter inspection, crawl space moisture check, smoke/CO detector batteries, lawn care, exterior inspection, window caulking, appliance maintenance.
+Tailor tasks to their specific systems:
+- Roof type (${roofTypeLabel}): time inspections/cleaning to that roof material's needs
+- Water (${waterSourceLabel}): include well testing/pump checks if private well
+- Sewer (${sewerLabel}): include septic pumping/inspection if on septic system
+- Pest (${pestLabel}): adjust pest control tasks based on whether they already have a service
+- Crawl space (${crawlSpaceText}): include moisture/mold checks, and vapor barrier tasks if vented
+- Allergies: suggest HEPA filters or extra air quality tasks if yes
+
+Also distribute at state-appropriate times: HVAC filter changes, gutter cleaning, smoke/CO detector batteries, lawn care, exterior inspection, window caulking, appliance maintenance.
 
 Output ONLY valid compact JSON, no markdown, no code fences:
 {"state":"${state}","calendar":[{"month":"January","tasks":[{"task":"string","difficulty":"DIY or Pro","cost":"$X-Y","why":"≤15 words","tip":"≤15 words"}]}],"big_ticket_alerts":["string"],"one_time_tasks":["string"]}
