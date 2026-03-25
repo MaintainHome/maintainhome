@@ -243,7 +243,7 @@ export default function Home() {
                   See it in action
                 </h2>
                 <p className="text-xl text-muted-foreground max-w-xl mx-auto mb-10">
-                  Answer 7 quick questions about your home and get a real AI-generated 12-month maintenance calendar — personalized to your state and climate.
+                  Answer 11 quick questions about your home and get a real AI-generated 12-month maintenance calendar — personalized to your state and climate.
                 </p>
                 <button
                   onClick={() => setShowDemo(true)}
