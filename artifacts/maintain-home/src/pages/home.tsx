@@ -102,7 +102,7 @@ export default function Home() {
                 </div>
                 
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-black text-foreground leading-[1.1] mb-6 tracking-tight">
-                  AI-Powered<br/>
+                  Ai-Powered<br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
                     Personalized
                   </span><br/>
