@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign, Info, ChevronDown, ChevronUp } from "lucide-react";
+import { RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign, Info, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -137,40 +137,81 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
       )}
 
       {/* Monthly Calendar Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-4">
         {orderedMonths.map((month, idx) => {
-          const isCurrentMonth = month.month === currentMonth;
+          const isCurrentMonth = idx === 0;
+          const isNextMonth = idx === 1;
+          const isLocked = idx >= 2;
+
           return (
             <div
               key={month.month}
-              className={`rounded-2xl border p-5 ${
+              className={`relative rounded-2xl border overflow-hidden ${
                 isCurrentMonth
                   ? "border-primary/40 bg-primary/5 ring-2 ring-primary/20"
                   : "border-slate-200 bg-white"
               }`}
             >
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">{MONTH_EMOJIS[month.month] ?? "📅"}</span>
-                <div>
-                  <h4 className="font-bold text-slate-900">{month.month}</h4>
-                  {isCurrentMonth && (
-                    <span className="text-xs text-primary font-semibold">← This month</span>
+              {/* Card content — blurred when locked */}
+              <div className={`p-5 ${isLocked ? "blur-sm select-none pointer-events-none" : ""}`}>
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">{MONTH_EMOJIS[month.month] ?? "📅"}</span>
+                  <div>
+                    <h4 className="font-bold text-slate-900">{month.month}</h4>
+                    {isCurrentMonth && (
+                      <span className="text-xs text-primary font-semibold">← This month</span>
+                    )}
+                    {isNextMonth && (
+                      <span className="text-xs text-slate-400 font-medium">Up next</span>
+                    )}
+                  </div>
+                  <span className="ml-auto text-xs text-slate-400 font-medium">
+                    {month.tasks?.length ?? 0} task{(month.tasks?.length ?? 0) !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {month.tasks?.length > 0 ? (
+                    month.tasks.map((task, ti) => <TaskCard key={ti} task={task} />)
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">No major tasks this month.</p>
                   )}
                 </div>
-                <span className="ml-auto text-xs text-slate-400 font-medium">
-                  {month.tasks?.length ?? 0} task{(month.tasks?.length ?? 0) !== 1 ? "s" : ""}
-                </span>
               </div>
-              <div className="space-y-2">
-                {month.tasks?.length > 0 ? (
-                  month.tasks.map((task, ti) => <TaskCard key={ti} task={task} />)
-                ) : (
-                  <p className="text-sm text-slate-400 italic">No major tasks this month.</p>
-                )}
-              </div>
+
+              {/* Lock overlay for months 3–12 */}
+              {isLocked && (
+                <button
+                  onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-[2px] hover:bg-white/80 transition-colors cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shadow-sm">
+                    <Lock className="w-5 h-5 text-slate-500" />
+                  </div>
+                  <p className="text-sm font-bold text-slate-700 text-center px-4 leading-tight">
+                    Full schedule<br />with subscription
+                  </p>
+                </button>
+              )}
             </div>
           );
         })}
+      </div>
+
+      {/* Locked CTA banner */}
+      <div className="mb-8 bg-gradient-to-r from-primary/10 to-blue-500/10 border border-primary/20 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+          <Lock className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1">
+          <p className="font-bold text-slate-900">Unlock all 12 months + smart reminders</p>
+          <p className="text-sm text-slate-500">Join the waitlist for early access and lock in 50% off forever.</p>
+        </div>
+        <Button
+          onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })}
+          className="shrink-0 rounded-xl bg-primary hover:bg-primary/90 text-white px-6"
+        >
+          Join the Waitlist
+        </Button>
       </div>
 
       {/* One-Time Tasks */}
