@@ -75,25 +75,48 @@ export function AddToHomeScreen() {
         Add to Home Screen
       </button>
 
-      {/* Desktop inline message */}
+      {/* Desktop/fallback message — fixed modal so it's always fully visible */}
       <AnimatePresence>
         {showDesktopMsg && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            className="absolute top-full right-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-xl p-4 z-50 text-sm text-slate-700"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6"
+            onClick={(e) => e.target === e.currentTarget && setShowDesktopMsg(false)}
           >
-            <button
-              onClick={() => setShowDesktopMsg(false)}
-              className="absolute top-3 right-3 text-slate-300 hover:text-slate-500"
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl"
             >
-              <X className="w-4 h-4" />
-            </button>
-            <p className="font-semibold text-slate-900 mb-1">Install as an app</p>
-            <p className="text-slate-500 text-xs leading-relaxed">
-              Click the install icon <strong>⊕</strong> in your browser's address bar, or open your browser menu and choose <strong>"Install MaintainHome.ai"</strong>.
-            </p>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Download className="w-5 h-5 text-primary" />
+                  </div>
+                  <p className="font-bold text-slate-900">Install as an App</p>
+                </div>
+                <button
+                  onClick={() => setShowDesktopMsg(false)}
+                  className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-slate-600 text-sm leading-relaxed mb-5">
+                Look for the install icon <strong className="text-slate-800">⊕</strong> in your browser's address bar, or open the browser menu and choose{" "}
+                <strong className="text-slate-800">"Install MaintainHome.ai"</strong>.
+              </p>
+              <button
+                onClick={() => setShowDesktopMsg(false)}
+                className="w-full py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors"
+              >
+                Got it!
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
