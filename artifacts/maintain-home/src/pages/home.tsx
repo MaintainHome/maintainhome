@@ -101,7 +101,7 @@ export default function Home() {
                 className="max-w-2xl"
               >
                 {/* Mobile: Add to Home Screen button in hero */}
-                <div className="sm:hidden mb-5">
+                <div className="sm:hidden mb-5 flex justify-end">
                   <AddToHomeScreen />
                 </div>
 
