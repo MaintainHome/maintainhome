@@ -1,5 +1,9 @@
-import { motion } from "framer-motion";
-import { RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign, Info, ChevronDown, ChevronUp, Lock } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign,
+  Info, ChevronDown, ChevronUp, Lock, Check, FileDown, ClipboardList,
+  X, Pencil,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -34,25 +38,66 @@ interface CalendarResultsProps {
   onReset: () => void;
 }
 
-function TaskCard({ task }: { task: CalendarTask }) {
+// ─── Task Card ────────────────────────────────────────────────────────────────
+
+interface TaskCardProps {
+  task: CalendarTask;
+  taskKey: string;
+  isCompleted: boolean;
+  completionNote: string;
+  onMarkDone: (key: string, note: string) => void;
+  onUnmark: (key: string) => void;
+  showMarkDone: boolean;
+}
+
+function TaskCard({ task, taskKey, isCompleted, completionNote, onMarkDone, onUnmark, showMarkDone }: TaskCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [marking, setMarking] = useState(false);
+  const [noteText, setNoteText] = useState("");
   const isPro = task.difficulty?.toLowerCase().includes("pro");
 
+  const handleConfirm = () => {
+    onMarkDone(taskKey, noteText);
+    setMarking(false);
+    setNoteText("");
+  };
+
+  const handleCancel = () => {
+    setMarking(false);
+    setNoteText("");
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+    <div className={`rounded-xl border overflow-hidden shadow-sm transition-all duration-200 ${
+      isCompleted
+        ? "border-emerald-200 bg-emerald-50"
+        : "border-slate-100 bg-white"
+    }`}>
+      {/* Header row */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full text-left p-4 flex items-start gap-3 hover:bg-slate-50 transition-colors"
+        className={`w-full text-left p-4 flex items-start gap-3 transition-colors ${
+          isCompleted ? "hover:bg-emerald-100/60" : "hover:bg-slate-50"
+        }`}
       >
+        {/* Completion indicator */}
+        <div className={`shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+          isCompleted
+            ? "border-emerald-500 bg-emerald-500"
+            : "border-slate-300 bg-white"
+        }`}>
+          {isCompleted && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+        </div>
+
         <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className="font-semibold text-slate-900 text-sm">{task.task}</span>
-          </div>
+          <p className={`font-semibold text-sm leading-snug mb-1.5 ${
+            isCompleted ? "line-through text-slate-400" : "text-slate-900"
+          }`}>
+            {task.task}
+          </p>
           <div className="flex flex-wrap gap-2">
             <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${
-              isPro
-                ? "bg-orange-100 text-orange-700"
-                : "bg-emerald-100 text-emerald-700"
+              isPro ? "bg-orange-100 text-orange-700" : "bg-emerald-100 text-emerald-700"
             }`}>
               <Wrench className="w-3 h-3" />
               {task.difficulty || "DIY"}
@@ -63,34 +108,117 @@ function TaskCard({ task }: { task: CalendarTask }) {
                 {task.cost}
               </span>
             )}
+            {isCompleted && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                <Check className="w-3 h-3" />
+                Done
+              </span>
+            )}
           </div>
         </div>
-        {expanded ? (
-          <ChevronUp className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
-        )}
+
+        {expanded
+          ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
+          : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
+        }
       </button>
 
-      {expanded && (
-        <div className="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3">
-          {task.why && (
-            <div className="flex gap-2">
-              <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <p className="text-sm text-slate-600"><span className="font-medium text-slate-800">Why it matters:</span> {task.why}</p>
+      {/* Expanded detail */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 space-y-3 border-t border-slate-100 pt-3">
+              {task.why && (
+                <div className="flex gap-2">
+                  <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <p className="text-sm text-slate-600">
+                    <span className="font-medium text-slate-800">Why it matters:</span> {task.why}
+                  </p>
+                </div>
+              )}
+              {task.tip && (
+                <div className="flex gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                  <p className="text-sm text-slate-600">
+                    <span className="font-medium text-slate-800">Tip:</span> {task.tip}
+                  </p>
+                </div>
+              )}
+
+              {/* Completion note (if done) */}
+              {isCompleted && completionNote && (
+                <div className="flex gap-2 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5">
+                  <Pencil className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <p className="text-sm text-emerald-800">
+                    <span className="font-medium">Note:</span> {completionNote}
+                  </p>
+                </div>
+              )}
+
+              {/* Mark as Done / Unmark actions */}
+              {showMarkDone && !isCompleted && !marking && (
+                <button
+                  onClick={() => setMarking(true)}
+                  className="flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors mt-1"
+                >
+                  <Check className="w-4 h-4" />
+                  Mark as Done
+                </button>
+              )}
+
+              {showMarkDone && !isCompleted && marking && (
+                <div className="space-y-2">
+                  <textarea
+                    autoFocus
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder="Optional note (e.g. Hired ABC Co., cost $150)"
+                    rows={2}
+                    className="w-full text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleConfirm}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                      Confirm
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-sm font-medium transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {showMarkDone && isCompleted && (
+                <button
+                  onClick={() => onUnmark(taskKey)}
+                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-slate-600 transition-colors mt-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Unmark
+                </button>
+              )}
             </div>
-          )}
-          {task.tip && (
-            <div className="flex gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-slate-600"><span className="font-medium text-slate-800">Tip:</span> {task.tip}</p>
-            </div>
-          )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+// ─── Main Results Component ───────────────────────────────────────────────────
 
 export function CalendarResults({ data, onReset }: CalendarResultsProps) {
   const currentMonth = new Date().toLocaleString("default", { month: "long" });
@@ -98,6 +226,36 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
   const orderedMonths = currentMonthIndex >= 0
     ? [...data.calendar.slice(currentMonthIndex), ...data.calendar.slice(0, currentMonthIndex)]
     : (data.calendar ?? []);
+
+  // In-memory only — resets on page refresh intentionally
+  const [completedTasks, setCompletedTasks] = useState<Record<string, string>>({});
+  const [exportMsg, setExportMsg] = useState(false);
+
+  const handleMarkDone = (key: string, note: string) => {
+    setCompletedTasks(prev => ({ ...prev, [key]: note }));
+  };
+
+  const handleUnmark = (key: string) => {
+    setCompletedTasks(prev => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+  };
+
+  // Build history list for the demo history section
+  const historyItems: { month: string; task: string; note: string; key: string }[] = [];
+  orderedMonths.forEach((month, mIdx) => {
+    if (mIdx >= 2) return; // only unlocked months have mark-done
+    month.tasks?.forEach((task, tIdx) => {
+      const key = `${month.month}-${tIdx}`;
+      if (completedTasks[key] !== undefined) {
+        historyItems.push({ month: month.month, task: task.task, note: completedTasks[key], key });
+      }
+    });
+  });
+
+  const completedCount = Object.keys(completedTasks).length;
 
   return (
     <motion.div
@@ -115,12 +273,18 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
         <h3 className="text-3xl font-display font-bold text-foreground mb-2">
           Your 12-Month Home Calendar
         </h3>
-        <p className="text-muted-foreground">Click any task to see details, tips, and why it matters in {data.state}.</p>
+        <p className="text-muted-foreground">
+          Click any task to see details, tips, and why it matters in {data.state}.
+        </p>
+        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-xs text-amber-700 font-medium">
+          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+          Demo mode — completions reset when you refresh
+        </div>
       </div>
 
       {/* Big Ticket Alerts */}
       {data.big_ticket_alerts?.length > 0 && (
-        <div className="mb-8 bg-amber-50 border border-amber-200 rounded-2xl p-5">
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-5 h-5 text-amber-600" />
             <h4 className="font-bold text-amber-900">Big-Ticket Alerts for {data.state}</h4>
@@ -160,6 +324,7 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
           const isCurrentMonth = idx === 0;
           const isNextMonth = idx === 1;
           const isLocked = idx >= 2;
+          const showMarkDone = !isLocked;
 
           return (
             <div
@@ -172,6 +337,7 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
             >
               {/* Card content — blurred when locked */}
               <div className={`p-5 ${isLocked ? "blur-sm select-none pointer-events-none" : ""}`}>
+                {/* Month header */}
                 <div className="flex items-center gap-2 mb-4">
                   <span className="text-2xl">{MONTH_EMOJIS[month.month] ?? "📅"}</span>
                   <div>
@@ -183,13 +349,42 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
                       <span className="text-xs text-slate-400 font-medium">Up next</span>
                     )}
                   </div>
-                  <span className="ml-auto text-xs text-slate-400 font-medium">
-                    {month.tasks?.length ?? 0} task{(month.tasks?.length ?? 0) !== 1 ? "s" : ""}
-                  </span>
+                  <div className="ml-auto flex items-center gap-2">
+                    {showMarkDone && (() => {
+                      const doneInMonth = month.tasks?.filter((_, ti) =>
+                        completedTasks[`${month.month}-${ti}`] !== undefined
+                      ).length ?? 0;
+                      const total = month.tasks?.length ?? 0;
+                      return doneInMonth > 0 ? (
+                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          {doneInMonth}/{total} done
+                        </span>
+                      ) : null;
+                    })()}
+                    <span className="text-xs text-slate-400 font-medium">
+                      {month.tasks?.length ?? 0} task{(month.tasks?.length ?? 0) !== 1 ? "s" : ""}
+                    </span>
+                  </div>
                 </div>
+
+                {/* Task cards */}
                 <div className="space-y-2">
                   {month.tasks?.length > 0 ? (
-                    month.tasks.map((task, ti) => <TaskCard key={ti} task={task} />)
+                    month.tasks.map((task, ti) => {
+                      const key = `${month.month}-${ti}`;
+                      return (
+                        <TaskCard
+                          key={key}
+                          taskKey={key}
+                          task={task}
+                          isCompleted={completedTasks[key] !== undefined}
+                          completionNote={completedTasks[key] ?? ""}
+                          onMarkDone={handleMarkDone}
+                          onUnmark={handleUnmark}
+                          showMarkDone={showMarkDone}
+                        />
+                      );
+                    })
                   ) : (
                     <p className="text-sm text-slate-400 italic">No major tasks this month.</p>
                   )}
@@ -232,8 +427,71 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
         </Button>
       </div>
 
+      {/* ── Demo Maintenance History ── */}
+      <div className="mb-8 rounded-2xl border border-slate-200 overflow-hidden">
+        {/* Section header */}
+        <div className="flex items-center gap-3 px-5 py-4 bg-slate-50 border-b border-slate-200">
+          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
+            <ClipboardList className="w-4 h-4 text-slate-600" />
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-800 text-sm">Maintenance History</h4>
+            <p className="text-xs text-slate-500">Demo mode only</p>
+          </div>
+          {completedCount > 0 && (
+            <span className="ml-auto text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
+              {completedCount} completed
+            </span>
+          )}
+        </div>
+
+        {/* Demo disclaimer */}
+        <div className="flex items-center gap-2 px-5 py-3 bg-amber-50 border-b border-amber-100">
+          <span className="text-xs text-amber-700 font-medium">
+            ⚠ This is a demo — history resets when you refresh the page. Full history tracking available in the launched app.
+          </span>
+        </div>
+
+        {/* History list */}
+        {historyItems.length === 0 ? (
+          <div className="px-5 py-8 text-center">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
+              <CheckCircle2 className="w-5 h-5 text-slate-300" />
+            </div>
+            <p className="text-sm text-slate-400 font-medium">No tasks completed yet</p>
+            <p className="text-xs text-slate-400 mt-1">Click a task above and mark it as done to see it here.</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {historyItems.map((item) => (
+              <li key={item.key} className="flex items-start gap-3 px-5 py-3.5">
+                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                  <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-semibold text-primary">{item.month}</span>
+                    <span className="text-sm text-slate-700 font-medium">{item.task}</span>
+                  </div>
+                  {item.note && (
+                    <p className="text-xs text-slate-500 mt-0.5 italic">"{item.note}"</p>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleUnmark(item.key)}
+                  className="text-slate-300 hover:text-slate-500 transition-colors shrink-0 mt-0.5"
+                  title="Unmark"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
       {/* Actions */}
-      <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 justify-center mb-4">
         <Button
           onClick={onReset}
           variant="outline"
@@ -250,8 +508,23 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
         </Button>
       </div>
 
+      {/* Export for Resale — disabled demo button */}
+      <div className="flex flex-col items-center gap-2 mb-6">
+        <button
+          disabled
+          onClick={() => setExportMsg(true)}
+          className="flex items-center gap-2 h-10 px-5 rounded-xl border-2 border-dashed border-slate-300 text-slate-400 text-sm font-medium cursor-not-allowed opacity-70 hover:opacity-80 transition-opacity"
+        >
+          <FileDown className="w-4 h-4" />
+          Export for Resale (PDF / CSV)
+        </button>
+        <p className="text-xs text-slate-400 text-center">
+          Full export to PDF/CSV available in the launched app.
+        </p>
+      </div>
+
       {/* Disclaimer */}
-      <p className="text-xs text-center text-slate-400 max-w-2xl mx-auto leading-relaxed">
+      <p className="text-xs text-center text-slate-400 max-w-2xl mx-auto leading-relaxed mb-4">
         This is general information only and not professional advice. Always consult licensed professionals for your home. MaintainHome.ai is not responsible for any actions taken based on this calendar.
       </p>
     </motion.div>
