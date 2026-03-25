@@ -50,15 +50,15 @@ export default function Home() {
 
       {/* Navigation */}
       <nav className="w-full border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 sm:h-32 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-32 flex items-center justify-between">
+          <a href="/" className="flex items-center gap-1.5 sm:gap-3 hover:opacity-80 transition-opacity min-w-0 shrink">
             <img 
               src={`${import.meta.env.BASE_URL}images/logo-icon.png`} 
               alt="MaintainHome.ai Logo" 
-              className="w-12 h-12 sm:w-28 sm:h-28 object-contain"
+              className="w-8 h-8 sm:w-28 sm:h-28 object-contain shrink-0"
             />
             {/* Brand name — mobile + desktop */}
-            <span className="text-xl sm:text-4xl font-display font-bold text-foreground tracking-tight">
+            <span className="text-sm sm:text-4xl font-display font-bold text-foreground tracking-tight leading-tight">
               MaintainHome<span className="text-primary">.ai</span>
             </span>
           </a>
