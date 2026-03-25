@@ -30,11 +30,15 @@ async function sendMagicLinkEmail(
   magicLink: string,
 ) {
   const resend = getResend();
+  const isDev = process.env.NODE_ENV !== "production";
   const ownerEmail = process.env.NOTIFY_EMAIL;
   const greeting = name ? `Hi ${name},` : "Hi there,";
 
   if (resend) {
-    const toEmail = ownerEmail ?? email;
+    // In dev, route to owner email (Resend free-tier limitation).
+    // In production, always send to the actual user.
+    const toEmail = (isDev && ownerEmail) ? ownerEmail : email;
+    console.log(`[auth] Sending magic link email to: ${toEmail}${toEmail !== email ? ` (redirected from ${email})` : ""}`);
     const result = await resend.emails.send({
       from: getFromAddress(),
       to: toEmail,
