@@ -196,7 +196,7 @@ export default function Home() {
                 </h1>
                 
                 <p className="text-xl text-muted-foreground leading-relaxed mb-8 max-w-lg">
-                  Never forget air filters, smoke detector batteries, roof checks, crawl space moisture, lawn care & more. 
+                  Simplify home ownership. Never forget air filters, smoke detector batteries, roof checks, crawl space moisture, lawn care & more. 
                   <span className="font-semibold text-foreground"> Tailored specifically to your state and climate.</span>
                 </p>
 
