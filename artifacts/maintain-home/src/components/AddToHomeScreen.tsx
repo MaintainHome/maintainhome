@@ -69,10 +69,10 @@ export function AddToHomeScreen() {
       <button
         onClick={handleClick}
         title="Add to Home Screen"
-        className="flex items-center gap-1.5 px-3 py-2 sm:px-4 sm:py-2 rounded-xl border-2 border-primary/30 text-primary font-semibold text-xs sm:text-sm hover:bg-primary/5 hover:border-primary/60 transition-all duration-200 active:scale-95"
+        className="flex items-center gap-1.5 px-3 py-2.5 sm:px-4 sm:py-2 rounded-xl border-2 border-primary/30 text-primary font-semibold text-xs sm:text-sm hover:bg-primary/5 hover:border-primary/60 transition-all duration-200 active:scale-95 whitespace-nowrap"
       >
-        <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-        <span className="hidden xs:inline sm:inline">Install</span>
+        <Download className="w-3.5 h-3.5 shrink-0" />
+        Add to Home Screen
       </button>
 
       {/* Desktop inline message */}

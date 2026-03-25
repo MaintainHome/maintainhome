@@ -41,15 +41,17 @@ export default function Home() {
               alt="MaintainHome.ai Logo" 
               className="w-12 h-12 sm:w-28 sm:h-28 object-contain"
             />
-            <span className="text-2xl sm:text-4xl font-display font-bold text-foreground tracking-tight">
+            {/* Brand name — desktop only */}
+            <span className="hidden sm:inline text-4xl font-display font-bold text-foreground tracking-tight">
               MaintainHome<span className="text-primary">.ai</span>
             </span>
           </a>
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Mobile only: compact Try it! */}
+
+          <div className="flex items-center gap-3">
+            {/* Mobile: Try it! + Add to Home Screen, spaced evenly */}
             <button
               onClick={scrollToDemo}
-              className="sm:hidden flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
+              className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
             >
               <Zap className="w-3.5 h-3.5" />
               Try it!
@@ -103,7 +105,15 @@ export default function Home() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="max-w-2xl"
               >
-                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 text-primary text-base font-semibold mb-6 border border-primary/20">
+                {/* Mobile: brand name in hero */}
+                <div className="sm:hidden mb-5 text-center">
+                  <span className="text-3xl font-display font-bold text-foreground tracking-tight">
+                    MaintainHome<span className="text-primary">.ai</span>
+                  </span>
+                </div>
+
+                {/* Desktop: green badge */}
+                <div className="hidden sm:inline-flex items-center gap-3 px-6 py-3 rounded-full bg-primary/10 text-primary text-base font-semibold mb-6 border border-primary/20">
                   <ShieldCheck className="w-5 h-5" />
                   Prevent costly repairs before they happen
                 </div>
