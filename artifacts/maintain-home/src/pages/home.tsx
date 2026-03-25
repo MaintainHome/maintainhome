@@ -97,7 +97,7 @@ export default function Home() {
                 className="sm:hidden flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-colors"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                Sign In
+                Sign Up
               </button>
             )}
 
@@ -113,6 +113,9 @@ export default function Home() {
             {/* Desktop auth */}
             {user ? (
               <div className="hidden sm:flex items-center gap-2">
+                <span className="text-sm font-semibold text-slate-700 px-2">
+                  Hi {user.name ? user.name.split(" ")[0] : user.email.split("@")[0]}
+                </span>
                 <button
                   onClick={() => navigate("/history")}
                   className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline px-3 py-2"
@@ -120,9 +123,6 @@ export default function Home() {
                   <ClipboardList className="w-4 h-4" />
                   My Log
                 </button>
-                <span className="text-slate-300 text-xs hidden lg:block truncate max-w-[140px]" title={user.email}>
-                  {user.email}
-                </span>
                 <button
                   onClick={logout}
                   className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
@@ -132,22 +132,13 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <>
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors px-3 py-2 rounded-lg hover:bg-slate-50"
-                >
-                  <User className="w-4 h-4" />
-                  Sign In
-                </button>
-                <button
-                  onClick={scrollToForm}
-                  className="hidden sm:flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-slate-50"
-                >
-                  Join Waitlist
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </>
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
+              >
+                <User className="w-4 h-4" />
+                Sign Up / Sign In
+              </button>
             )}
           </div>
         </div>
@@ -396,7 +387,7 @@ export default function Home() {
           exit={{ opacity: 0, y: -20 }}
           className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-2xl shadow-xl text-sm font-semibold"
         >
-          <span>👋 Welcome back, {user.email}!</span>
+          <span>👋 Welcome{user.name ? `, ${user.name.split(" ")[0]}` : " back"}! You're signed in.</span>
           <button onClick={() => setWelcomeBanner(false)} className="ml-2 opacity-70 hover:opacity-100">✕</button>
         </motion.div>
       )}

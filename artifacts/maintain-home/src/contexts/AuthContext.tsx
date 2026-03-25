@@ -3,6 +3,8 @@ import { createContext, useContext, useState, useEffect, useCallback, type React
 export interface AuthUser {
   id: number;
   email: string;
+  name: string | null;
+  zipCode: string | null;
 }
 
 interface AuthContextType {

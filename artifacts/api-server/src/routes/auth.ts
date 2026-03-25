@@ -23,29 +23,18 @@ function getBaseUrl(req: Request): string {
   return `${proto}://${host}`;
 }
 
-router.post("/auth/request-link", async (req: Request, res: Response) => {
-  const { email } = req.body;
-  if (!email || typeof email !== "string" || !email.includes("@")) {
-    res.status(400).json({ error: "Valid email address required" });
-    return;
-  }
-
-  const normalizedEmail = email.toLowerCase().trim();
-  const token = crypto.randomBytes(32).toString("hex");
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
-  await db.insert(magicLinkTokensTable).values({ email: normalizedEmail, token, expiresAt });
-
-  const baseUrl = getBaseUrl(req);
-  const magicLink = `${baseUrl}/api/auth/verify?token=${token}`;
-
-  console.log(`[auth] Magic link for ${normalizedEmail}: ${magicLink}`);
-
+async function sendMagicLinkEmail(
+  req: Request,
+  email: string,
+  name: string | null,
+  magicLink: string,
+) {
   const resend = getResend();
   const ownerEmail = process.env.NOTIFY_EMAIL;
+  const greeting = name ? `Hi ${name},` : "Hi there,";
 
   if (resend) {
-    const toEmail = ownerEmail ?? normalizedEmail;
+    const toEmail = ownerEmail ?? email;
     const result = await resend.emails.send({
       from: getFromAddress(),
       to: toEmail,
@@ -54,7 +43,7 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
         <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
           <img src="https://maintainhome.ai/images/logo-icon.png" alt="MaintainHome.ai" style="width:48px;height:48px;margin-bottom:16px" />
           <h2 style="color:#1a1a2e;margin-bottom:8px">Sign in to MaintainHome.ai</h2>
-          <p style="color:#555">Click the button below to sign in to your account. This link expires in 15 minutes.</p>
+          <p style="color:#555">${greeting} Click the button below to sign in. This link expires in 15 minutes.</p>
           <a href="${magicLink}" style="display:inline-block;padding:14px 28px;background:#1f9e6e;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:20px 0">
             Sign In Now
           </a>
@@ -68,6 +57,77 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
       console.log("[auth] Email sent, id:", result.data?.id);
     }
   }
+}
+
+// Check if email is registered (used by frontend two-step flow)
+router.post("/auth/check-email", async (req: Request, res: Response) => {
+  const { email } = req.body;
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    res.status(400).json({ error: "Valid email required" });
+    return;
+  }
+  const normalizedEmail = email.toLowerCase().trim();
+  const [existing] = await db
+    .select({ id: usersTable.id })
+    .from(usersTable)
+    .where(eq(usersTable.email, normalizedEmail))
+    .limit(1);
+  res.json({ exists: !!existing });
+});
+
+// Request magic link — accepts optional name + zipCode for new signups
+router.post("/auth/request-link", async (req: Request, res: Response) => {
+  const { email, name, zipCode } = req.body;
+  if (!email || typeof email !== "string" || !email.includes("@")) {
+    res.status(400).json({ error: "Valid email address required" });
+    return;
+  }
+
+  const normalizedEmail = email.toLowerCase().trim();
+  const trimmedName = typeof name === "string" ? name.trim() : null;
+  const trimmedZip = typeof zipCode === "string" ? zipCode.trim() : null;
+
+  // Look up existing user
+  let [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.email, normalizedEmail))
+    .limit(1);
+
+  if (!user) {
+    // New user — name is required
+    if (!trimmedName) {
+      res.json({ needsProfile: true });
+      return;
+    }
+    [user] = await db
+      .insert(usersTable)
+      .values({ email: normalizedEmail, name: trimmedName, zipCode: trimmedZip })
+      .returning();
+    console.log(`[auth] New user created: ${normalizedEmail} (${trimmedName})`);
+  } else {
+    // Returning user — update name/zip if provided
+    if (trimmedName || trimmedZip) {
+      await db
+        .update(usersTable)
+        .set({
+          ...(trimmedName ? { name: trimmedName } : {}),
+          ...(trimmedZip ? { zipCode: trimmedZip } : {}),
+        })
+        .where(eq(usersTable.id, user.id));
+    }
+    console.log(`[auth] Existing user requesting link: ${normalizedEmail}`);
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+  await db.insert(magicLinkTokensTable).values({ email: normalizedEmail, token, expiresAt });
+
+  const baseUrl = getBaseUrl(req);
+  const magicLink = `${baseUrl}/api/auth/verify?token=${token}`;
+  console.log(`[auth] Magic link for ${normalizedEmail}: ${magicLink}`);
+
+  await sendMagicLinkEmail(req, normalizedEmail, user.name ?? trimmedName, magicLink);
 
   const isDev = process.env.NODE_ENV !== "production";
   res.json({
@@ -116,7 +176,7 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
 
   if (!user) {
     [user] = await db.insert(usersTable).values({ email: linkRecord.email }).returning();
-    console.log(`[auth] New user created: ${linkRecord.email}`);
+    console.log(`[auth] New user created via verify: ${linkRecord.email}`);
   } else {
     console.log(`[auth] Existing user signed in: ${linkRecord.email}`);
   }
@@ -141,8 +201,17 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
   res.redirect(`${baseUrl}/?loggedIn=1`);
 });
 
-router.get("/auth/me", requireAuth as any, (req: AuthRequest, res: Response) => {
-  res.json({ id: req.userId, email: req.userEmail });
+router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const [user] = await db
+    .select({ id: usersTable.id, email: usersTable.email, name: usersTable.name, zipCode: usersTable.zipCode })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.userId!))
+    .limit(1);
+  if (!user) {
+    res.status(401).json({ error: "User not found" });
+    return;
+  }
+  res.json(user);
 });
 
 router.post("/auth/logout", requireAuth as any, async (req: AuthRequest, res: Response) => {
