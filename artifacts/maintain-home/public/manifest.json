@@ -1,0 +1,24 @@
+{
+  "name": "MaintainHome.ai",
+  "short_name": "MaintainHome",
+  "description": "AI-Powered Home Maintenance Reminders — personalized to your state and climate.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f9e6e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "images/logo-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "images/logo-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
