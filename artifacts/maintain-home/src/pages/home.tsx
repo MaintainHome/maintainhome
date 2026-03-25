@@ -101,12 +101,12 @@ export default function Home() {
                   Prevent costly repairs before they happen
                 </div>
                 
-                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-black text-foreground leading-[1.1] mb-6 tracking-tight">
-                  Ai-Powered <br/>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-black text-foreground leading-[1.1] mb-6 tracking-tight">
+                  AI-Powered<br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
                     Personalized
                   </span><br/>
-                  Home Reminders.
+                  Home Care Plan & Reminders.
                 </h1>
                 
                 <p className="text-xl text-muted-foreground leading-relaxed mb-8 max-w-lg">
