@@ -136,6 +136,24 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
         </div>
       )}
 
+      {/* One-Time Tasks */}
+      {data.one_time_tasks?.length > 0 && (
+        <div className="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 className="w-5 h-5 text-blue-600" />
+            <h4 className="font-bold text-blue-900">One-Time Setup Tasks</h4>
+          </div>
+          <ul className="space-y-2">
+            {data.one_time_tasks.map((task, i) => (
+              <li key={i} className="flex gap-2 text-sm text-blue-800">
+                <span className="text-blue-500 font-bold shrink-0">•</span>
+                {task}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Monthly Calendar Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-4">
         {orderedMonths.map((month, idx) => {
@@ -213,24 +231,6 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
           Join the Waitlist
         </Button>
       </div>
-
-      {/* One-Time Tasks */}
-      {data.one_time_tasks?.length > 0 && (
-        <div className="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <CheckCircle2 className="w-5 h-5 text-blue-600" />
-            <h4 className="font-bold text-blue-900">One-Time Setup Tasks</h4>
-          </div>
-          <ul className="space-y-2">
-            {data.one_time_tasks.map((task, i) => (
-              <li key={i} className="flex gap-2 text-sm text-blue-800">
-                <span className="text-blue-500 font-bold shrink-0">•</span>
-                {task}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-center mb-6">
