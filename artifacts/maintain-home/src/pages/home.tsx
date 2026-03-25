@@ -106,7 +106,7 @@ export default function Home() {
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
                     Personalized
                   </span><br/>
-                  Home Care Plan & Reminders.
+                  Home Care Plan<br/>with Reminders.
                 </h1>
                 
                 <p className="text-xl text-muted-foreground leading-relaxed mb-8 max-w-lg">
