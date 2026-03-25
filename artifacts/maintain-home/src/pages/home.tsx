@@ -19,8 +19,8 @@ export default function Home() {
   const scrollToDemo = () => {
     setShowDemo(true);
     setTimeout(() => {
-      document.getElementById('demo-section')?.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
+      document.getElementById('quiz-start')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
   };
 
   return (
@@ -256,7 +256,7 @@ export default function Home() {
                   Answer 11 quick questions about your home and get a real AI-generated 12-month maintenance calendar — personalized to your state and climate.
                 </p>
                 <button
-                  onClick={() => setShowDemo(true)}
+                  onClick={scrollToDemo}
                   className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-bold text-xl bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 hover:-translate-y-1"
                 >
                   <Sparkles className="w-6 h-6" />
@@ -275,7 +275,9 @@ export default function Home() {
                     Your Personalized Home Calendar
                   </h2>
                 </div>
-                <DemoQuiz />
+                <div id="quiz-start">
+                  <DemoQuiz />
+                </div>
               </div>
             )}
           </div>
