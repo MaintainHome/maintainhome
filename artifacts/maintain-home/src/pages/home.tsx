@@ -1,16 +1,32 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { Sparkles, ArrowRight, ShieldCheck, BellRing, MapPin, Zap } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Sparkles, ArrowRight, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn } from "lucide-react";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { Features } from "@/components/Features";
 import { DemoQuiz } from "@/components/DemoQuiz";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
+import { AuthModal } from "@/components/AuthModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { useGetWaitlistCount } from "@workspace/api-client-react";
+import { useLocation } from "wouter";
 
 export default function Home() {
   const { data: waitlistData } = useGetWaitlistCount();
   const count = waitlistData?.count || 0;
   const [showDemo, setShowDemo] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [welcomeBanner, setWelcomeBanner] = useState(false);
+  const { user, logout, refreshUser } = useAuth();
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("loggedIn") === "1") {
+      refreshUser().then(() => setWelcomeBanner(true));
+      window.history.replaceState({}, "", window.location.pathname);
+      setTimeout(() => setWelcomeBanner(false), 6000);
+    }
+  }, []);
 
   const scrollToForm = () => {
     document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -47,8 +63,8 @@ export default function Home() {
             </span>
           </a>
 
-          <div className="flex items-center gap-3">
-            {/* Mobile only: Try it! at far right */}
+          <div className="flex items-center gap-2">
+            {/* Mobile only: Try it! */}
             <button
               onClick={scrollToDemo}
               className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
@@ -56,6 +72,34 @@ export default function Home() {
               <Zap className="w-3.5 h-3.5" />
               Try it!
             </button>
+
+            {/* Mobile auth: icon button */}
+            {user ? (
+              <div className="sm:hidden flex items-center gap-1">
+                <button
+                  onClick={() => navigate("/history")}
+                  title="My Maintenance Log"
+                  className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
+                >
+                  <ClipboardList className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={logout}
+                  title="Sign Out"
+                  className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAuthModal(true)}
+                className="sm:hidden flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-colors"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                Sign In
+              </button>
+            )}
 
             {/* Desktop only: full demo CTA */}
             <button
@@ -65,14 +109,46 @@ export default function Home() {
               <Zap className="w-4 h-4" />
               Test Free Demo Now
             </button>
-            {/* Desktop only: waitlist link */}
-            <button 
-              onClick={scrollToForm}
-              className="hidden sm:flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-slate-50"
-            >
-              Join Waitlist
-              <ArrowRight className="w-4 h-4" />
-            </button>
+
+            {/* Desktop auth */}
+            {user ? (
+              <div className="hidden sm:flex items-center gap-2">
+                <button
+                  onClick={() => navigate("/history")}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline px-3 py-2"
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  My Log
+                </button>
+                <span className="text-slate-300 text-xs hidden lg:block truncate max-w-[140px]" title={user.email}>
+                  {user.email}
+                </span>
+                <button
+                  onClick={logout}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors px-3 py-2 rounded-lg hover:bg-slate-50"
+                >
+                  <User className="w-4 h-4" />
+                  Sign In
+                </button>
+                <button
+                  onClick={scrollToForm}
+                  className="hidden sm:flex items-center gap-2 text-sm font-semibold text-foreground hover:text-primary transition-colors px-4 py-2 rounded-lg hover:bg-slate-50"
+                >
+                  Join Waitlist
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -309,6 +385,21 @@ export default function Home() {
           </div>
         </div>
       </footer>
+      {/* Auth Modal */}
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+
+      {/* Welcome banner after login */}
+      {welcomeBanner && user && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-2xl shadow-xl text-sm font-semibold"
+        >
+          <span>👋 Welcome back, {user.email}!</span>
+          <button onClick={() => setWelcomeBanner(false)} className="ml-2 opacity-70 hover:opacity-100">✕</button>
+        </motion.div>
+      )}
     </div>
   );
 }

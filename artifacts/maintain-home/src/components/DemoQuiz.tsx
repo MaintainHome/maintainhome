@@ -182,7 +182,7 @@ export function DemoQuiz() {
   };
 
   if (results) {
-    return <CalendarResults data={results} onReset={reset} />;
+    return <CalendarResults data={results} onReset={reset} quizAnswers={answers} />;
   }
 
   const activeSteps = getActiveSteps(answers);

@@ -2,10 +2,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign,
   Info, ChevronDown, ChevronUp, Lock, Check, FileDown, ClipboardList,
-  X, Pencil,
+  X, Pencil, BookOpen,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "wouter";
 
 const MONTH_EMOJIS: Record<string, string> = {
   January: "❄️", February: "🌨️", March: "🌱", April: "🌧️",
@@ -36,6 +38,7 @@ interface CalendarData {
 interface CalendarResultsProps {
   data: CalendarData;
   onReset: () => void;
+  quizAnswers?: Record<string, string>;
 }
 
 // ─── Task Card ────────────────────────────────────────────────────────────────
@@ -220,27 +223,73 @@ function TaskCard({ task, taskKey, isCompleted, completionNote, onMarkDone, onUn
 
 // ─── Main Results Component ───────────────────────────────────────────────────
 
-export function CalendarResults({ data, onReset }: CalendarResultsProps) {
+export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsProps) {
   const currentMonth = new Date().toLocaleString("default", { month: "long" });
   const currentMonthIndex = data.calendar?.findIndex(m => m.month === currentMonth);
   const orderedMonths = currentMonthIndex >= 0
     ? [...data.calendar.slice(currentMonthIndex), ...data.calendar.slice(0, currentMonthIndex)]
     : (data.calendar ?? []);
 
-  // In-memory only — resets on page refresh intentionally
-  const [completedTasks, setCompletedTasks] = useState<Record<string, string>>({});
-  const [exportMsg, setExportMsg] = useState(false);
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
 
-  const handleMarkDone = (key: string, note: string) => {
+  const [completedTasks, setCompletedTasks] = useState<Record<string, string>>({});
+  const [logEntryIds, setLogEntryIds] = useState<Record<string, number>>({});
+  const [exportMsg, setExportMsg] = useState(false);
+  const calendarSavedRef = useRef(false);
+
+  // Save calendar to account on mount (logged-in users only, once per generation)
+  useEffect(() => {
+    if (!user || calendarSavedRef.current) return;
+    calendarSavedRef.current = true;
+    fetch("/api/user/calendar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ quizAnswers: quizAnswers ?? {}, calendarData: data }),
+    }).catch(() => {});
+  }, [user]);
+
+  const handleMarkDone = async (key: string, note: string) => {
     setCompletedTasks(prev => ({ ...prev, [key]: note }));
+    if (!user) return;
+    // Parse key: "MonthName-taskIndex"
+    const dashIdx = key.lastIndexOf("-");
+    const month = key.slice(0, dashIdx);
+    const taskIdx = parseInt(key.slice(dashIdx + 1));
+    const monthData = data.calendar?.find(m => m.month === month);
+    const taskName = monthData?.tasks?.[taskIdx]?.task ?? key;
+    const zipCode = (quizAnswers as any)?.zip ?? null;
+    try {
+      const res = await fetch("/api/user/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ taskName, taskKey: key, month, notes: note || null, zipCode }),
+      });
+      if (res.ok) {
+        const entry = await res.json();
+        setLogEntryIds(prev => ({ ...prev, [key]: entry.id }));
+      }
+    } catch {}
   };
 
-  const handleUnmark = (key: string) => {
+  const handleUnmark = async (key: string) => {
     setCompletedTasks(prev => {
       const next = { ...prev };
       delete next[key];
       return next;
     });
+    if (!user) return;
+    const entryId = logEntryIds[key];
+    if (entryId) {
+      fetch(`/api/user/log/${entryId}`, { method: "DELETE", credentials: "include" }).catch(() => {});
+      setLogEntryIds(prev => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
   };
 
   // Build history list for the demo history section
@@ -276,10 +325,17 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
         <p className="text-muted-foreground">
           Click any task to see details, tips, and why it matters in {data.state}.
         </p>
-        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-xs text-amber-700 font-medium">
-          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          Demo mode — completions reset when you refresh
-        </div>
+        {user ? (
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-xs text-emerald-700 font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            Saved to your account — completions persist forever
+          </div>
+        ) : (
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-xs text-amber-700 font-medium">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            Demo mode — completions reset when you refresh
+          </div>
+        )}
       </div>
 
       {/* Big Ticket Alerts */}
@@ -427,39 +483,47 @@ export function CalendarResults({ data, onReset }: CalendarResultsProps) {
         </Button>
       </div>
 
-      {/* ── Demo Maintenance History ── */}
+      {/* ── Maintenance History ── */}
       <div className="mb-8 rounded-2xl border border-slate-200 overflow-hidden">
-        {/* Section header */}
         <div className="flex items-center gap-3 px-5 py-4 bg-slate-50 border-b border-slate-200">
           <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
             <ClipboardList className="w-4 h-4 text-slate-600" />
           </div>
           <div>
             <h4 className="font-bold text-slate-800 text-sm">Maintenance History</h4>
-            <p className="text-xs text-slate-500">Demo mode only</p>
+            <p className="text-xs text-slate-500">{user ? "Saved to your account" : "Demo mode only"}</p>
           </div>
           {completedCount > 0 && (
             <span className="ml-auto text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
               {completedCount} completed
             </span>
           )}
+          {user && completedCount > 0 && (
+            <button
+              onClick={() => navigate("/history")}
+              className="flex items-center gap-1 text-xs text-primary font-semibold hover:underline ml-2"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              View All
+            </button>
+          )}
         </div>
 
-        {/* Demo disclaimer */}
-        <div className="flex items-center gap-2 px-5 py-3 bg-amber-50 border-b border-amber-100">
-          <span className="text-xs text-amber-700 font-medium">
-            ⚠ This is a demo — history resets when you refresh the page. Full history tracking available in the launched app.
-          </span>
-        </div>
+        {!user && (
+          <div className="flex items-center gap-2 px-5 py-3 bg-amber-50 border-b border-amber-100">
+            <span className="text-xs text-amber-700 font-medium">
+              ⚠ Demo — history resets on refresh. <button onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })} className="underline">Sign in</button> to save permanently.
+            </span>
+          </div>
+        )}
 
-        {/* History list */}
         {historyItems.length === 0 ? (
           <div className="px-5 py-8 text-center">
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 className="w-5 h-5 text-slate-300" />
             </div>
             <p className="text-sm text-slate-400 font-medium">No tasks completed yet</p>
-            <p className="text-xs text-slate-400 mt-1">Click a task above and mark it as done to see it here.</p>
+            <p className="text-xs text-slate-400 mt-1">Click any task above and mark it as done to see it here.</p>
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
