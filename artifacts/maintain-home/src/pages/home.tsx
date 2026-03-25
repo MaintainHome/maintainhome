@@ -41,14 +41,14 @@ export default function Home() {
               alt="MaintainHome.ai Logo" 
               className="w-12 h-12 sm:w-28 sm:h-28 object-contain"
             />
-            {/* Brand name — desktop only */}
-            <span className="hidden sm:inline text-4xl font-display font-bold text-foreground tracking-tight">
+            {/* Brand name — mobile + desktop */}
+            <span className="text-xl sm:text-4xl font-display font-bold text-foreground tracking-tight">
               MaintainHome<span className="text-primary">.ai</span>
             </span>
           </a>
 
           <div className="flex items-center gap-3">
-            {/* Mobile: Try it! + Add to Home Screen, spaced evenly */}
+            {/* Mobile only: Try it! at far right */}
             <button
               onClick={scrollToDemo}
               className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
@@ -56,11 +56,6 @@ export default function Home() {
               <Zap className="w-3.5 h-3.5" />
               Try it!
             </button>
-
-            {/* Install / Add to Home Screen — smart per platform */}
-            <div className="relative">
-              <AddToHomeScreen />
-            </div>
 
             {/* Desktop only: full demo CTA */}
             <button
@@ -105,11 +100,9 @@ export default function Home() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="max-w-2xl"
               >
-                {/* Mobile: brand name in hero */}
-                <div className="sm:hidden mb-5 text-center">
-                  <span className="text-3xl font-display font-bold text-foreground tracking-tight">
-                    MaintainHome<span className="text-primary">.ai</span>
-                  </span>
+                {/* Mobile: Add to Home Screen button in hero */}
+                <div className="sm:hidden mb-5">
+                  <AddToHomeScreen />
                 </div>
 
                 {/* Desktop: green badge */}
