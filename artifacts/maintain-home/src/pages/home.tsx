@@ -101,7 +101,7 @@ export default function Home() {
                 {userIsPro && (
                   <button
                     onClick={() => setShowAIChat(true)}
-                    title="Ask MaintainHome AI"
+                    title="Ask Maintly"
                     className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors shadow-sm"
                   >
                     <MessageCircle className="w-4 h-4" />
@@ -163,7 +163,7 @@ export default function Home() {
                     className="flex items-center gap-1.5 text-sm font-semibold text-white bg-primary hover:bg-primary/90 px-3 py-2 rounded-xl transition-colors shadow-sm"
                   >
                     <MessageCircle className="w-4 h-4" />
-                    Ask AI
+                    Ask Maintly
                   </button>
                 )}
                 <button

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Send, Bot, User, Loader2, MessageCircle, Zap, ChevronRight,
+  X, Send, User, Loader2, Zap, ChevronRight, Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth, isPro } from "@/contexts/AuthContext";
@@ -19,12 +19,22 @@ interface AIChatModalProps {
 }
 
 const STARTER_QUESTIONS = [
-  "My HVAC is making a strange noise — what should I check?",
-  "How often should I inspect my crawl space?",
-  "When should I replace my roof shingles?",
-  "What maintenance does a septic system need?",
-  "How do I know if my water heater needs replacing?",
+  "My HVAC is making a strange noise — what should I check first?",
+  "How do I know when it's time to replace my water heater?",
+  "What's the best way to prep my home before winter?",
+  "How often should I check my crawl space for moisture?",
+  "My roof is 15 years old — what should I be watching for?",
 ];
+
+function MaintlyAvatar({ size = "sm" }: { size?: "sm" | "lg" }) {
+  const dim = size === "lg" ? "w-14 h-14" : "w-7 h-7";
+  const icon = size === "lg" ? "w-7 h-7" : "w-3.5 h-3.5";
+  return (
+    <div className={`${dim} rounded-full bg-primary flex items-center justify-center shrink-0`}>
+      <Wrench className={`${icon} text-white`} />
+    </div>
+  );
+}
 
 export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) {
   const { user } = useAuth();
@@ -36,19 +46,16 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus input when opened
   useEffect(() => {
     if (isOpen && userIsPro) {
       setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [isOpen, userIsPro]);
 
-  // Clear chat when closed
   useEffect(() => {
     if (!isOpen) {
       abortRef.current?.abort();
@@ -65,7 +72,6 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
     setInput("");
     setIsStreaming(true);
 
-    // Add placeholder assistant message
     const assistantPlaceholder: Message = { role: "assistant", content: "", streaming: true };
     setMessages([...updatedHistory, assistantPlaceholder]);
 
@@ -128,7 +134,6 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
         }
       }
 
-      // Finalize message
       setMessages((prev) => [
         ...prev.slice(0, -1),
         { role: "assistant", content: fullContent },
@@ -178,17 +183,17 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-primary/5 to-blue-500/5 shrink-0">
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Bot className="w-5 h-5 text-primary" />
+              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
+                <Wrench className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-slate-900 text-sm leading-tight">MaintainHome AI</h2>
+                <h2 className="font-bold text-slate-900 text-sm leading-tight">Maintly</h2>
                 <p className="text-xs text-slate-500 truncate">
                   {quizAnswers?.zip
-                    ? `Personalized for your home · ZIP ${quizAnswers.zip}`
+                    ? `Your home maintenance assistant · ZIP ${quizAnswers.zip}`
                     : user?.zipCode
-                    ? `Personalized for ZIP ${user.zipCode}`
-                    : "Your home maintenance expert"}
+                    ? `Your home maintenance assistant · ZIP ${user.zipCode}`
+                    : "Your home maintenance assistant"}
                 </p>
               </div>
               {messages.length > 0 && (
@@ -210,13 +215,13 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
             {!userIsPro ? (
               /* Pro gate for free users */
               <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center gap-6">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Bot className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-md">
+                  <Wrench className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">AI Chat is a Pro feature</h3>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Meet Maintly — Pro Members Only</h3>
                   <p className="text-slate-500 text-sm max-w-xs mx-auto">
-                    Upgrade to Pro to ask unlimited questions to our AI home maintenance expert,
+                    Maintly is your personal home maintenance expert. Upgrade to Pro to ask unlimited questions,
                     personalized to your home and location.
                   </p>
                 </div>
@@ -249,13 +254,13 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                     /* Welcome / starter state */
                     <div className="h-full flex flex-col items-center justify-center gap-6 py-4">
                       <div className="text-center">
-                        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                          <Bot className="w-7 h-7 text-primary" />
+                        <MaintlyAvatar size="lg" />
+                        <div className="mt-3">
+                          <h3 className="font-bold text-slate-900 mb-1">Chat with Maintly</h3>
+                          <p className="text-sm text-slate-500 max-w-xs mx-auto">
+                            Your friendly home maintenance expert. Ask anything about your home — I'll give you practical, personalized advice.
+                          </p>
                         </div>
-                        <h3 className="font-bold text-slate-900 mb-1">Ask MaintainHome AI</h3>
-                        <p className="text-sm text-slate-500 max-w-xs">
-                          Get expert advice personalized to your home and location. Try a question below or type your own.
-                        </p>
                       </div>
 
                       <div className="w-full max-w-md space-y-2">
@@ -278,19 +283,15 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                         className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
                       >
                         {/* Avatar */}
-                        <div
-                          className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                            msg.role === "user"
-                              ? "bg-primary text-white"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {msg.role === "user" ? (
+                        {msg.role === "user" ? (
+                          <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center shrink-0 mt-0.5">
                             <User className="w-3.5 h-3.5" />
-                          ) : (
-                            <Bot className="w-3.5 h-3.5" />
-                          )}
-                        </div>
+                          </div>
+                        ) : (
+                          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
+                            <Wrench className="w-3.5 h-3.5 text-white" />
+                          </div>
+                        )}
 
                         {/* Bubble */}
                         <div
@@ -322,7 +323,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Ask about your home maintenance..."
+                      placeholder="Ask Maintly anything about your home..."
                       disabled={isStreaming}
                       className="flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none disabled:opacity-60"
                     />
@@ -339,7 +340,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                     </button>
                   </div>
                   <p className="text-xs text-slate-400 text-center mt-2">
-                    AI advice is for guidance only — always consult a licensed professional for safety issues.
+                    Maintly's advice is for guidance only — always consult a licensed professional for safety issues.
                   </p>
                 </div>
               </>

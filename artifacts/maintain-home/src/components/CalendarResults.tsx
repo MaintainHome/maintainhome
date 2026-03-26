@@ -353,7 +353,7 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors shadow-sm"
               >
                 <MessageCircle className="w-3.5 h-3.5" />
-                Ask AI
+                Ask Maintly
               </button>
             )}
           </div>

@@ -19,7 +19,7 @@ const PRO_FEATURES = [
   "Priority support",
 ];
 
-const AI_FEATURE = "Interactive Ask MaintainHome AI – Ask specific questions about your home maintenance";
+const AI_FEATURE = "Chat with Maintly AI – Ask specific questions about your home maintenance";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 

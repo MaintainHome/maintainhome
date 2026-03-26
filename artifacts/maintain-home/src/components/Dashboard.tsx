@@ -118,7 +118,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">Ask AI</p>
+                <p className="text-sm font-bold text-white">Ask Maintly</p>
                 <p className="text-xs text-white/70">Get answers now</p>
               </div>
             </button>
@@ -128,7 +128,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <Lock className="w-5 h-5 text-slate-400" />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-500">Ask AI</p>
+                <p className="text-sm font-bold text-slate-500">Ask Maintly</p>
                 <p className="text-xs text-slate-400">Pro only</p>
               </div>
             </div>
