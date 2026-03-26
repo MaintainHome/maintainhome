@@ -365,24 +365,6 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
         )}
       </div>
 
-      {/* Big Ticket Alerts */}
-      {data.big_ticket_alerts?.length > 0 && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-5 h-5 text-amber-600" />
-            <h4 className="font-bold text-amber-900">Big-Ticket Alerts for {data.state}</h4>
-          </div>
-          <ul className="space-y-2">
-            {data.big_ticket_alerts.map((alert, i) => (
-              <li key={i} className="flex gap-2 text-sm text-amber-800">
-                <span className="text-amber-500 font-bold shrink-0">•</span>
-                {alert}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {/* One-Time Tasks */}
       {data.one_time_tasks?.length > 0 && (
         <div className="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-5">
@@ -515,6 +497,24 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
             <Zap className="w-4 h-4" />
             See Plans
           </Button>
+        </div>
+      )}
+
+      {/* Big Ticket Alerts */}
+      {data.big_ticket_alerts?.length > 0 && (
+        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600" />
+            <h4 className="font-bold text-amber-900">Big-Ticket Alerts for {data.state}</h4>
+          </div>
+          <ul className="space-y-2">
+            {data.big_ticket_alerts.map((alert, i) => (
+              <li key={i} className="flex gap-2 text-sm text-amber-800">
+                <span className="text-amber-500 font-bold shrink-0">•</span>
+                {alert}
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
