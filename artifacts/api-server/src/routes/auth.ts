@@ -30,51 +30,25 @@ async function sendMagicLinkEmail(
   magicLink: string,
 ) {
   const resend = getResend();
-  const ownerEmail = process.env.NOTIFY_EMAIL;
   const greeting = name ? `Hi ${name},` : "Hi there,";
 
   if (resend) {
-    // Until a verified sending domain is configured in Resend, all emails must
-    // go to the owner's address (consultingjohnwalker@gmail.com). The email
-    // body includes the intended recipient and their magic link so it can be
-    // forwarded. Once a domain is verified and RESEND_FROM_EMAIL is updated,
-    // remove the NOTIFY_EMAIL env var and emails will go directly to users.
-    const toEmail = ownerEmail ?? email;
-    const isRedirected = toEmail !== email;
-    console.log(`[auth] Sending magic link email to: ${toEmail}${isRedirected ? ` (redirected from ${email})` : ""}`);
+    console.log(`[auth] Sending magic link email to: ${email}`);
     const result = await resend.emails.send({
       from: getFromAddress(),
-      to: toEmail,
-      subject: isRedirected
-        ? `[ACTION NEEDED] Magic link for ${email}`
-        : "Sign in to MaintainHome.ai",
-      html: isRedirected
-        ? `
-          <div style="font-family:sans-serif;max-width:560px;margin:0 auto">
-            <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin-bottom:20px">
-              <strong style="color:#856404">⚠ Pending domain verification</strong><br/>
-              <p style="color:#856404;margin:8px 0 0">A user tried to sign in but Resend cannot yet deliver to external addresses. Please forward this link to: <strong>${email}</strong></p>
-            </div>
-            <p style="color:#555">Their magic link (expires in 15 min):</p>
-            <a href="${magicLink}" style="display:inline-block;padding:14px 28px;background:#1f9e6e;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:12px 0">
-              Sign In Link for ${email}
-            </a>
-            <p style="color:#888;font-size:12px">Or copy: ${magicLink}</p>
-            <hr style="border:none;border-top:1px solid #eee;margin:20px 0"/>
-            <p style="color:#aaa;font-size:12px">To fix this permanently: verify maintainhome.ai at resend.com/domains and update RESEND_FROM_EMAIL.</p>
-          </div>
-        `
-        : `
-          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
-            <img src="https://maintainhome.ai/images/logo-icon.png" alt="MaintainHome.ai" style="width:48px;height:48px;margin-bottom:16px" />
-            <h2 style="color:#1a1a2e;margin-bottom:8px">Sign in to MaintainHome.ai</h2>
-            <p style="color:#555">${greeting} Click the button below to sign in. This link expires in 15 minutes.</p>
-            <a href="${magicLink}" style="display:inline-block;padding:14px 28px;background:#1f9e6e;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:20px 0">
-              Sign In Now
-            </a>
-            <p style="color:#888;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
-          </div>
-        `,
+      to: email,
+      subject: "Sign in to MaintainHome.ai",
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+          <img src="https://maintainhome.ai/images/logo-icon.png" alt="MaintainHome.ai" style="width:48px;height:48px;margin-bottom:16px" />
+          <h2 style="color:#1a1a2e;margin-bottom:8px">Sign in to MaintainHome.ai</h2>
+          <p style="color:#555">${greeting} Click the button below to sign in. This link expires in 15 minutes.</p>
+          <a href="${magicLink}" style="display:inline-block;padding:14px 28px;background:#1f9e6e;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:20px 0">
+            Sign In Now
+          </a>
+          <p style="color:#888;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
     });
     if (result.error) {
       console.error("[auth] Email send failed:", result.error);
