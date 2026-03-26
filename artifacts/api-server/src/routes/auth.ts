@@ -76,9 +76,10 @@ router.post("/auth/check-email", async (req: Request, res: Response) => {
 
 const VALID_PROMO_CODE = "BETA2026";
 
-// Request magic link — accepts optional name, zipCode, promoCode
+// Request magic link — accepts optional name, zipCode, promoCode, staySignedIn
 router.post("/auth/request-link", async (req: Request, res: Response) => {
-  const { email, name, zipCode, promoCode } = req.body;
+  const { email, name, zipCode, promoCode, staySignedIn } = req.body;
+  const stay = staySignedIn !== false;
   if (!email || typeof email !== "string" || !email.includes("@")) {
     res.status(400).json({ error: "Valid email address required" });
     return;
@@ -137,8 +138,8 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
   await db.insert(magicLinkTokensTable).values({ email: normalizedEmail, token, expiresAt });
 
   const baseUrl = getBaseUrl(req);
-  const magicLink = `${baseUrl}/api/auth/verify?token=${token}`;
-  console.log(`[auth] Magic link for ${normalizedEmail}: ${magicLink}`);
+  const magicLink = `${baseUrl}/api/auth/verify?token=${token}&stay=${stay ? "1" : "0"}`;
+  console.log(`[auth] Magic link for ${normalizedEmail}: ${magicLink} stay=${stay}`);
 
   await sendMagicLinkEmail(req, normalizedEmail, user.name ?? trimmedName, magicLink);
 
@@ -152,7 +153,8 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
 });
 
 router.get("/auth/verify", async (req: Request, res: Response) => {
-  const { token } = req.query as { token: string };
+  const { token, stay } = req.query as { token: string; stay?: string };
+  const staySignedIn = stay !== "0";
   if (!token) {
     res.status(400).send("Missing token. Please request a new sign-in link.");
     return;
@@ -197,6 +199,7 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
 
   const sessionToken = crypto.randomBytes(32).toString("hex");
   const sessionExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const isProd = process.env.NODE_ENV === "production";
 
   await db.insert(sessionsTable).values({
     token: sessionToken,
@@ -207,8 +210,9 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
   res.cookie("mh_session", sessionToken, {
     httpOnly: true,
     sameSite: "lax",
-    expires: sessionExpires,
+    ...(staySignedIn ? { expires: sessionExpires } : {}),
     path: "/",
+    secure: isProd,
   });
 
   const baseUrl = getBaseUrl(req);
@@ -267,7 +271,12 @@ router.post("/auth/logout", requireAuth as any, async (req: AuthRequest, res: Re
   if (token) {
     await db.delete(sessionsTable).where(eq(sessionsTable.token, token));
   }
-  res.clearCookie("mh_session", { path: "/" });
+  res.clearCookie("mh_session", {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
   res.json({ ok: true });
 });
 

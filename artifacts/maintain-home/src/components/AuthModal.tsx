@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, CheckCircle2, Loader2, UserPlus, LogIn, MapPin, User, Tag, Unlock } from "lucide-react";
+import { X, Mail, CheckCircle2, Loader2, UserPlus, LogIn, MapPin, User, Tag, Unlock, ShieldCheck } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AuthModalProps {
@@ -22,6 +22,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
   const [debugLink, setDebugLink] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
   const [fullAccessGranted, setFullAccessGranted] = useState(false);
+  const [staySignedIn, setStaySignedIn] = useState(true);
 
   const handleClose = () => {
     onClose();
@@ -35,6 +36,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       setDebugLink(null);
       setIsNewUser(false);
       setFullAccessGranted(false);
+      setStaySignedIn(true);
     }, 300);
   };
 
@@ -60,7 +62,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       }
       if (data.exists) {
         // Returning user — send magic link, include promo if entered
-        await sendLink(trimmedEmail, null, null, promoCode);
+        await sendLink(trimmedEmail, null, null, promoCode, staySignedIn);
       } else {
         // New user — collect name + zip
         setIsNewUser(true);
@@ -85,7 +87,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       return;
     }
     setErrorMsg("");
-    await sendLink(email.trim(), trimmedName, trimmedZip, promoCode);
+    await sendLink(email.trim(), trimmedName, trimmedZip, promoCode, staySignedIn);
   };
 
   const sendLink = async (
@@ -93,10 +95,11 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
     nameVal: string | null,
     zipVal: string | null,
     promo: string,
+    stay: boolean,
   ) => {
     setLoading(true);
     try {
-      const body: Record<string, string> = { email: emailAddr };
+      const body: Record<string, string | boolean> = { email: emailAddr, staySignedIn: stay };
       if (nameVal) body.name = nameVal;
       if (zipVal) body.zipCode = zipVal;
       if (promo.trim()) body.promoCode = promo.trim();
@@ -211,6 +214,23 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
                   className="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-primary focus:outline-none text-sm transition-colors font-mono tracking-wider"
                 />
               </div>
+              <label className="flex items-center gap-2.5 mb-4 cursor-pointer select-none group">
+                <div className="relative flex-shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={staySignedIn}
+                    onChange={(e) => setStaySignedIn(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-5 h-5 rounded border-2 border-slate-300 peer-checked:border-primary peer-checked:bg-primary transition-colors flex items-center justify-center">
+                    {staySignedIn && <ShieldCheck className="w-3 h-3 text-white" />}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-sm font-semibold text-slate-700">Stay signed in for 30 days</span>
+                  <p className="text-xs text-slate-400 leading-tight">Uncheck on shared or public devices</p>
+                </div>
+              </label>
               <button
                 type="submit"
                 disabled={loading || !email.trim() || !email.includes("@")}

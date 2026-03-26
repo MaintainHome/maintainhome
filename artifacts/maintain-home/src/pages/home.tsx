@@ -117,7 +117,7 @@ export default function Home() {
                 <button
                   onClick={logout}
                   title="Sign Out"
-                  className="w-9 h-9 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200 transition-colors"
+                  className="w-9 h-9 rounded-full bg-red-50 text-red-400 flex items-center justify-center hover:bg-red-100 hover:text-red-600 transition-colors border border-red-100"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
@@ -175,7 +175,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={logout}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-red-500 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 border border-red-100 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign Out
