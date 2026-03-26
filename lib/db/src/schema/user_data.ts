@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, jsonb, date } from "drizzle-orm/pg-core";
 import { usersTable } from "./auth";
 
 export const savedCalendarsTable = pgTable("saved_calendars", {
@@ -21,5 +21,27 @@ export const maintenanceLogTable = pgTable("maintenance_log", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const maintenanceNotesTable = pgTable("maintenance_notes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => usersTable.id),
+  title: text("title").notNull(),
+  noteDate: date("note_date").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const maintenanceDocumentsTable = pgTable("maintenance_documents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => usersTable.id),
+  fileName: text("file_name").notNull(),
+  objectPath: text("object_path").notNull(),
+  contentType: text("content_type").notNull(),
+  fileSizeBytes: integer("file_size_bytes"),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export type SavedCalendar = typeof savedCalendarsTable.$inferSelect;
 export type MaintenanceLogEntry = typeof maintenanceLogTable.$inferSelect;
+export type MaintenanceNote = typeof maintenanceNotesTable.$inferSelect;
+export type MaintenanceDocument = typeof maintenanceDocumentsTable.$inferSelect;

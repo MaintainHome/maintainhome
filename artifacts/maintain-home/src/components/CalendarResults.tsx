@@ -2,7 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign,
   Info, ChevronDown, ChevronUp, Lock, Check, FileDown, ClipboardList,
-  X, Pencil, BookOpen, Zap, Star, MessageCircle,
+  X, Pencil, BookOpen, Zap, Star, MessageCircle, Paperclip, Upload,
+  FileText, CalendarDays, Plus, Loader2,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,23 @@ interface CalendarResultsProps {
   data: CalendarData;
   onReset: () => void;
   quizAnswers?: Record<string, string>;
+}
+
+interface CustomNote {
+  id: number;
+  title: string;
+  noteDate: string;
+  content: string;
+  createdAt: string;
+}
+
+interface UserDocument {
+  id: number;
+  fileName: string;
+  objectPath: string;
+  contentType: string;
+  fileSizeBytes: number | null;
+  uploadedAt: string;
 }
 
 // ─── Task Card ────────────────────────────────────────────────────────────────
@@ -335,6 +353,24 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
   const [exportMsg, setExportMsg] = useState(false);
   const calendarSavedRef = useRef(false);
 
+  // ── Custom Notes state ──
+  const [customNotes, setCustomNotes] = useState<CustomNote[]>([]);
+  const [showNoteForm, setShowNoteForm] = useState(false);
+  const [noteTitle, setNoteTitle] = useState("");
+  const [noteDate, setNoteDate] = useState(new Date().toISOString().slice(0, 10));
+  const [noteContent, setNoteContent] = useState("");
+  const [noteSubmitting, setNoteSubmitting] = useState(false);
+
+  // ── Document Uploads state ──
+  const [documents, setDocuments] = useState<UserDocument[]>([]);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadUploading, setUploadUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+  const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
   // Save calendar to account on mount (logged-in users only, once per generation)
   useEffect(() => {
     if (!user || calendarSavedRef.current) return;
@@ -346,6 +382,19 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
       body: JSON.stringify({ quizAnswers: quizAnswers ?? {}, calendarData: data }),
     }).catch(() => {});
   }, [user]);
+
+  // Fetch custom notes and documents for logged-in users
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/user/notes", { credentials: "include" })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setCustomNotes(Array.isArray(data) ? data : []))
+      .catch(() => {});
+    fetch("/api/user/documents", { credentials: "include" })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setDocuments(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, [user?.id]);
 
   const handleMarkDone = async (key: string, note: string) => {
     setCompletedTasks(prev => ({ ...prev, [key]: note }));
@@ -400,27 +449,115 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
     }
   };
 
+  const handleAddNote = async () => {
+    if (!noteTitle.trim() || !noteContent.trim() || !noteDate) return;
+    setNoteSubmitting(true);
+    try {
+      const res = await fetch("/api/user/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ title: noteTitle.trim(), noteDate, content: noteContent.trim() }),
+      });
+      if (res.ok) {
+        const note = await res.json();
+        setCustomNotes(prev => [note, ...prev]);
+        setNoteTitle("");
+        setNoteDate(new Date().toISOString().slice(0, 10));
+        setNoteContent("");
+        setShowNoteForm(false);
+      }
+    } catch {} finally {
+      setNoteSubmitting(false);
+    }
+  };
+
+  const handleDeleteNote = async (id: number) => {
+    setCustomNotes(prev => prev.filter(n => n.id !== id));
+    fetch(`/api/user/notes/${id}`, { method: "DELETE", credentials: "include" }).catch(() => {});
+  };
+
+  const handleFileUpload = async (file: File) => {
+    setUploadError(null);
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      setUploadError("Only JPG, PNG, and PDF files are allowed.");
+      return;
+    }
+    if (file.size > MAX_SIZE_BYTES) {
+      setUploadError(`File is too large (${(file.size / 1024 / 1024).toFixed(1)} MB). Maximum size is 5 MB.`);
+      return;
+    }
+    setUploadUploading(true);
+    try {
+      const urlRes = await fetch("/api/storage/uploads/request-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ name: file.name, size: file.size, contentType: file.type }),
+      });
+      if (!urlRes.ok) throw new Error("Failed to get upload URL");
+      const { uploadURL, objectPath } = await urlRes.json();
+
+      const putRes = await fetch(uploadURL, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!putRes.ok) throw new Error("Upload failed");
+
+      const docRes = await fetch("/api/user/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ fileName: file.name, objectPath, contentType: file.type, fileSizeBytes: file.size }),
+      });
+      if (docRes.ok) {
+        const doc = await docRes.json();
+        setDocuments(prev => [doc, ...prev]);
+        setShowUploadForm(false);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    } catch (err: any) {
+      setUploadError("Upload failed. Please try again.");
+    } finally {
+      setUploadUploading(false);
+    }
+  };
+
+  const handleDeleteDocument = async (id: number) => {
+    setDocuments(prev => prev.filter(d => d.id !== id));
+    fetch(`/api/user/documents/${id}`, { method: "DELETE", credentials: "include" }).catch(() => {});
+  };
+
   const userIsPro = isPro(user);
 
-  // Build history list for the demo history section
-  const historyItems: { month: string; task: string; note: string; key: string }[] = [];
+  // Build unified history list
+  type HistoryItem =
+    | { type: "task"; key: string; month: string; task: string; note: string }
+    | { type: "note"; note: CustomNote }
+    | { type: "document"; doc: UserDocument };
+
+  const historyItems: HistoryItem[] = [];
   orderedMonths.forEach((month, mIdx) => {
     if (!userIsPro && mIdx >= 2) return;
     month.tasks?.forEach((task, tIdx) => {
       const key = `${month.month}-${tIdx}`;
       if (completedTasks[key] !== undefined) {
-        historyItems.push({ month: month.month, task: task.task, note: completedTasks[key], key });
+        historyItems.push({ type: "task", month: month.month, task: task.task, note: completedTasks[key], key });
       }
     });
   });
   data.one_time_tasks?.forEach((task, i) => {
     const key = `one-time-${i}`;
     if (completedTasks[key] !== undefined) {
-      historyItems.push({ month: "One-Time Tasks", task, note: completedTasks[key], key });
+      historyItems.push({ type: "task", month: "One-Time Tasks", task, note: completedTasks[key], key });
     }
   });
+  customNotes.forEach(note => historyItems.push({ type: "note", note }));
+  documents.forEach(doc => historyItems.push({ type: "document", doc }));
 
   const completedCount = Object.keys(completedTasks).length;
+  const totalHistoryCount = historyItems.length;
 
   return (
     <motion.div
@@ -641,29 +778,167 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
 
       {/* ── Maintenance History ── */}
       <div className="mb-8 rounded-2xl border border-slate-200 overflow-hidden">
-        <div className="flex items-center gap-3 px-5 py-4 bg-slate-50 border-b border-slate-200">
-          <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-            <ClipboardList className="w-4 h-4 text-slate-600" />
+        {/* Header */}
+        <div className="px-5 py-4 bg-slate-50 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+              <ClipboardList className="w-4 h-4 text-slate-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-slate-800 text-sm">Maintenance History</h4>
+              <p className="text-xs text-slate-500">{user ? "Saved to your account" : "Demo mode only"}</p>
+            </div>
+            {totalHistoryCount > 0 && (
+              <span className="text-xs font-semibold text-slate-600 bg-slate-200 px-2.5 py-1 rounded-full shrink-0">
+                {totalHistoryCount} {totalHistoryCount === 1 ? "entry" : "entries"}
+              </span>
+            )}
           </div>
-          <div>
-            <h4 className="font-bold text-slate-800 text-sm">Maintenance History</h4>
-            <p className="text-xs text-slate-500">{user ? "Saved to your account" : "Demo mode only"}</p>
-          </div>
-          {completedCount > 0 && (
-            <span className="ml-auto text-xs font-semibold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">
-              {completedCount} completed
-            </span>
-          )}
-          {user && completedCount > 0 && (
-            <button
-              onClick={() => navigate("/history")}
-              className="flex items-center gap-1 text-xs text-primary font-semibold hover:underline ml-2"
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              View All
-            </button>
+
+          {/* Action buttons — logged-in users only */}
+          {user && (
+            <div className="flex flex-wrap gap-2 mt-3">
+              <button
+                onClick={() => { setShowNoteForm(v => !v); setShowUploadForm(false); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                  showNoteForm
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-blue-700 border-blue-300 hover:bg-blue-50"
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add Custom Note
+              </button>
+              <button
+                onClick={() => { setShowUploadForm(v => !v); setShowNoteForm(false); setUploadError(null); }}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                  showUploadForm
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-blue-700 border-blue-300 hover:bg-blue-50"
+                }`}
+              >
+                <Upload className="w-3.5 h-3.5" />
+                Upload Document
+              </button>
+            </div>
           )}
         </div>
+
+        {/* Add Custom Note Form */}
+        <AnimatePresence>
+          {showNoteForm && user && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border-b border-slate-200 bg-blue-50 px-5 py-4 space-y-3"
+            >
+              <p className="text-xs font-semibold text-blue-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Pencil className="w-3.5 h-3.5" />
+                Custom Note
+              </p>
+              <input
+                type="text"
+                value={noteTitle}
+                onChange={e => setNoteTitle(e.target.value)}
+                placeholder="Title (e.g. Replaced HVAC filter, Hired plumber)"
+                maxLength={120}
+                className="w-full text-sm rounded-lg border border-blue-200 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              />
+              <div className="flex items-center gap-2">
+                <CalendarDays className="w-4 h-4 text-blue-400 shrink-0" />
+                <input
+                  type="date"
+                  value={noteDate}
+                  onChange={e => setNoteDate(e.target.value)}
+                  className="text-sm rounded-lg border border-blue-200 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+                />
+              </div>
+              <textarea
+                value={noteContent}
+                onChange={e => setNoteContent(e.target.value)}
+                placeholder="Detailed note — what was done, who did it, cost, warranty info, etc."
+                rows={3}
+                className="w-full text-sm rounded-lg border border-blue-200 bg-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleAddNote}
+                  disabled={noteSubmitting || !noteTitle.trim() || !noteContent.trim()}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors"
+                >
+                  {noteSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  Save Note
+                </button>
+                <button
+                  onClick={() => { setShowNoteForm(false); setNoteTitle(""); setNoteContent(""); }}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-sm font-medium transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Upload Document Form */}
+        <AnimatePresence>
+          {showUploadForm && user && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border-b border-slate-200 bg-blue-50 px-5 py-4 space-y-3"
+            >
+              <p className="text-xs font-semibold text-blue-800 uppercase tracking-wider flex items-center gap-1.5">
+                <Paperclip className="w-3.5 h-3.5" />
+                Upload Document
+              </p>
+              <p className="text-xs text-blue-700">Accepted: JPG, PNG, PDF — max 5 MB per file.</p>
+              <div
+                className="border-2 border-dashed border-blue-300 rounded-xl bg-white px-4 py-6 text-center cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {uploadUploading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                    <p className="text-sm text-blue-600 font-medium">Uploading…</p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-8 h-8 text-blue-300" />
+                    <p className="text-sm text-blue-700 font-medium">Click to select file</p>
+                    <p className="text-xs text-blue-400">Warranty, invoice, receipt, photo, or PDF</p>
+                  </div>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".jpg,.jpeg,.png,.pdf"
+                className="hidden"
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFileUpload(file);
+                }}
+              />
+              {uploadError && (
+                <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-700 font-medium">{uploadError}</p>
+                </div>
+              )}
+              <button
+                onClick={() => { setShowUploadForm(false); setUploadError(null); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-sm font-medium transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+                Cancel
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {!user && (
           <div className="flex items-center gap-2 px-5 py-3 bg-amber-50 border-b border-amber-100">
@@ -678,34 +953,106 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
             <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
               <CheckCircle2 className="w-5 h-5 text-slate-300" />
             </div>
-            <p className="text-sm text-slate-400 font-medium">No tasks completed yet</p>
-            <p className="text-xs text-slate-400 mt-1">Click any task above and mark it as done to see it here.</p>
+            <p className="text-sm text-slate-400 font-medium">No entries yet</p>
+            <p className="text-xs text-slate-400 mt-1">
+              Mark tasks complete, add a note, or upload a document to track your home's history.
+            </p>
           </div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {historyItems.map((item) => (
-              <li key={item.key} className="flex items-start gap-3 px-5 py-3.5">
-                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <Check className="w-3 h-3 text-white" strokeWidth={3} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-semibold text-primary">{item.month}</span>
-                    <span className="text-sm text-slate-700 font-medium">{item.task}</span>
-                  </div>
-                  {item.note && (
-                    <p className="text-xs text-slate-500 mt-0.5 italic">"{item.note}"</p>
-                  )}
-                </div>
-                <button
-                  onClick={() => handleUnmark(item.key)}
-                  className="text-slate-300 hover:text-slate-500 transition-colors shrink-0 mt-0.5"
-                  title="Unmark"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </li>
-            ))}
+            {historyItems.map((item, idx) => {
+              if (item.type === "task") {
+                return (
+                  <li key={`task-${item.key}`} className="flex items-start gap-3 px-5 py-3.5">
+                    <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
+                      <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-primary">{item.month}</span>
+                        <span className="text-sm text-slate-700 font-medium">{item.task}</span>
+                      </div>
+                      {item.note && (
+                        <p className="text-xs text-slate-500 mt-0.5 italic">"{item.note}"</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleUnmark(item.key)}
+                      className="text-slate-300 hover:text-slate-500 transition-colors shrink-0 mt-0.5"
+                      title="Unmark"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </li>
+                );
+              }
+              if (item.type === "note") {
+                const n = item.note;
+                return (
+                  <li key={`note-${n.id}`} className="flex items-start gap-3 px-5 py-3.5 bg-blue-50/40">
+                    <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5">
+                      <Pencil className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-blue-600">
+                          {new Date(n.noteDate + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                        <span className="text-sm text-blue-900 font-medium">{n.title}</span>
+                      </div>
+                      <p className="text-xs text-blue-700 mt-0.5 leading-snug">{n.content}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteNote(n.id)}
+                      className="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5"
+                      title="Delete note"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </li>
+                );
+              }
+              if (item.type === "document") {
+                const d = item.doc;
+                const ext = d.fileName.split(".").pop()?.toUpperCase() ?? "FILE";
+                const dateStr = new Date(d.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                const isImage = d.contentType.startsWith("image/");
+                return (
+                  <li key={`doc-${d.id}`} className="flex items-start gap-3 px-5 py-3.5 bg-blue-50/40">
+                    <div className="w-5 h-5 rounded-full bg-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                      {isImage ? <FileText className="w-2.5 h-2.5 text-white" strokeWidth={2.5} /> : <Paperclip className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-semibold text-blue-600">{dateStr}</span>
+                        <span className="inline-flex items-center gap-0.5 text-xs font-bold bg-blue-200 text-blue-700 px-1.5 py-0.5 rounded">{ext}</span>
+                        <span className="text-sm text-blue-900 font-medium truncate max-w-[160px]">{d.fileName}</span>
+                      </div>
+                      {d.fileSizeBytes && (
+                        <p className="text-xs text-blue-500 mt-0.5">{(d.fileSizeBytes / 1024).toFixed(0)} KB</p>
+                      )}
+                      <a
+                        href={`/api/storage${d.objectPath}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-blue-600 font-semibold hover:underline mt-1"
+                      >
+                        <Upload className="w-3 h-3 rotate-180" />
+                        View / Download
+                      </a>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteDocument(d.id)}
+                      className="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5"
+                      title="Delete document"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </li>
+                );
+              }
+              return null;
+            })}
           </ul>
         )}
       </div>

@@ -1,9 +1,11 @@
 import { Router, type Response } from "express";
-import { db, savedCalendarsTable, maintenanceLogTable } from "@workspace/db";
+import { db, savedCalendarsTable, maintenanceLogTable, maintenanceNotesTable, maintenanceDocumentsTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 
 const router = Router();
+
+// ─── Calendar ────────────────────────────────────────────────────────────────
 
 router.post("/user/calendar", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const { quizAnswers, calendarData } = req.body;
@@ -27,6 +29,8 @@ router.get("/user/calendar/latest", requireAuth as any, async (req: AuthRequest,
     .limit(1);
   res.json(latest ?? null);
 });
+
+// ─── Maintenance Log (completed tasks) ───────────────────────────────────────
 
 router.get("/user/log", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const entries = await db
@@ -66,6 +70,84 @@ router.delete("/user/log/:id", requireAuth as any, async (req: AuthRequest, res:
   await db
     .delete(maintenanceLogTable)
     .where(and(eq(maintenanceLogTable.id, id), eq(maintenanceLogTable.userId, req.userId!)));
+  res.json({ ok: true });
+});
+
+// ─── Custom Notes ─────────────────────────────────────────────────────────────
+
+router.get("/user/notes", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const notes = await db
+    .select()
+    .from(maintenanceNotesTable)
+    .where(eq(maintenanceNotesTable.userId, req.userId!))
+    .orderBy(desc(maintenanceNotesTable.noteDate));
+  res.json(notes);
+});
+
+router.post("/user/notes", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const { title, noteDate, content } = req.body;
+  if (!title || !noteDate || !content) {
+    res.status(400).json({ error: "title, noteDate, and content are required" });
+    return;
+  }
+  const [note] = await db
+    .insert(maintenanceNotesTable)
+    .values({ userId: req.userId!, title: title.trim(), noteDate, content: content.trim() })
+    .returning();
+  res.status(201).json(note);
+});
+
+router.delete("/user/notes/:id", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  await db
+    .delete(maintenanceNotesTable)
+    .where(and(eq(maintenanceNotesTable.id, id), eq(maintenanceNotesTable.userId, req.userId!)));
+  res.json({ ok: true });
+});
+
+// ─── Documents ────────────────────────────────────────────────────────────────
+
+router.get("/user/documents", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const docs = await db
+    .select()
+    .from(maintenanceDocumentsTable)
+    .where(eq(maintenanceDocumentsTable.userId, req.userId!))
+    .orderBy(desc(maintenanceDocumentsTable.uploadedAt));
+  res.json(docs);
+});
+
+router.post("/user/documents", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const { fileName, objectPath, contentType, fileSizeBytes } = req.body;
+  if (!fileName || !objectPath || !contentType) {
+    res.status(400).json({ error: "fileName, objectPath, and contentType are required" });
+    return;
+  }
+  const [doc] = await db
+    .insert(maintenanceDocumentsTable)
+    .values({
+      userId: req.userId!,
+      fileName,
+      objectPath,
+      contentType,
+      fileSizeBytes: fileSizeBytes ?? null,
+    })
+    .returning();
+  res.status(201).json(doc);
+});
+
+router.delete("/user/documents/:id", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  await db
+    .delete(maintenanceDocumentsTable)
+    .where(and(eq(maintenanceDocumentsTable.id, id), eq(maintenanceDocumentsTable.userId, req.userId!)));
   res.json({ ok: true });
 });
 
