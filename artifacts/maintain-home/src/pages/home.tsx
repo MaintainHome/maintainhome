@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Sparkles, ArrowRight, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle } from "lucide-react";
+import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle } from "lucide-react";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { Features } from "@/components/Features";
 import { DemoQuiz } from "@/components/DemoQuiz";
@@ -8,6 +8,7 @@ import { PricingSection } from "@/components/PricingSection";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { AuthModal } from "@/components/AuthModal";
+import { Dashboard } from "@/components/Dashboard";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useGetWaitlistCount } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
@@ -20,7 +21,7 @@ export default function Home() {
   const [welcomeBanner, setWelcomeBanner] = useState(false);
   const [savedCalendar, setSavedCalendar] = useState<{ quizAnswers: any; calendarData: any } | null>(null);
   const [showAIChat, setShowAIChat] = useState(false);
-  const { user, logout, refreshUser } = useAuth();
+  const { user, loading: authLoading, logout, refreshUser } = useAuth();
   const userIsPro = isPro(user);
   const [, navigate] = useLocation();
 
@@ -83,14 +84,16 @@ export default function Home() {
           </a>
 
           <div className="flex items-center gap-2">
-            {/* Mobile only: Try it! */}
-            <button
-              onClick={scrollToDemo}
-              className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              Try it!
-            </button>
+            {/* Mobile only: Try it! — only for guests */}
+            {!user && (
+              <button
+                onClick={scrollToDemo}
+                className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Try it!
+              </button>
+            )}
 
             {/* Mobile auth: icon button */}
             {user ? (
@@ -137,14 +140,16 @@ export default function Home() {
               Pricing
             </button>
 
-            {/* Desktop only: full demo CTA */}
-            <button
-              onClick={scrollToDemo}
-              className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25 transition-all"
-            >
-              <Zap className="w-4 h-4" />
-              Test Free Demo Now
-            </button>
+            {/* Desktop only: full demo CTA — guests only */}
+            {!user && (
+              <button
+                onClick={scrollToDemo}
+                className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25 transition-all"
+              >
+                <Zap className="w-4 h-4" />
+                Test Free Demo Now
+              </button>
+            )}
 
             {/* Desktop auth */}
             {user ? (
@@ -189,7 +194,21 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* ── Logged-in: Dashboard view ── */}
+      {user && !authLoading && (
+        <main className="flex-1">
+          <Dashboard
+            user={user}
+            savedCalendar={savedCalendar}
+            onOpenAIChat={() => setShowAIChat(true)}
+          />
+          {/* Pricing section still accessible for upgrades */}
+          <PricingSection />
+        </main>
+      )}
+
+      {/* ── Guest: Marketing landing page ── */}
+      {!user && !authLoading && (
       <main className="flex-1">
         <section className="relative w-full pt-8 pb-12 overflow-hidden">
           {/* Background Image & Overlay */}
@@ -397,6 +416,7 @@ export default function Home() {
           </div>
         </section>
       </main>
+      )}
 
       {/* Footer */}
       <footer className="bg-slate-950 py-12 border-t border-slate-800">
