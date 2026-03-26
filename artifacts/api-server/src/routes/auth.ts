@@ -235,6 +235,33 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
   res.json(user);
 });
 
+router.post("/auth/redeem-promo", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const { code } = req.body as { code?: string };
+  if (!code || typeof code !== "string") {
+    res.status(400).json({ error: "Promo code required." });
+    return;
+  }
+  if (code.trim().toUpperCase() !== VALID_PROMO_CODE) {
+    res.status(400).json({ error: "Invalid promo code." });
+    return;
+  }
+  const [user] = await db
+    .select({ id: usersTable.id, subscriptionStatus: usersTable.subscriptionStatus, fullAccess: usersTable.fullAccess })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.userId!))
+    .limit(1);
+  if (!user) {
+    res.status(401).json({ error: "User not found." });
+    return;
+  }
+  await db
+    .update(usersTable)
+    .set({ subscriptionStatus: "promo_pro", fullAccess: true })
+    .where(eq(usersTable.id, user.id));
+  console.log(`[auth] Promo code redeemed by user ${user.id}`);
+  res.json({ ok: true, subscriptionStatus: "promo_pro" });
+});
+
 router.post("/auth/logout", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const token = req.cookies?.mh_session;
   if (token) {

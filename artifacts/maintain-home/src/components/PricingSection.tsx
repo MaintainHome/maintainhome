@@ -1,4 +1,4 @@
-import { Check, Zap, Star, Lock, Sparkles } from "lucide-react";
+import { Check, Zap, Star, Lock, Sparkles, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
@@ -17,28 +17,106 @@ const PRO_FEATURES = [
   "Seasonal alerts & big-ticket warnings",
   "PDF export (coming soon)",
   "Priority support",
+  "AI home maintenance assistant",
 ];
 
-function UpgradeMessage() {
+const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+
+function PromoCodeForm({ onSuccess }: { onSuccess: () => void }) {
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!code.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/redeem-promo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ code: code.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Something went wrong. Please try again.");
+      } else {
+        setSuccess(true);
+        onSuccess();
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (success) {
+    return (
+      <div className="mt-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-800 text-center font-semibold">
+        🎉 Pro access unlocked! Enjoy your full calendar.
+      </div>
+    );
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="mt-3">
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => { setCode(e.target.value); setError(null); }}
+          placeholder="Enter promo code"
+          className="flex-1 px-3 py-2 text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary font-mono uppercase tracking-wider"
+          autoComplete="off"
+          spellCheck={false}
+          disabled={loading}
+        />
+        <Button
+          type="submit"
+          disabled={loading || !code.trim()}
+          className="rounded-xl bg-primary hover:bg-primary/90 text-white px-4 text-sm shrink-0"
+        >
+          {loading ? "..." : "Apply"}
+        </Button>
+      </div>
+      {error && (
+        <p className="mt-2 text-xs text-red-600 font-medium">{error}</p>
+      )}
+      <p className="mt-2 text-xs text-slate-400 text-center">
+        Try <span className="font-mono font-semibold text-slate-600">BETA2026</span> for free Pro access
+      </p>
+    </form>
+  );
+}
+
+function GuestUpgradeNote() {
   return (
     <div className="mt-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 text-center">
-      <strong>Stripe integration coming soon.</strong><br />
-      Use promo code <code className="bg-amber-100 px-1.5 py-0.5 rounded font-mono font-bold">BETA2026</code> at signup for free Pro access.
+      <strong>Sign in first,</strong> then apply your promo code here to unlock Pro access instantly.
     </div>
   );
 }
 
 export function PricingSection() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const proUser = isPro(user);
-  const [showFreeMsg, setShowFreeMsg] = useState(false);
-  const [showMonthlyMsg, setShowMonthlyMsg] = useState(false);
-  const [showAnnualMsg, setShowAnnualMsg] = useState(false);
+  const [showMonthlyForm, setShowMonthlyForm] = useState(false);
+  const [showAnnualForm, setShowAnnualForm] = useState(false);
 
   const MONTHLY_PRICE = 4.99;
   const ANNUAL_PRICE = 39.99;
   const ANNUAL_MONTHLY_EQUIV = (ANNUAL_PRICE / 12).toFixed(2);
   const ANNUAL_SAVINGS_PCT = Math.round((1 - ANNUAL_PRICE / (MONTHLY_PRICE * 12)) * 100);
+
+  function handlePromoSuccess() {
+    refreshUser();
+    setShowMonthlyForm(false);
+    setShowAnnualForm(false);
+  }
 
   return (
     <section id="pricing" className="py-24 bg-gradient-to-b from-white to-slate-50">
@@ -130,12 +208,16 @@ export function PricingSection() {
               <div>
                 <Button
                   className="w-full rounded-xl bg-primary hover:bg-primary/90 text-white"
-                  onClick={() => setShowMonthlyMsg((v) => !v)}
+                  onClick={() => { setShowMonthlyForm((v) => !v); setShowAnnualForm(false); }}
                 >
-                  <Zap className="w-4 h-4 mr-2" />
+                  <Tag className="w-4 h-4 mr-2" />
                   Upgrade to Pro Monthly
                 </Button>
-                {showMonthlyMsg && <UpgradeMessage />}
+                {showMonthlyForm && (
+                  user
+                    ? <PromoCodeForm onSuccess={handlePromoSuccess} />
+                    : <GuestUpgradeNote />
+                )}
               </div>
             )}
           </div>
@@ -182,12 +264,16 @@ export function PricingSection() {
               <div>
                 <Button
                   className="w-full rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20"
-                  onClick={() => setShowAnnualMsg((v) => !v)}
+                  onClick={() => { setShowAnnualForm((v) => !v); setShowMonthlyForm(false); }}
                 >
                   <Star className="w-4 h-4 mr-2" />
                   Upgrade to Pro Annual
                 </Button>
-                {showAnnualMsg && <UpgradeMessage />}
+                {showAnnualForm && (
+                  user
+                    ? <PromoCodeForm onSuccess={handlePromoSuccess} />
+                    : <GuestUpgradeNote />
+                )}
               </div>
             )}
           </div>
@@ -195,7 +281,7 @@ export function PricingSection() {
 
         {/* Promo note */}
         <p className="mt-8 text-center text-sm text-slate-400">
-          Have a promo code? Enter it at signup to unlock Pro access instantly.
+          Have a promo code? Click any upgrade button above to apply it instantly.
         </p>
       </div>
     </section>
