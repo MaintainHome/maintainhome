@@ -64,7 +64,7 @@ export default function Home() {
       {/* Top Trust Banner */}
       <div className="w-full bg-gradient-to-r from-primary to-blue-600 text-white py-3 px-4 text-center text-sm font-medium flex items-center justify-center gap-2 relative z-50">
         <Sparkles className="w-4 h-4 text-yellow-300" />
-        <span>First 50 signups get 50% off forever!</span>
+        <span>Beta testing — testers get first year FREE!</span>
         <Sparkles className="w-4 h-4 text-yellow-300 hidden sm:block" />
       </div>
 
