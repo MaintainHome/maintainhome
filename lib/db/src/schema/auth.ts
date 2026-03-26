@@ -5,6 +5,7 @@ export const usersTable = pgTable("users", {
   email: text("email").notNull().unique(),
   name: text("name"),
   zipCode: text("zip_code"),
+  fullAccess: boolean("full_access").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

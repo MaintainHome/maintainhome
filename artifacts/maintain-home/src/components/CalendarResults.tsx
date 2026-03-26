@@ -295,7 +295,7 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
   // Build history list for the demo history section
   const historyItems: { month: string; task: string; note: string; key: string }[] = [];
   orderedMonths.forEach((month, mIdx) => {
-    if (mIdx >= 2) return; // only unlocked months have mark-done
+    if (!user?.fullAccess && mIdx >= 2) return;
     month.tasks?.forEach((task, tIdx) => {
       const key = `${month.month}-${tIdx}`;
       if (completedTasks[key] !== undefined) {
@@ -379,7 +379,7 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
         {orderedMonths.map((month, idx) => {
           const isCurrentMonth = idx === 0;
           const isNextMonth = idx === 1;
-          const isLocked = idx >= 2;
+          const isLocked = user?.fullAccess ? false : idx >= 2;
           const showMarkDone = !isLocked;
 
           return (
@@ -466,22 +466,24 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
         })}
       </div>
 
-      {/* Locked CTA banner */}
-      <div className="mb-8 bg-gradient-to-r from-primary/10 to-blue-500/10 border border-primary/20 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-          <Lock className="w-5 h-5 text-primary" />
+      {/* Locked CTA banner — hidden for full-access users */}
+      {!user?.fullAccess && (
+        <div className="mb-8 bg-gradient-to-r from-primary/10 to-blue-500/10 border border-primary/20 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+            <Lock className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex-1">
+            <p className="font-bold text-slate-900">Unlock all 12 months + smart reminders</p>
+            <p className="text-sm text-slate-500">Join the waitlist for early access and lock in 50% off forever.</p>
+          </div>
+          <Button
+            onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })}
+            className="shrink-0 rounded-xl bg-primary hover:bg-primary/90 text-white px-6"
+          >
+            Join the Waitlist
+          </Button>
         </div>
-        <div className="flex-1">
-          <p className="font-bold text-slate-900">Unlock all 12 months + smart reminders</p>
-          <p className="text-sm text-slate-500">Join the waitlist for early access and lock in 50% off forever.</p>
-        </div>
-        <Button
-          onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })}
-          className="shrink-0 rounded-xl bg-primary hover:bg-primary/90 text-white px-6"
-        >
-          Join the Waitlist
-        </Button>
-      </div>
+      )}
 
       {/* ── Maintenance History ── */}
       <div className="mb-8 rounded-2xl border border-slate-200 overflow-hidden">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, CheckCircle2, Loader2, UserPlus, LogIn, MapPin, User } from "lucide-react";
+import { X, Mail, CheckCircle2, Loader2, UserPlus, LogIn, MapPin, User, Tag, Unlock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface AuthModalProps {
@@ -16,10 +16,12 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [zipCode, setZipCode] = useState("");
+  const [promoCode, setPromoCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [debugLink, setDebugLink] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
+  const [fullAccessGranted, setFullAccessGranted] = useState(false);
 
   const handleClose = () => {
     onClose();
@@ -28,9 +30,11 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       setEmail("");
       setName("");
       setZipCode("");
+      setPromoCode("");
       setErrorMsg("");
       setDebugLink(null);
       setIsNewUser(false);
+      setFullAccessGranted(false);
     }, 300);
   };
 
@@ -55,8 +59,8 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
         return;
       }
       if (data.exists) {
-        // Returning user — send magic link immediately
-        await sendLink(trimmedEmail, null, null);
+        // Returning user — send magic link, include promo if entered
+        await sendLink(trimmedEmail, null, null, promoCode);
       } else {
         // New user — collect name + zip
         setIsNewUser(true);
@@ -81,15 +85,21 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       return;
     }
     setErrorMsg("");
-    await sendLink(email.trim(), trimmedName, trimmedZip);
+    await sendLink(email.trim(), trimmedName, trimmedZip, promoCode);
   };
 
-  const sendLink = async (emailAddr: string, nameVal: string | null, zipVal: string | null) => {
+  const sendLink = async (
+    emailAddr: string,
+    nameVal: string | null,
+    zipVal: string | null,
+    promo: string,
+  ) => {
     setLoading(true);
     try {
       const body: Record<string, string> = { email: emailAddr };
       if (nameVal) body.name = nameVal;
       if (zipVal) body.zipCode = zipVal;
+      if (promo.trim()) body.promoCode = promo.trim();
 
       const res = await fetch("/api/auth/request-link", {
         method: "POST",
@@ -104,6 +114,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
         return;
       }
       if (data.debugLink) setDebugLink(data.debugLink);
+      if (data.fullAccessGranted) setFullAccessGranted(true);
       setStage("sent");
     } catch {
       setErrorMsg("Network error. Please check your connection.");
@@ -187,6 +198,19 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
                   required
                 />
               </div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Promo Code <span className="font-normal text-slate-400">(optional — for early full access)</span>
+              </label>
+              <div className="relative mb-4">
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="Enter promo code"
+                  className="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-primary focus:outline-none text-sm transition-colors font-mono tracking-wider"
+                />
+              </div>
               <button
                 type="submit"
                 disabled={loading || !email.trim() || !email.includes("@")}
@@ -248,9 +272,23 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
               {errorMsg && (
                 <p className="text-xs text-red-600 mb-2">{errorMsg}</p>
               )}
-              <p className="text-xs text-slate-400 mb-4">
+              <p className="text-xs text-slate-400 mb-3">
                 Used to tailor your maintenance reminders to your climate.
               </p>
+
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                Promo Code <span className="font-normal text-slate-400">(optional — for early full access)</span>
+              </label>
+              <div className="relative mb-4">
+                <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  placeholder="Enter promo code"
+                  className="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-slate-200 focus:border-primary focus:outline-none text-sm transition-colors font-mono tracking-wider"
+                />
+              </div>
 
               <button
                 type="submit"
@@ -280,6 +318,12 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
                 <CheckCircle2 className="w-7 h-7 text-emerald-600" />
               </div>
               <h3 className="font-bold text-slate-900 text-lg mb-2">Check your email!</h3>
+              {fullAccessGranted && (
+                <div className="flex items-center justify-center gap-2 mb-3 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-xl">
+                  <Unlock className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-sm font-semibold text-emerald-700">Full access unlocked ✓</span>
+                </div>
+              )}
               <p className="text-sm text-slate-600 mb-2">
                 We sent a sign-in link to{" "}
                 <span className="font-semibold text-slate-800">{email}</span>.

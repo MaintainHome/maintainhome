@@ -74,9 +74,11 @@ router.post("/auth/check-email", async (req: Request, res: Response) => {
   res.json({ exists: !!existing });
 });
 
-// Request magic link — accepts optional name + zipCode for new signups
+const VALID_PROMO_CODE = "BETA2026";
+
+// Request magic link — accepts optional name, zipCode, promoCode
 router.post("/auth/request-link", async (req: Request, res: Response) => {
-  const { email, name, zipCode } = req.body;
+  const { email, name, zipCode, promoCode } = req.body;
   if (!email || typeof email !== "string" || !email.includes("@")) {
     res.status(400).json({ error: "Valid email address required" });
     return;
@@ -85,6 +87,9 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
   const normalizedEmail = email.toLowerCase().trim();
   const trimmedName = typeof name === "string" ? name.trim() : null;
   const trimmedZip = typeof zipCode === "string" ? zipCode.trim() : null;
+  const promoGrantsAccess =
+    typeof promoCode === "string" &&
+    promoCode.trim().toUpperCase() === VALID_PROMO_CODE;
 
   // Look up existing user
   let [user] = await db
@@ -101,21 +106,26 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
     }
     [user] = await db
       .insert(usersTable)
-      .values({ email: normalizedEmail, name: trimmedName, zipCode: trimmedZip })
+      .values({
+        email: normalizedEmail,
+        name: trimmedName,
+        zipCode: trimmedZip,
+        fullAccess: promoGrantsAccess,
+      })
       .returning();
-    console.log(`[auth] New user created: ${normalizedEmail} (${trimmedName})`);
+    console.log(`[auth] New user created: ${normalizedEmail} (${trimmedName}) fullAccess=${promoGrantsAccess}`);
   } else {
-    // Returning user — update name/zip if provided
-    if (trimmedName || trimmedZip) {
-      await db
-        .update(usersTable)
-        .set({
-          ...(trimmedName ? { name: trimmedName } : {}),
-          ...(trimmedZip ? { zipCode: trimmedZip } : {}),
-        })
-        .where(eq(usersTable.id, user.id));
+    // Returning user — update fields as needed
+    const updates: Record<string, unknown> = {};
+    if (trimmedName) updates.name = trimmedName;
+    if (trimmedZip) updates.zipCode = trimmedZip;
+    if (promoGrantsAccess && !user.fullAccess) updates.fullAccess = true;
+
+    if (Object.keys(updates).length > 0) {
+      await db.update(usersTable).set(updates).where(eq(usersTable.id, user.id));
+      user = { ...user, ...updates } as typeof user;
     }
-    console.log(`[auth] Existing user requesting link: ${normalizedEmail}`);
+    console.log(`[auth] Existing user requesting link: ${normalizedEmail} fullAccess=${user.fullAccess}`);
   }
 
   const token = crypto.randomBytes(32).toString("hex");
@@ -132,6 +142,7 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
   res.json({
     ok: true,
     message: "Magic link sent! Check your email.",
+    fullAccessGranted: promoGrantsAccess,
     ...(isDev ? { debugLink: magicLink } : {}),
   });
 });
@@ -202,7 +213,13 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
 
 router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const [user] = await db
-    .select({ id: usersTable.id, email: usersTable.email, name: usersTable.name, zipCode: usersTable.zipCode })
+    .select({
+      id: usersTable.id,
+      email: usersTable.email,
+      name: usersTable.name,
+      zipCode: usersTable.zipCode,
+      fullAccess: usersTable.fullAccess,
+    })
     .from(usersTable)
     .where(eq(usersTable.id, req.userId!))
     .limit(1);

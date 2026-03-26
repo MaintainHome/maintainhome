@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string;
   name: string | null;
   zipCode: string | null;
+  fullAccess: boolean;
 }
 
 interface AuthContextType {
