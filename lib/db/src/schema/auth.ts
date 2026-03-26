@@ -1,11 +1,14 @@
 import { pgTable, text, serial, timestamp, boolean, integer } from "drizzle-orm/pg-core";
 
+export type SubscriptionStatus = "free" | "pro_monthly" | "pro_annual" | "promo_pro";
+
 export const usersTable = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name"),
   zipCode: text("zip_code"),
   fullAccess: boolean("full_access").default(false).notNull(),
+  subscriptionStatus: text("subscription_status").$type<SubscriptionStatus>().default("free").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

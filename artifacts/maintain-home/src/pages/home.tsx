@@ -4,6 +4,7 @@ import { Sparkles, ArrowRight, ShieldCheck, BellRing, MapPin, Zap, User, LogOut,
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { Features } from "@/components/Features";
 import { DemoQuiz } from "@/components/DemoQuiz";
+import { PricingSection } from "@/components/PricingSection";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { AuthModal } from "@/components/AuthModal";
 import { useAuth } from "@/contexts/AuthContext";
@@ -115,6 +116,14 @@ export default function Home() {
                 Sign Up
               </button>
             )}
+
+            {/* Pricing link — desktop only */}
+            <button
+              onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+              className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+            >
+              Pricing
+            </button>
 
             {/* Desktop only: full demo CTA */}
             <button
@@ -305,6 +314,8 @@ export default function Home() {
         </section>
 
         <Features />
+
+        <PricingSection />
 
         {/* Form Section */}
         <section id="waitlist-form" className="py-24 relative">

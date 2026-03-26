@@ -1,11 +1,23 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 
+export type SubscriptionStatus = "free" | "pro_monthly" | "pro_annual" | "promo_pro";
+
 export interface AuthUser {
   id: number;
   email: string;
   name: string | null;
   zipCode: string | null;
   fullAccess: boolean;
+  subscriptionStatus: SubscriptionStatus;
+}
+
+export function isPro(user: AuthUser | null): boolean {
+  if (!user) return false;
+  return (
+    user.subscriptionStatus === "pro_monthly" ||
+    user.subscriptionStatus === "pro_annual" ||
+    user.subscriptionStatus === "promo_pro"
+  );
 }
 
 interface AuthContextType {

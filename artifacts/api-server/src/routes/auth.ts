@@ -111,21 +111,25 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
         name: trimmedName,
         zipCode: trimmedZip,
         fullAccess: promoGrantsAccess,
+        subscriptionStatus: promoGrantsAccess ? "promo_pro" : "free",
       })
       .returning();
-    console.log(`[auth] New user created: ${normalizedEmail} (${trimmedName}) fullAccess=${promoGrantsAccess}`);
+    console.log(`[auth] New user created: ${normalizedEmail} (${trimmedName}) subscriptionStatus=${promoGrantsAccess ? "promo_pro" : "free"}`);
   } else {
     // Returning user — update fields as needed
     const updates: Record<string, unknown> = {};
     if (trimmedName) updates.name = trimmedName;
     if (trimmedZip) updates.zipCode = trimmedZip;
-    if (promoGrantsAccess && !user.fullAccess) updates.fullAccess = true;
+    if (promoGrantsAccess && !user.fullAccess) {
+      updates.fullAccess = true;
+      updates.subscriptionStatus = "promo_pro";
+    }
 
     if (Object.keys(updates).length > 0) {
       await db.update(usersTable).set(updates).where(eq(usersTable.id, user.id));
       user = { ...user, ...updates } as typeof user;
     }
-    console.log(`[auth] Existing user requesting link: ${normalizedEmail} fullAccess=${user.fullAccess}`);
+    console.log(`[auth] Existing user requesting link: ${normalizedEmail} subscriptionStatus=${user.subscriptionStatus}`);
   }
 
   const token = crypto.randomBytes(32).toString("hex");
@@ -219,6 +223,7 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
       name: usersTable.name,
       zipCode: usersTable.zipCode,
       fullAccess: usersTable.fullAccess,
+      subscriptionStatus: usersTable.subscriptionStatus,
     })
     .from(usersTable)
     .where(eq(usersTable.id, req.userId!))

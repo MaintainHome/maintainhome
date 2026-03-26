@@ -2,11 +2,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign,
   Info, ChevronDown, ChevronUp, Lock, Check, FileDown, ClipboardList,
-  X, Pencil, BookOpen,
+  X, Pencil, BookOpen, Zap, Star,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
 const MONTH_EMOJIS: Record<string, string> = {
@@ -292,10 +292,12 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
     }
   };
 
+  const userIsPro = isPro(user);
+
   // Build history list for the demo history section
   const historyItems: { month: string; task: string; note: string; key: string }[] = [];
   orderedMonths.forEach((month, mIdx) => {
-    if (!user?.fullAccess && mIdx >= 2) return;
+    if (!userIsPro && mIdx >= 2) return;
     month.tasks?.forEach((task, tIdx) => {
       const key = `${month.month}-${tIdx}`;
       if (completedTasks[key] !== undefined) {
@@ -326,9 +328,23 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
           Click any task to see details, tips, and why it matters in {data.state}.
         </p>
         {user ? (
-          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-xs text-emerald-700 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            Saved to your account — completions persist forever
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-xs text-emerald-700 font-medium">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              Saved to your account — completions persist forever
+            </div>
+            {user.subscriptionStatus === "promo_pro" && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/30 rounded-full text-xs text-primary font-semibold">
+                <Star className="w-3.5 h-3.5 fill-primary/70" />
+                Pro Access via Promo ✓
+              </div>
+            )}
+            {(user.subscriptionStatus === "pro_monthly" || user.subscriptionStatus === "pro_annual") && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/30 rounded-full text-xs text-primary font-semibold">
+                <Zap className="w-3.5 h-3.5" />
+                Pro Plan ✓
+              </div>
+            )}
           </div>
         ) : (
           <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-full text-xs text-amber-700 font-medium">
@@ -379,7 +395,7 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
         {orderedMonths.map((month, idx) => {
           const isCurrentMonth = idx === 0;
           const isNextMonth = idx === 1;
-          const isLocked = user?.fullAccess ? false : idx >= 2;
+          const isLocked = userIsPro ? false : idx >= 2;
           const showMarkDone = !isLocked;
 
           return (
@@ -450,15 +466,18 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
               {/* Lock overlay for months 3–12 */}
               {isLocked && (
                 <button
-                  onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })}
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-[2px] hover:bg-white/80 transition-colors cursor-pointer"
+                  onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-[2px] hover:bg-white/80 transition-colors cursor-pointer group"
                 >
-                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shadow-sm">
-                    <Lock className="w-5 h-5 text-slate-500" />
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shadow-sm group-hover:bg-primary/10 transition-colors">
+                    <Lock className="w-5 h-5 text-slate-500 group-hover:text-primary transition-colors" />
                   </div>
                   <p className="text-sm font-bold text-slate-700 text-center px-4 leading-tight">
-                    Full schedule<br />with subscription
+                    Pro plan<br />unlocks this
                   </p>
+                  <span className="text-xs text-primary font-semibold underline-offset-2 underline">
+                    See pricing ↓
+                  </span>
                 </button>
               )}
             </div>
@@ -466,21 +485,24 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
         })}
       </div>
 
-      {/* Locked CTA banner — hidden for full-access users */}
-      {!user?.fullAccess && (
+      {/* Upgrade to Pro CTA — hidden for Pro users */}
+      {!userIsPro && (
         <div className="mb-8 bg-gradient-to-r from-primary/10 to-blue-500/10 border border-primary/20 rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-            <Lock className="w-5 h-5 text-primary" />
+            <Zap className="w-5 h-5 text-primary" />
           </div>
           <div className="flex-1">
-            <p className="font-bold text-slate-900">Unlock all 12 months + smart reminders</p>
-            <p className="text-sm text-slate-500">Join the waitlist for early access and lock in 50% off forever.</p>
+            <p className="font-bold text-slate-900">Upgrade to Pro — Unlock all 12 months</p>
+            <p className="text-sm text-slate-500">
+              From <strong>$4.99/month</strong> or <strong>$39.99/year</strong> (save 33%). Cancel anytime.
+            </p>
           </div>
           <Button
-            onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })}
-            className="shrink-0 rounded-xl bg-primary hover:bg-primary/90 text-white px-6"
+            onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+            className="shrink-0 rounded-xl bg-primary hover:bg-primary/90 text-white px-6 gap-2"
           >
-            Join the Waitlist
+            <Zap className="w-4 h-4" />
+            See Plans
           </Button>
         </div>
       )}
