@@ -111,17 +111,45 @@ Location: ${state}. Home age: ${homeAgeLabel}. Type: ${homeTypeLabel}. Roof: ${r
 Water: ${waterSourceLabel}. Sewer: ${sewerLabel}. Pest prevention: ${pestLabel}.
 Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.
 
-Generate a 12-month maintenance calendar for ${state}. Spread tasks across all 12 months. Include 2-4 tasks per month maximum. Be CONCISE — keep "why" and "tip" fields under 15 words each.
+Generate a 12-month maintenance calendar for ${state}. Spread tasks across all 12 months. Include 3-5 tasks per month. Be CONCISE — keep "why" and "tip" fields under 15 words each.
 
-Tailor tasks to their specific systems:
+═══ NON-NEGOTIABLE RECURRING RULES (always include, every calendar) ═══
+
+1. HVAC AIR FILTER REPLACEMENT — every 3 months without exception:
+   - January, April, July, October are the default months.
+   - Only shift by 1 month if the state's climate strongly demands it (e.g. heavy pollen season starts February → move first change to February).
+   - Task name: "Replace HVAC air filter", difficulty: "DIY", cost: "$15-40".
+
+2. SMOKE & CO DETECTOR BATTERY CHECK — once per year:
+   - Default month: October (fall prep). Use November only if October is very full for that state.
+   - Task name: "Test and replace smoke/CO detector batteries", difficulty: "DIY", cost: "$10-20".
+
+3. WINTER PREPARATION TASKS — add ALL THREE to the first winter-prep month for ${state}:
+   - For northern/mid-Atlantic states (including NC, VA, MD, PA, NJ, NY, etc.): use November.
+   - For deep southern states (FL, GA, AL, MS, LA, TX): use December.
+   - The three mandatory winter-prep tasks are:
+     a. "Drip faucets on coldest nights to prevent freezing", DIY, $0
+     b. "Insulate exposed exterior water pipes", DIY, $10-30
+     c. "Unplug and drain all exterior garden hoses", DIY, $0
+
+4. PRESSURE WASHING — once per year:
+   - Best month for high-pollen states (NC, TN, GA, VA, etc.): April (after peak pollen).
+   - Best month for other states: September (fall prep).
+   - Task: "Pressure wash exterior siding, driveway, and walkways", difficulty: "DIY or Pro", cost: "$75-200".
+
+5. TREE LIMB INSPECTION — twice per year, spring AND fall:
+   - Spring: March or April. Fall: September or October.
+   - Task: "Inspect and trim tree limbs overhanging roof, structures, or power lines", difficulty: "Pro", cost: "$100-400".
+
+═══ SYSTEM-SPECIFIC TAILORING (apply on top of the mandatory rules above) ═══
+
 - Roof type (${roofTypeLabel}): time inspections/cleaning to that roof material's needs
 - Water (${waterSourceLabel}): include well testing/pump checks if private well
 - Sewer (${sewerLabel}): include septic pumping/inspection if on septic system
 - Pest (${pestLabel}): adjust pest control tasks based on whether they already have a service
 - Crawl space (${crawlSpaceText}): include moisture/mold checks, and vapor barrier tasks if vented
 - Allergies: suggest HEPA filters or extra air quality tasks if yes
-
-Also distribute at state-appropriate times: HVAC filter changes, gutter cleaning, smoke/CO detector batteries, lawn care, exterior inspection, window caulking, appliance maintenance.
+- Also include at state-appropriate times: gutter cleaning, lawn care, exterior inspection, window caulking, appliance maintenance.
 
 Output ONLY valid compact JSON, no markdown, no code fences:
 {"state":"${state}","calendar":[{"month":"January","tasks":[{"task":"string","difficulty":"DIY or Pro","cost":"$X-Y","why":"≤15 words","tip":"≤15 words"}]}],"big_ticket_alerts":["string"],"one_time_tasks":["string"]}
