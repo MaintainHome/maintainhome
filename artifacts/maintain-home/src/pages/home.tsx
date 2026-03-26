@@ -16,6 +16,7 @@ export default function Home() {
   const [showDemo, setShowDemo] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [welcomeBanner, setWelcomeBanner] = useState(false);
+  const [savedCalendar, setSavedCalendar] = useState<{ quizAnswers: any; calendarData: any } | null>(null);
   const { user, logout, refreshUser } = useAuth();
   const [, navigate] = useLocation();
 
@@ -27,6 +28,20 @@ export default function Home() {
       setTimeout(() => setWelcomeBanner(false), 6000);
     }
   }, []);
+
+  // When a user is signed in, load their saved calendar so it persists across navigation
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/user/calendar/latest", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (data?.calendarData) {
+          setSavedCalendar({ quizAnswers: data.quizAnswers, calendarData: data.calendarData });
+          setShowDemo(true);
+        }
+      })
+      .catch(() => {});
+  }, [user?.id]);
 
   const scrollToForm = () => {
     document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' });
@@ -343,7 +358,7 @@ export default function Home() {
                   </h2>
                 </div>
                 <div id="quiz-start">
-                  <DemoQuiz />
+                  <DemoQuiz key={savedCalendar ? "saved" : "fresh"} initialData={savedCalendar} />
                 </div>
               </div>
             )}

@@ -82,26 +82,28 @@ function OptionButton({
   );
 }
 
-export function DemoQuiz() {
+const DEFAULT_ANSWERS: QuizAnswers = {
+  zip: "",
+  homeAge: "",
+  homeType: "",
+  roofType: "",
+  waterSource: "",
+  sewerSystem: "",
+  pestSchedule: "",
+  sqft: "",
+  allergies: "",
+  allergiesDetails: "",
+  crawlSpace: "",
+  crawlSpaceSealed: "",
+  landscaping: "",
+};
+
+export function DemoQuiz({ initialData }: { initialData?: { quizAnswers: QuizAnswers; calendarData: any } | null }) {
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<QuizAnswers>({
-    zip: "",
-    homeAge: "",
-    homeType: "",
-    roofType: "",
-    waterSource: "",
-    sewerSystem: "",
-    pestSchedule: "",
-    sqft: "",
-    allergies: "",
-    allergiesDetails: "",
-    crawlSpace: "",
-    crawlSpaceSealed: "",
-    landscaping: "",
-  });
+  const [answers, setAnswers] = useState<QuizAnswers>(initialData?.quizAnswers ?? DEFAULT_ANSWERS);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<any>(null);
+  const [results, setResults] = useState<any>(initialData?.calendarData ?? null);
   const [direction, setDirection] = useState<1 | -1>(1);
 
   const set = (key: keyof QuizAnswers, value: string) =>
