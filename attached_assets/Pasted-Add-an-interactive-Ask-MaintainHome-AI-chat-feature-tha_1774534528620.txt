@@ -1,0 +1,52 @@
+Add an interactive "Ask MaintainHome AI" chat feature that is available only to Pro users (or users with promo_pro status).
+
+Implementation details:
+
+1. Add a new button in the header or sidebar for logged-in Pro users: "Ask AI" or "Chat with MaintainHome AI" (with a chat bubble icon).
+
+2. When clicked, open a clean chat modal or side panel with:
+   - Chat history for the current session
+   - Input box at the bottom: "Ask a question about your home maintenance..."
+   - Example starter questions: "My HVAC is making noise", "How often should I check my crawl space?", "Is this roof damage normal?"
+
+3. When the user sends a message:
+   - Call Claude API with a specialized system prompt that includes:
+     - The user's profile data (ZIP code/state, home age, roof type, water source, sewer type, crawl space sealed status, pest schedule, etc.)
+     - Current calendar context if available
+   - The AI must stay focused on home maintenance topics only.
+   - Always end responses with a clear disclaimer: "This is general guidance only. For safety-critical issues, consult a licensed professional."
+
+4. System prompt for Claude (use this exactly):
+
+"""
+You are MaintainHome AI, a helpful home maintenance expert. 
+User profile: 
+- Location: [STATE] 
+- Home age: [age] 
+- Roof type: [roof] 
+- Water: [water source] 
+- Sewer: [sewer type] 
+- Crawl space: [sealed or not] 
+- Pest schedule: [yes/no] 
+- Other details: [any relevant from profile]
+
+Answer the user's question about home maintenance in a clear, practical, and safe way. 
+Be specific to their location and home details when possible. 
+If the question involves safety, electrical, structural, or gas issues, strongly recommend calling a licensed professional.
+Always include this disclaimer at the end: "This is general guidance only and not a substitute for professional inspection or repair. Consult a licensed contractor when needed."
+
+Keep answers concise but helpful (2-4 paragraphs max).
+"""
+
+5. Make the chat UI clean and modern:
+   - User messages on the right (blue)
+   - AI responses on the left (gray/green)
+   - Loading indicator while waiting for Claude response
+
+6. Important restrictions:
+   - Only show the "Ask AI" button and chat for users with subscription_status = "pro_monthly", "pro_annual", or "promo_pro"
+   - Free users see a teaser: "Upgrade to Pro to ask unlimited questions to our AI home expert"
+
+Do not break existing functionality (quiz, calendar, subscription logic, PWA, etc.).
+
+After implementing, tell me exactly how to test the chat feature.

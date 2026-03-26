@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Sparkles, ArrowRight, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn } from "lucide-react";
+import { Sparkles, ArrowRight, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle } from "lucide-react";
 import { WaitlistForm } from "@/components/WaitlistForm";
 import { Features } from "@/components/Features";
 import { DemoQuiz } from "@/components/DemoQuiz";
 import { PricingSection } from "@/components/PricingSection";
+import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { AuthModal } from "@/components/AuthModal";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useGetWaitlistCount } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 
@@ -18,7 +19,9 @@ export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [welcomeBanner, setWelcomeBanner] = useState(false);
   const [savedCalendar, setSavedCalendar] = useState<{ quizAnswers: any; calendarData: any } | null>(null);
+  const [showAIChat, setShowAIChat] = useState(false);
   const { user, logout, refreshUser } = useAuth();
+  const userIsPro = isPro(user);
   const [, navigate] = useLocation();
 
   useEffect(() => {
@@ -92,6 +95,15 @@ export default function Home() {
             {/* Mobile auth: icon button */}
             {user ? (
               <div className="sm:hidden flex items-center gap-1">
+                {userIsPro && (
+                  <button
+                    onClick={() => setShowAIChat(true)}
+                    title="Ask MaintainHome AI"
+                    className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors shadow-sm"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => navigate("/history")}
                   title="My Maintenance Log"
@@ -140,6 +152,15 @@ export default function Home() {
                 <span className="text-sm font-semibold text-slate-700 px-2">
                   Hi {user.name ? user.name.split(" ")[0] : user.email.split("@")[0]}
                 </span>
+                {userIsPro && (
+                  <button
+                    onClick={() => setShowAIChat(true)}
+                    className="flex items-center gap-1.5 text-sm font-semibold text-white bg-primary hover:bg-primary/90 px-3 py-2 rounded-xl transition-colors shadow-sm"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Ask AI
+                  </button>
+                )}
                 <button
                   onClick={() => navigate("/history")}
                   className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline px-3 py-2"
@@ -404,6 +425,13 @@ export default function Home() {
       </footer>
       {/* Auth Modal */}
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+
+      {/* AI Chat Modal */}
+      <AIChatModal
+        isOpen={showAIChat}
+        onClose={() => setShowAIChat(false)}
+        quizAnswers={savedCalendar?.quizAnswers}
+      />
 
       {/* Welcome banner after login */}
       {welcomeBanner && user && (

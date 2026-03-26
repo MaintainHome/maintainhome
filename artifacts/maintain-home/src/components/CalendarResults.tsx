@@ -2,11 +2,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign,
   Info, ChevronDown, ChevronUp, Lock, Check, FileDown, ClipboardList,
-  X, Pencil, BookOpen, Zap, Star,
+  X, Pencil, BookOpen, Zap, Star, MessageCircle,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth, isPro } from "@/contexts/AuthContext";
+import { AIChatModal } from "@/components/AIChatModal";
 import { useLocation } from "wouter";
 
 const MONTH_EMOJIS: Record<string, string> = {
@@ -232,6 +233,7 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
 
   const { user } = useAuth();
   const [, navigate] = useLocation();
+  const [showAIChat, setShowAIChat] = useState(false);
 
   const [completedTasks, setCompletedTasks] = useState<Record<string, string>>({});
   const [logEntryIds, setLogEntryIds] = useState<Record<string, number>>({});
@@ -344,6 +346,15 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
                 <Zap className="w-3.5 h-3.5" />
                 Pro Plan ✓
               </div>
+            )}
+            {userIsPro && (
+              <button
+                onClick={() => setShowAIChat(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-full text-xs font-semibold hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                Ask AI
+              </button>
             )}
           </div>
         ) : (
@@ -615,6 +626,13 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
       <p className="text-xs text-center text-slate-400 max-w-2xl mx-auto leading-relaxed mb-4">
         This is general information only and not professional advice. Always consult licensed professionals for your home. MaintainHome.ai is not responsible for any actions taken based on this calendar.
       </p>
+
+      {/* AI Chat Modal — Pro users only, pre-loaded with quiz context */}
+      <AIChatModal
+        isOpen={showAIChat}
+        onClose={() => setShowAIChat(false)}
+        quizAnswers={quizAnswers as Record<string, string>}
+      />
     </motion.div>
   );
 }
