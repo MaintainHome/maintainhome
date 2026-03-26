@@ -119,7 +119,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               </div>
               <div>
                 <p className="text-sm font-bold text-white">Ask Maintly</p>
-                <p className="text-xs text-white/70">Get answers now</p>
+                <p className="text-xs text-white/70">Your Personal AI Home Care Chatbot</p>
               </div>
             </button>
           ) : (
@@ -129,7 +129,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               </div>
               <div>
                 <p className="text-sm font-bold text-slate-500">Ask Maintly</p>
-                <p className="text-xs text-slate-400">Pro only</p>
+                <p className="text-xs text-slate-400">Your Personal AI Home Care Chatbot</p>
               </div>
             </div>
           )}
