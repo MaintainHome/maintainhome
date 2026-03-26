@@ -222,6 +222,101 @@ function TaskCard({ task, taskKey, isCompleted, completionNote, onMarkDone, onUn
   );
 }
 
+// ─── One-Time Task Row ────────────────────────────────────────────────────────
+
+interface OneTimeTaskRowProps {
+  taskKey: string;
+  taskText: string;
+  isCompleted: boolean;
+  completionNote: string;
+  onMarkDone: (key: string, note: string) => void;
+  onUnmark: (key: string) => void;
+}
+
+function OneTimeTaskRow({ taskKey, taskText, isCompleted, completionNote, onMarkDone, onUnmark }: OneTimeTaskRowProps) {
+  const [marking, setMarking] = useState(false);
+  const [noteText, setNoteText] = useState("");
+
+  const handleConfirm = () => {
+    onMarkDone(taskKey, noteText);
+    setMarking(false);
+    setNoteText("");
+  };
+
+  return (
+    <li className={`rounded-xl border p-3 transition-all duration-200 ${
+      isCompleted ? "border-emerald-200 bg-emerald-50" : "border-blue-100 bg-white"
+    }`}>
+      <div className="flex items-start gap-3">
+        <button
+          onClick={() => !isCompleted && setMarking(!marking)}
+          className={`shrink-0 mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+            isCompleted
+              ? "border-emerald-500 bg-emerald-500 cursor-default"
+              : "border-blue-300 bg-white hover:border-emerald-400 cursor-pointer"
+          }`}
+        >
+          {isCompleted && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm leading-snug ${isCompleted ? "line-through text-slate-400" : "text-slate-700"}`}>
+            {taskText}
+          </p>
+          {isCompleted && completionNote && (
+            <p className="text-xs text-emerald-700 mt-1 italic">"{completionNote}"</p>
+          )}
+          {!isCompleted && !marking && (
+            <button
+              onClick={() => setMarking(true)}
+              className="flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-800 mt-1.5 transition-colors"
+            >
+              <Check className="w-3.5 h-3.5" />
+              Mark as Done
+            </button>
+          )}
+          {!isCompleted && marking && (
+            <div className="mt-2 space-y-2">
+              <textarea
+                autoFocus
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                placeholder="Optional note (e.g. Hired ABC Co., cost $150)"
+                rows={2}
+                className="w-full text-sm rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={handleConfirm}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Confirm
+                </button>
+                <button
+                  onClick={() => { setMarking(false); setNoteText(""); }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-sm font-medium transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          {isCompleted && (
+            <button
+              onClick={() => onUnmark(taskKey)}
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-slate-600 transition-colors mt-1"
+            >
+              <X className="w-3 h-3" />
+              Unmark
+            </button>
+          )}
+        </div>
+      </div>
+    </li>
+  );
+}
+
 // ─── Main Results Component ───────────────────────────────────────────────────
 
 export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsProps) {
@@ -255,12 +350,23 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
   const handleMarkDone = async (key: string, note: string) => {
     setCompletedTasks(prev => ({ ...prev, [key]: note }));
     if (!user) return;
-    // Parse key: "MonthName-taskIndex"
-    const dashIdx = key.lastIndexOf("-");
-    const month = key.slice(0, dashIdx);
-    const taskIdx = parseInt(key.slice(dashIdx + 1));
-    const monthData = data.calendar?.find(m => m.month === month);
-    const taskName = monthData?.tasks?.[taskIdx]?.task ?? key;
+
+    let taskName: string;
+    let month: string;
+
+    if (key.startsWith("one-time-")) {
+      const idx = parseInt(key.slice("one-time-".length));
+      taskName = data.one_time_tasks?.[idx] ?? key;
+      month = "One-Time Tasks";
+    } else {
+      // Parse key: "MonthName-taskIndex"
+      const dashIdx = key.lastIndexOf("-");
+      month = key.slice(0, dashIdx);
+      const taskIdx = parseInt(key.slice(dashIdx + 1));
+      const monthData = data.calendar?.find(m => m.month === month);
+      taskName = monthData?.tasks?.[taskIdx]?.task ?? key;
+    }
+
     const zipCode = (quizAnswers as any)?.zip ?? null;
     try {
       const res = await fetch("/api/user/log", {
@@ -306,6 +412,12 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
         historyItems.push({ month: month.month, task: task.task, note: completedTasks[key], key });
       }
     });
+  });
+  data.one_time_tasks?.forEach((task, i) => {
+    const key = `one-time-${i}`;
+    if (completedTasks[key] !== undefined) {
+      historyItems.push({ month: "One-Time Tasks", task, note: completedTasks[key], key });
+    }
   });
 
   const completedCount = Object.keys(completedTasks).length;
@@ -371,14 +483,23 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="w-5 h-5 text-blue-600" />
             <h4 className="font-bold text-blue-900">One-Time Setup Tasks</h4>
+            <p className="text-xs text-blue-500 ml-auto">Click to mark as done</p>
           </div>
           <ul className="space-y-2">
-            {data.one_time_tasks.map((task, i) => (
-              <li key={i} className="flex gap-2 text-sm text-blue-800">
-                <span className="text-blue-500 font-bold shrink-0">•</span>
-                {task}
-              </li>
-            ))}
+            {data.one_time_tasks.map((task, i) => {
+              const key = `one-time-${i}`;
+              return (
+                <OneTimeTaskRow
+                  key={key}
+                  taskKey={key}
+                  taskText={task}
+                  isCompleted={completedTasks[key] !== undefined}
+                  completionNote={completedTasks[key] ?? ""}
+                  onMarkDone={handleMarkDone}
+                  onUnmark={handleUnmark}
+                />
+              );
+            })}
           </ul>
         </div>
       )}
