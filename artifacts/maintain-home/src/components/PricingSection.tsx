@@ -17,8 +17,9 @@ const PRO_FEATURES = [
   "Seasonal alerts & big-ticket warnings",
   "PDF export (coming soon)",
   "Priority support",
-  "AI home maintenance assistant",
 ];
+
+const AI_FEATURE = "Interactive Ask MaintainHome AI – Ask specific questions about your home maintenance";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -160,6 +161,10 @@ export function PricingSection() {
                 <Lock className="w-4 h-4 shrink-0 mt-0.5" />
                 Months 3–12 locked
               </li>
+              <li className="flex gap-2.5 text-sm text-slate-400 line-through">
+                <Lock className="w-4 h-4 shrink-0 mt-0.5" />
+                {AI_FEATURE}
+              </li>
             </ul>
 
             {user && !proUser ? (
@@ -197,6 +202,10 @@ export function PricingSection() {
                   {f}
                 </li>
               ))}
+              <li className="flex gap-2.5 text-sm text-slate-700">
+                <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                {AI_FEATURE}
+              </li>
             </ul>
 
             {proUser ? (
@@ -253,6 +262,10 @@ export function PricingSection() {
                   {f}
                 </li>
               ))}
+              <li className="flex gap-2.5 text-sm text-slate-700">
+                <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                {AI_FEATURE}
+              </li>
             </ul>
 
             {proUser ? (
