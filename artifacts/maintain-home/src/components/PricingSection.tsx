@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 
 const FREE_FEATURES = [
-  "Current month + next month calendar",
+  "Current month + 1 additional month free",
   "AI-personalized for your ZIP code",
   "Task details & tips",
   "Mark tasks as done",
