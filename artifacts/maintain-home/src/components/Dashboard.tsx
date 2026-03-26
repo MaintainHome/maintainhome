@@ -97,14 +97,14 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           {/* View Calendar */}
           <button
             onClick={scrollToCalendar}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:border-primary/40 hover:shadow-md hover:shadow-primary/10 transition-all text-left group"
+            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
           >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-              <Calendar className="w-5 h-5 text-primary" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <Calendar className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-800">My Calendar</p>
-              <p className="text-xs text-slate-400">View all tasks</p>
+              <p className="text-sm font-bold text-slate-800 group-hover:text-white transition-colors">My Calendar</p>
+              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors">View all tasks</p>
             </div>
           </button>
 
@@ -137,14 +137,14 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           {/* Maintenance History */}
           <button
             onClick={() => navigate("/history")}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:border-primary/40 hover:shadow-md hover:shadow-primary/10 transition-all text-left group"
+            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
           >
-            <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition-colors">
-              <ClipboardList className="w-5 h-5 text-emerald-600" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <ClipboardList className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-800">History</p>
-              <p className="text-xs text-slate-400">Completed tasks</p>
+              <p className="text-sm font-bold text-slate-800 group-hover:text-white transition-colors">History</p>
+              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors">Completed tasks</p>
             </div>
           </button>
 
