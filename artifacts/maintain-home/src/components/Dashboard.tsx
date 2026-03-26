@@ -112,14 +112,14 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           {userIsPro ? (
             <button
               onClick={onOpenAIChat}
-              className="flex flex-col items-start gap-2 p-4 bg-primary rounded-2xl border border-primary hover:bg-primary/90 hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
+              className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
             >
-              <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                <MessageCircle className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
               </div>
               <div>
-                <p className="text-sm font-bold text-white">Ask Maintly</p>
-                <p className="text-xs text-white/70">Your Personal ai Home Care Chatbot</p>
+                <p className="text-sm font-bold text-slate-900 group-hover:text-white transition-colors">Ask Maintly</p>
+                <p className="text-xs text-slate-500 group-hover:text-white/70 transition-colors">Your Personal ai Home Care Chatbot</p>
               </div>
             </button>
           ) : (
