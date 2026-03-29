@@ -28,19 +28,13 @@ const STARTER_QUESTIONS = [
 
 const BASE = import.meta.env.BASE_URL;
 
-function MaintlyAvatar({ size = "sm", variant = "thumb" }: {
-  size?: "sm" | "lg";
+function MaintlyAvatar({ variant = "thumb" }: {
   variant?: "wrench" | "thumb";
 }) {
   const src = variant === "wrench"
     ? `${BASE}images/maintly_wrench.png`
     : `${BASE}images/maintly_thumb.png`;
 
-  if (size === "lg") {
-    return (
-      <img src={src} alt="Maintly" className="w-36 h-auto object-contain shrink-0 drop-shadow-md" />
-    );
-  }
   return (
     <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white border border-slate-100 shadow-sm">
       <img
@@ -276,12 +270,16 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                 <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
                   {messages.length === 0 ? (
                     /* Welcome / starter state */
-                    <div className="h-full flex flex-col items-center justify-center gap-6 py-4">
-                      <div className="text-center">
-                        <MaintlyAvatar size="lg" variant="thumb" />
-                        <div className="mt-3">
+                    <div className="h-full flex flex-col items-center justify-center gap-5 py-4">
+                      <div className="flex items-center gap-4 w-full max-w-md">
+                        <img
+                          src={`${BASE}images/maintly_thumb.png`}
+                          alt="Maintly"
+                          className="h-36 w-auto object-contain object-top shrink-0 drop-shadow-md"
+                        />
+                        <div>
                           <h3 className="font-bold text-slate-900 mb-1">Chat with Maintly</h3>
-                          <p className="text-sm text-slate-500 max-w-xs mx-auto">
+                          <p className="text-sm text-slate-500">
                             Your friendly home maintenance expert. Ask anything about your home — I'll give you practical, personalized advice.
                           </p>
                         </div>
