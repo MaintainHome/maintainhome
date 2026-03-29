@@ -343,17 +343,17 @@ export default function Home() {
                            </p>
                          </div>
                        </div>
+                       {/* Prevent costly repairs badge — sits directly under Maintly text */}
+                       <div className="w-full flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-primary/10 text-primary font-semibold border border-primary/20">
+                         <ShieldCheck className="w-5 h-5 shrink-0" />
+                         <span className="text-sm">Prevent costly repairs before they happen</span>
+                       </div>
                        <div className="w-full h-16 bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex gap-4 opacity-40">
                          <div className="w-10 h-10 bg-slate-100 rounded-lg" />
                          <div className="space-y-2 flex-1 pt-1">
                            <div className="w-1/3 h-3 bg-slate-200 rounded-full" />
                            <div className="w-1/2 h-2 bg-slate-100 rounded-full" />
                          </div>
-                       </div>
-                       {/* Prevent costly repairs badge */}
-                       <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-primary/10 text-primary text-xs font-semibold border border-primary/20 self-start">
-                         <ShieldCheck className="w-4 h-4 shrink-0" />
-                         Prevent costly repairs before they happen
                        </div>
                      </div>
                    </div>
