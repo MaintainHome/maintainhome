@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle } from "lucide-react";
 import { Features } from "@/components/Features";
-import { DemoQuiz } from "@/components/DemoQuiz";
 import { PricingSection } from "@/components/PricingSection";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -12,7 +11,6 @@ import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
 export default function Home() {
-  const [showDemo, setShowDemo] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [welcomeBanner, setWelcomeBanner] = useState(false);
   const [savedCalendar, setSavedCalendar] = useState<{ quizAnswers: any; calendarData: any } | null>(null);
@@ -31,7 +29,7 @@ export default function Home() {
     }
   }, []);
 
-  // When a user is signed in, load their saved calendar so it persists across navigation
+  // When a user is signed in, load their saved calendar for the dashboard
   useEffect(() => {
     if (!user) return;
     fetch("/api/user/calendar/latest", { credentials: "include" })
@@ -39,7 +37,6 @@ export default function Home() {
       .then((data) => {
         if (data?.calendarData) {
           setSavedCalendar({ quizAnswers: data.quizAnswers, calendarData: data.calendarData });
-          setShowDemo(true);
         }
       })
       .catch(() => {});
@@ -52,13 +49,6 @@ export default function Home() {
     } else {
       setShowAuthModal(true);
     }
-  };
-
-  const scrollToDemo = () => {
-    setShowDemo(true);
-    setTimeout(() => {
-      document.getElementById('quiz-start')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 120);
   };
 
   return (
@@ -386,54 +376,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Demo Section */}
-        <section id="demo-section" className="py-24 bg-gradient-to-b from-slate-50 to-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {!showDemo ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="text-center"
-              >
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-6">
-                  <Zap className="w-4 h-4" />
-                  Live AI Preview — No signup needed
-                </div>
-                <h2 className="text-4xl sm:text-5xl font-display font-black text-foreground mb-4">
-                  See it in action
-                </h2>
-                <p className="text-xl text-muted-foreground max-w-xl mx-auto mb-10">
-                  Answer 11 quick questions about your home and get a real AI-generated 12-month maintenance calendar — personalized to your state and climate.
-                </p>
-                <button
-                  onClick={scrollToDemo}
-                  className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-bold text-xl bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 hover:-translate-y-1"
-                >
-                  <Sparkles className="w-6 h-6" />
-                  Try the AI Demo
-                </button>
-                <p className="mt-4 text-sm text-slate-400">Takes about 2 minutes · Free · No account required</p>
-              </motion.div>
-            ) : (
-              <div>
-                <div className="text-center mb-10">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-full text-sm font-semibold mb-4">
-                    <Zap className="w-4 h-4" />
-                    AI Demo
-                  </div>
-                  <h2 className="text-3xl sm:text-4xl font-display font-black text-foreground">
-                    Your Personalized Home Calendar
-                  </h2>
-                </div>
-                <div id="quiz-start">
-                  <DemoQuiz key={savedCalendar ? "saved" : "fresh"} initialData={savedCalendar} onOpenAuth={handleTryNow} />
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
       </main>
       )}
 
