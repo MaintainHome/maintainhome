@@ -348,6 +348,23 @@ export default function Home() {
                      </div>
                    </div>
                 </div>
+
+                {/* Maintly chat teaser */}
+                <div className="mt-5 flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-md px-4 py-3">
+                  <img
+                    src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
+                    alt="Maintly"
+                    className="h-16 w-auto object-contain object-top shrink-0 drop-shadow-sm"
+                  />
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 leading-snug">
+                      Chat with me, <span className="text-primary">"Maintly,"</span>
+                    </p>
+                    <p className="text-xs text-slate-500 leading-snug">
+                      your custom Ai Home Maintenance Chatbot.
+                    </p>
+                  </div>
+                </div>
               </motion.div>
             </div>
           </div>
