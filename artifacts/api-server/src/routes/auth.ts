@@ -100,22 +100,18 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
     .limit(1);
 
   if (!user) {
-    // New user — name is required
-    if (!trimmedName) {
-      res.json({ needsProfile: true });
-      return;
-    }
+    // New user — create account with email (name/zip collected later via quiz)
     [user] = await db
       .insert(usersTable)
       .values({
         email: normalizedEmail,
-        name: trimmedName,
-        zipCode: trimmedZip,
+        name: trimmedName ?? null,
+        zipCode: trimmedZip ?? null,
         fullAccess: promoGrantsAccess,
         subscriptionStatus: promoGrantsAccess ? "promo_pro" : "free",
       })
       .returning();
-    console.log(`[auth] New user created: ${normalizedEmail} (${trimmedName}) subscriptionStatus=${promoGrantsAccess ? "promo_pro" : "free"}`);
+    console.log(`[auth] New user created: ${normalizedEmail} subscriptionStatus=${promoGrantsAccess ? "promo_pro" : "free"}`);
   } else {
     // Returning user — update fields as needed
     const updates: Record<string, unknown> = {};
