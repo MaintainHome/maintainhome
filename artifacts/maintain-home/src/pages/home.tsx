@@ -324,47 +324,36 @@ export default function Home() {
                        <div className="w-10 h-10 bg-slate-200 rounded-full" />
                      </div>
                      <div className="space-y-4">
-                       <div className="w-full h-24 bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex gap-4">
-                         <div className="w-12 h-12 bg-slate-100 rounded-lg" />
-                         <div className="space-y-2 flex-1 pt-1">
-                           <div className="w-1/3 h-4 bg-slate-200 rounded-full" />
-                           <div className="w-2/3 h-3 bg-slate-100 rounded-full" />
+                       {/* Maintly chat teaser — fills the blank space */}
+                       <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex items-center gap-5">
+                         <img
+                           src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
+                           alt="Maintly"
+                           className="h-28 w-auto object-contain object-top shrink-0 drop-shadow-sm"
+                         />
+                         <div>
+                           <p className="text-base font-extrabold text-slate-900 leading-snug">
+                             Chat with me,
+                           </p>
+                           <p className="text-base font-extrabold text-primary leading-snug mb-1">
+                             "Maintly"
+                           </p>
+                           <p className="text-xs text-slate-500 leading-snug">
+                             Your custom Ai Home<br />Maintenance Chatbot.
+                           </p>
                          </div>
                        </div>
-                       <div className="w-full h-24 bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex gap-4 opacity-70">
-                         <div className="w-12 h-12 bg-slate-100 rounded-lg" />
+                       <div className="w-full h-16 bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex gap-4 opacity-40">
+                         <div className="w-10 h-10 bg-slate-100 rounded-lg" />
                          <div className="space-y-2 flex-1 pt-1">
-                           <div className="w-1/2 h-4 bg-slate-200 rounded-full" />
-                           <div className="w-3/4 h-3 bg-slate-100 rounded-full" />
-                         </div>
-                       </div>
-                       <div className="w-full h-24 bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex gap-4 opacity-40">
-                         <div className="w-12 h-12 bg-slate-100 rounded-lg" />
-                         <div className="space-y-2 flex-1 pt-1">
-                           <div className="w-1/3 h-4 bg-slate-200 rounded-full" />
-                           <div className="w-1/2 h-3 bg-slate-100 rounded-full" />
+                           <div className="w-1/3 h-3 bg-slate-200 rounded-full" />
+                           <div className="w-1/2 h-2 bg-slate-100 rounded-full" />
                          </div>
                        </div>
                      </div>
                    </div>
                 </div>
 
-                {/* Maintly chat teaser */}
-                <div className="mt-5 flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-md px-4 py-3">
-                  <img
-                    src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
-                    alt="Maintly"
-                    className="h-16 w-auto object-contain object-top shrink-0 drop-shadow-sm"
-                  />
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 leading-snug">
-                      Chat with me, <span className="text-primary">"Maintly,"</span>
-                    </p>
-                    <p className="text-xs text-slate-500 leading-snug">
-                      your custom Ai Home Maintenance Chatbot.
-                    </p>
-                  </div>
-                </div>
               </motion.div>
             </div>
           </div>
