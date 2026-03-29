@@ -5,6 +5,17 @@ import { eq, and, gt } from "drizzle-orm";
 export interface AuthRequest extends Request {
   userId?: number;
   userEmail?: string;
+  userSubscriptionStatus?: string;
+  userFullAccess?: boolean;
+}
+
+function isProStatus(status: string | undefined, fullAccess: boolean | undefined): boolean {
+  return (
+    fullAccess === true ||
+    status === "pro_monthly" ||
+    status === "pro_annual" ||
+    status === "promo_pro"
+  );
 }
 
 export async function requireAuth(req: AuthRequest, res: Response, next: NextFunction) {
@@ -26,7 +37,12 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
   }
 
   const [user] = await db
-    .select({ id: usersTable.id, email: usersTable.email })
+    .select({
+      id: usersTable.id,
+      email: usersTable.email,
+      subscriptionStatus: usersTable.subscriptionStatus,
+      fullAccess: usersTable.fullAccess,
+    })
     .from(usersTable)
     .where(eq(usersTable.id, session.userId))
     .limit(1);
@@ -38,5 +54,15 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
 
   req.userId = user.id;
   req.userEmail = user.email;
+  req.userSubscriptionStatus = user.subscriptionStatus;
+  req.userFullAccess = user.fullAccess;
+  next();
+}
+
+export async function requirePro(req: AuthRequest, res: Response, next: NextFunction) {
+  if (!isProStatus(req.userSubscriptionStatus, req.userFullAccess)) {
+    res.status(403).json({ error: "Pro subscription required" });
+    return;
+  }
   next();
 }

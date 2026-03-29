@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, ClipboardList, ArrowLeft, Loader2, LogOut, Calendar,
   Pencil, Paperclip, FileText, Plus, Upload, CalendarDays, Check, X,
-  AlertTriangle,
+  AlertTriangle, Lock, FileDown, Zap,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
 interface LogEntry {
@@ -41,11 +41,16 @@ const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 export default function HistoryPage() {
   const { user, loading: authLoading, logout } = useAuth();
   const [, navigate] = useLocation();
+  const userIsPro = isPro(user);
 
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [customNotes, setCustomNotes] = useState<CustomNote[]>([]);
   const [documents, setDocuments] = useState<UserDocument[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Export state
+  const [exportMsg, setExportMsg] = useState<string | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
 
   // Note form state
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -80,6 +85,20 @@ export default function HistoryPage() {
   const handleLogout = async () => {
     await logout();
     navigate("/");
+  };
+
+  const handleExport = async () => {
+    setExportLoading(true);
+    setExportMsg(null);
+    try {
+      const res = await fetch("/api/user/export", { credentials: "include" });
+      const data = await res.json();
+      setExportMsg(data.message ?? "PDF & CSV export coming soon for Pro users.");
+    } catch {
+      setExportMsg("PDF & CSV export coming soon for Pro users.");
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const handleAddNote = async () => {
@@ -176,7 +195,7 @@ export default function HistoryPage() {
     byMonth[e.month].push(e);
   });
 
-  const totalCount = entries.length + customNotes.length + documents.length;
+  const totalCount = entries.length + customNotes.length + (userIsPro ? documents.length : 0);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -234,7 +253,8 @@ export default function HistoryPage() {
               </h1>
               {!loading && (
                 <p className="text-slate-500 text-sm">
-                  {totalCount} {totalCount === 1 ? "entry" : "entries"} — tasks, notes &amp; documents
+                  {totalCount} {totalCount === 1 ? "entry" : "entries"} —{" "}
+                  {userIsPro ? "tasks, notes & documents" : "tasks & notes"}
                 </p>
               )}
             </div>
@@ -255,14 +275,17 @@ export default function HistoryPage() {
                     <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center">
                       <ClipboardList className="w-3.5 h-3.5 text-slate-600" />
                     </div>
-                    <span className="font-bold text-slate-800 text-sm">Notes &amp; Documents</span>
-                    {(customNotes.length + documents.length) > 0 && (
+                    <span className="font-bold text-slate-800 text-sm">
+                      {userIsPro ? "Notes & Documents" : "Custom Notes"}
+                    </span>
+                    {(customNotes.length + (userIsPro ? documents.length : 0)) > 0 && (
                       <span className="ml-auto text-xs font-semibold text-slate-600 bg-slate-200 px-2 py-0.5 rounded-full">
-                        {customNotes.length + documents.length}
+                        {customNotes.length + (userIsPro ? documents.length : 0)}
                       </span>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
+                    {/* Add Custom Note — available to all users */}
                     <button
                       onClick={() => { setShowNoteForm(v => !v); setShowUploadForm(false); }}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
@@ -274,18 +297,62 @@ export default function HistoryPage() {
                       <Plus className="w-3.5 h-3.5" />
                       Add Custom Note
                     </button>
-                    <button
-                      onClick={() => { setShowUploadForm(v => !v); setShowNoteForm(false); setUploadError(null); }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
-                        showUploadForm
-                          ? "bg-blue-600 text-white border-blue-600"
-                          : "bg-white text-blue-700 border-blue-300 hover:bg-blue-50"
-                      }`}
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      Upload Document
-                    </button>
+
+                    {/* Upload Document — Pro only */}
+                    {userIsPro ? (
+                      <button
+                        onClick={() => { setShowUploadForm(v => !v); setShowNoteForm(false); setUploadError(null); }}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                          showUploadForm
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white text-blue-700 border-blue-300 hover:bg-blue-50"
+                        }`}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        Upload Document
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-dashed border-slate-300 text-slate-400 cursor-not-allowed">
+                        <Lock className="w-3.5 h-3.5" />
+                        Upload Document <span className="ml-1 text-[10px] bg-amber-100 text-amber-700 font-bold px-1.5 py-0.5 rounded-full">Pro</span>
+                      </div>
+                    )}
+
+                    {/* Export — Pro only */}
+                    {userIsPro && (
+                      <button
+                        onClick={handleExport}
+                        disabled={exportLoading}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/40 bg-white text-primary hover:bg-primary/5 transition-colors"
+                      >
+                        {exportLoading
+                          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          : <FileDown className="w-3.5 h-3.5" />}
+                        Export History for Resale
+                      </button>
+                    )}
                   </div>
+
+                  {/* Export coming-soon message */}
+                  {exportMsg && (
+                    <div className="mt-3 flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-3 py-2">
+                      <Zap className="w-4 h-4 text-primary shrink-0" />
+                      <p className="text-xs text-primary font-medium">{exportMsg}</p>
+                      <button onClick={() => setExportMsg(null)} className="ml-auto text-slate-400 hover:text-slate-600">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Free user upgrade nudge for documents */}
+                  {!userIsPro && (
+                    <div className="mt-3 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                      <Lock className="w-4 h-4 text-amber-500 shrink-0" />
+                      <p className="text-xs text-amber-800">
+                        <span className="font-semibold">Pro feature:</span> Upload documents (warranties, invoices, receipts, photos) and export your full history.
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Add Custom Note Form */}
@@ -405,9 +472,11 @@ export default function HistoryPage() {
                 </AnimatePresence>
 
                 {/* Notes & Documents list */}
-                {customNotes.length === 0 && documents.length === 0 ? (
+                {customNotes.length === 0 && (!userIsPro || documents.length === 0) ? (
                   <div className="px-5 py-6 text-center text-slate-400 text-sm">
-                    No notes or documents yet — use the buttons above to add some.
+                    {customNotes.length === 0
+                      ? "No custom notes yet — click \"Add Custom Note\" above to add one."
+                      : "No documents yet — use the buttons above to add some."}
                   </div>
                 ) : (
                   <ul className="divide-y divide-slate-100">
@@ -434,7 +503,7 @@ export default function HistoryPage() {
                         </button>
                       </li>
                     ))}
-                    {documents.map(d => {
+                    {userIsPro && documents.map(d => {
                       const ext = d.fileName.split(".").pop()?.toUpperCase() ?? "FILE";
                       const dateStr = new Date(d.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                       const isImage = d.contentType.startsWith("image/");

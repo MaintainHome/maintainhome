@@ -1,7 +1,7 @@
 import { Router, type Response } from "express";
 import { db, savedCalendarsTable, maintenanceLogTable, maintenanceNotesTable, maintenanceDocumentsTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
-import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
+import { requireAuth, requirePro, type AuthRequest } from "../middleware/requireAuth";
 
 const router = Router();
 
@@ -120,7 +120,7 @@ router.get("/user/documents", requireAuth as any, async (req: AuthRequest, res: 
   res.json(docs);
 });
 
-router.post("/user/documents", requireAuth as any, async (req: AuthRequest, res: Response) => {
+router.post("/user/documents", requireAuth as any, requirePro as any, async (req: AuthRequest, res: Response) => {
   const { fileName, objectPath, contentType, fileSizeBytes } = req.body;
   if (!fileName || !objectPath || !contentType) {
     res.status(400).json({ error: "fileName, objectPath, and contentType are required" });
@@ -149,6 +149,12 @@ router.delete("/user/documents/:id", requireAuth as any, async (req: AuthRequest
     .delete(maintenanceDocumentsTable)
     .where(and(eq(maintenanceDocumentsTable.id, id), eq(maintenanceDocumentsTable.userId, req.userId!)));
   res.json({ ok: true });
+});
+
+// ─── Export (Pro only) ───────────────────────────────────────────────────────
+
+router.get("/user/export", requireAuth as any, requirePro as any, async (_req: AuthRequest, res: Response) => {
+  res.json({ status: "coming_soon", message: "PDF & CSV export coming soon for Pro users." });
 });
 
 export default router;

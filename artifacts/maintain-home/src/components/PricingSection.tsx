@@ -8,6 +8,7 @@ const FREE_FEATURES = [
   "AI-personalized for your ZIP code",
   "Task details & tips",
   "Mark tasks as done",
+  "View history + add custom notes",
 ];
 
 const PRO_FEATURES = [
@@ -15,7 +16,9 @@ const PRO_FEATURES = [
   "Complete maintenance log history",
   "Smart email reminders (coming soon)",
   "Seasonal alerts & big-ticket warnings",
-  "PDF export (coming soon)",
+  "View history + custom notes + document uploads",
+  "Upload documents (warranties, invoices, receipts, photos)",
+  "Professional export for resale (PDF & CSV — coming soon)",
   "Priority support",
 ];
 
