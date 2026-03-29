@@ -273,7 +273,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                     <div className="h-full flex flex-col items-center justify-center gap-5 py-4">
                       <div className="flex items-center gap-4 w-full max-w-md">
                         <img
-                          src={`${BASE}images/maintly_thumb.png`}
+                          src={`${BASE}images/maintly_wrench.png`}
                           alt="Maintly"
                           className="h-36 w-auto object-contain object-top shrink-0 drop-shadow-md"
                         />
