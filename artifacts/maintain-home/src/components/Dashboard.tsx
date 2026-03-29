@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import {
-  Calendar, MessageCircle, ClipboardList, Zap, ArrowRight,
+  Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, Lock, ChevronRight, RefreshCw,
 } from "lucide-react";
 import { DemoQuiz } from "@/components/DemoQuiz";
@@ -120,24 +120,38 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           {userIsPro ? (
             <button
               onClick={onOpenAIChat}
-              className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
+              className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group overflow-hidden"
             >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-                <MessageCircle className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+              <div className="w-14 h-16 overflow-hidden shrink-0">
+                <img
+                  src={`${import.meta.env.BASE_URL}images/maintly_wrench.png`}
+                  alt="Maintly"
+                  className="w-14"
+                  style={{ height: "240%", objectFit: "cover", objectPosition: "top center" }}
+                />
               </div>
               <div>
                 <p className="text-sm font-bold text-slate-900 group-hover:text-white transition-colors">Ask Maintly</p>
-                <p className="text-xs text-slate-500 group-hover:text-white/70 transition-colors">Your Personal ai Home Care Chatbot</p>
+                <p className="text-xs text-slate-500 group-hover:text-white/70 transition-colors leading-snug">
+                  Your Personal Ai<br />Home Care Chatbot
+                </p>
               </div>
             </button>
           ) : (
-            <div className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-dashed border-slate-300 opacity-60 cursor-not-allowed">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                <Lock className="w-5 h-5 text-slate-400" />
+            <div className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-dashed border-slate-300 opacity-60 cursor-not-allowed overflow-hidden">
+              <div className="w-14 h-16 overflow-hidden shrink-0">
+                <img
+                  src={`${import.meta.env.BASE_URL}images/maintly_wrench.png`}
+                  alt="Maintly"
+                  className="w-14 grayscale"
+                  style={{ height: "240%", objectFit: "cover", objectPosition: "top center" }}
+                />
               </div>
               <div>
                 <p className="text-sm font-bold text-slate-500">Ask Maintly</p>
-                <p className="text-xs text-slate-400">Your Personal ai Home Care Chatbot</p>
+                <p className="text-xs text-slate-400 leading-snug">
+                  Your Personal Ai<br />Home Care Chatbot
+                </p>
               </div>
             </div>
           )}

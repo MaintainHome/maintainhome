@@ -38,7 +38,7 @@ function MaintlyAvatar({ size = "sm", variant = "thumb" }: {
 
   if (size === "lg") {
     return (
-      <img src={src} alt="Maintly" className="w-28 h-28 object-contain object-top shrink-0 drop-shadow-md" />
+      <img src={src} alt="Maintly" className="w-36 h-auto object-contain shrink-0 drop-shadow-md" />
     );
   }
   return (
