@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Send, User, Loader2, Zap, ChevronRight, Wrench,
+  X, Send, User, Loader2, Zap, ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth, isPro } from "@/contexts/AuthContext";
@@ -26,12 +26,29 @@ const STARTER_QUESTIONS = [
   "My roof is 15 years old — what should I be watching for?",
 ];
 
-function MaintlyAvatar({ size = "sm" }: { size?: "sm" | "lg" }) {
-  const dim = size === "lg" ? "w-14 h-14" : "w-7 h-7";
-  const icon = size === "lg" ? "w-7 h-7" : "w-3.5 h-3.5";
+const BASE = import.meta.env.BASE_URL;
+
+function MaintlyAvatar({ size = "sm", variant = "thumb" }: {
+  size?: "sm" | "lg";
+  variant?: "wrench" | "thumb";
+}) {
+  const src = variant === "wrench"
+    ? `${BASE}images/maintly_wrench.png`
+    : `${BASE}images/maintly_thumb.png`;
+
+  if (size === "lg") {
+    return (
+      <img src={src} alt="Maintly" className="w-28 h-28 object-contain object-top shrink-0 drop-shadow-md" />
+    );
+  }
   return (
-    <div className={`${dim} rounded-full bg-primary flex items-center justify-center shrink-0`}>
-      <Wrench className={`${icon} text-white`} />
+    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white border border-slate-100 shadow-sm">
+      <img
+        src={src}
+        alt="Maintly"
+        className="w-full"
+        style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+      />
     </div>
   );
 }
@@ -183,8 +200,13 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
           >
             {/* Header */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-primary/5 to-blue-500/5 shrink-0">
-              <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 shadow-sm">
-                <Wrench className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-white border border-primary/20 shadow-sm">
+                <img
+                  src={`${BASE}images/maintly_wrench.png`}
+                  alt="Maintly"
+                  className="w-full"
+                  style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <h2 className="font-bold text-slate-900 text-sm leading-tight">Maintly</h2>
@@ -215,9 +237,11 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
             {!userIsPro ? (
               /* Pro gate for free users */
               <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center gap-6">
-                <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center shadow-md">
-                  <Wrench className="w-8 h-8 text-white" />
-                </div>
+                <img
+                  src={`${BASE}images/maintly_wrench.png`}
+                  alt="Maintly"
+                  className="w-32 h-32 object-contain object-top drop-shadow-md"
+                />
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Meet Maintly — Pro Members Only</h3>
                   <p className="text-slate-500 text-sm max-w-xs mx-auto">
@@ -254,7 +278,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                     /* Welcome / starter state */
                     <div className="h-full flex flex-col items-center justify-center gap-6 py-4">
                       <div className="text-center">
-                        <MaintlyAvatar size="lg" />
+                        <MaintlyAvatar size="lg" variant="thumb" />
                         <div className="mt-3">
                           <h3 className="font-bold text-slate-900 mb-1">Chat with Maintly</h3>
                           <p className="text-sm text-slate-500 max-w-xs mx-auto">
@@ -288,8 +312,13 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                             <User className="w-3.5 h-3.5" />
                           </div>
                         ) : (
-                          <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
-                            <Wrench className="w-3.5 h-3.5 text-white" />
+                          <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 bg-white border border-slate-100 shadow-sm">
+                            <img
+                              src={`${BASE}images/maintly_thumb.png`}
+                              alt="Maintly"
+                              className="w-full"
+                              style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+                            />
                           </div>
                         )}
 

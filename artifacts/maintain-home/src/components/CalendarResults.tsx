@@ -672,6 +672,21 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
                       <span className="text-xs text-slate-400 font-medium">Up next</span>
                     )}
                   </div>
+                  {isCurrentMonth && (
+                    <div className="relative group ml-1">
+                      <img
+                        src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
+                        alt="Maintly tip"
+                        className="w-8 h-10 object-contain object-top cursor-pointer drop-shadow-sm hover:scale-110 transition-transform"
+                      />
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 bg-slate-800 text-white text-xs rounded-xl px-3 py-2 text-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                        <span className="font-semibold text-primary-foreground">Maintly's Tip</span>
+                        <br />
+                        {month.tasks?.[0]?.tip ?? "Stay on top of this month's tasks!"}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
+                      </div>
+                    </div>
+                  )}
                   <div className="ml-auto flex items-center gap-2">
                     {showMarkDone && (() => {
                       const doneInMonth = month.tasks?.filter((_, ti) =>

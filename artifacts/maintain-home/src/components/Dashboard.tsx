@@ -56,17 +56,25 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           transition={{ duration: 0.45 }}
           className="bg-gradient-to-br from-primary/10 via-white to-blue-50 rounded-2xl border border-primary/20 p-6 sm:p-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Sparkles className="w-5 h-5 text-primary" />
-              <span className="text-xs font-semibold text-primary uppercase tracking-wider">Dashboard</span>
+          <div className="flex items-end gap-4">
+            <img
+              src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
+              alt="Maintly"
+              className="w-20 sm:w-24 h-auto object-contain object-bottom shrink-0 drop-shadow-md self-end"
+              style={{ maxHeight: "110px" }}
+            />
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-5 h-5 text-primary" />
+                <span className="text-xs font-semibold text-primary uppercase tracking-wider">Dashboard</span>
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground">
+                Welcome back, {firstName}!
+              </h1>
+              <p className="text-slate-500 mt-1 text-sm sm:text-base">
+                Here's your personalized home maintenance plan
+              </p>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-display font-black text-foreground">
-              Welcome back, {firstName}!
-            </h1>
-            <p className="text-slate-500 mt-1 text-sm sm:text-base">
-              Here's your personalized home maintenance plan
-            </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {userIsPro ? (
