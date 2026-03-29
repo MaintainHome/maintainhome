@@ -326,11 +326,17 @@ export default function Home() {
                      <div className="space-y-4">
                        {/* Maintly chat teaser — fills the blank space */}
                        <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100 p-4 flex items-center gap-5">
-                         <img
-                           src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
-                           alt="Maintly"
-                           className="h-28 w-auto object-contain object-top shrink-0 drop-shadow-sm"
-                         />
+                         <button
+                           onClick={() => setShowAuthModal(true)}
+                           className="shrink-0 focus:outline-none hover:scale-105 transition-transform"
+                           aria-label="Sign up to chat with Maintly"
+                         >
+                           <img
+                             src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
+                             alt="Maintly"
+                             className="h-28 w-auto object-contain object-top drop-shadow-sm cursor-pointer"
+                           />
+                         </button>
                          <div>
                            <p className="text-base font-extrabold text-slate-900 leading-snug">
                              Chat with me,
