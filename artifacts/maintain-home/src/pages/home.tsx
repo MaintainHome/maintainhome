@@ -258,7 +258,7 @@ export default function Home() {
                     Try It Now
                   </button>
                   <button
-                    onClick={scrollToDemo}
+                    onClick={handleTryNow}
                     className="flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg border-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-300 hover:-translate-y-0.5"
                   >
                     <Sparkles className="w-5 h-5" />
