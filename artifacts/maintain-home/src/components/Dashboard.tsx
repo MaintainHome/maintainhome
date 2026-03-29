@@ -102,20 +102,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           transition={{ duration: 0.45, delay: 0.08 }}
           className="grid grid-cols-2 sm:grid-cols-4 gap-3"
         >
-          {/* View Calendar */}
-          <button
-            onClick={scrollToCalendar}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <Calendar className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-slate-800 group-hover:text-white transition-colors">My Calendar</p>
-              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors">View all tasks</p>
-            </div>
-          </button>
-
           {/* Ask AI */}
           {userIsPro ? (
             <button
@@ -155,6 +141,20 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               </div>
             </div>
           )}
+
+          {/* View Calendar */}
+          <button
+            onClick={scrollToCalendar}
+            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <Calendar className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-800 group-hover:text-white transition-colors">My Calendar</p>
+              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors">View all tasks</p>
+            </div>
+          </button>
 
           {/* Maintenance History */}
           <button
