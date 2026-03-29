@@ -98,7 +98,7 @@ const DEFAULT_ANSWERS: QuizAnswers = {
   landscaping: "",
 };
 
-export function DemoQuiz({ initialData, onOpenAuth }: { initialData?: { quizAnswers: QuizAnswers; calendarData: any } | null; onOpenAuth?: () => void }) {
+export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady }: { initialData?: { quizAnswers: QuizAnswers; calendarData: any } | null; onOpenAuth?: () => void; onCalendarReady?: (data: any, answers: QuizAnswers) => void }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>(initialData?.quizAnswers ?? DEFAULT_ANSWERS);
   const [loading, setLoading] = useState(false);
@@ -164,6 +164,7 @@ export function DemoQuiz({ initialData, onOpenAuth }: { initialData?: { quizAnsw
         return;
       }
       setResults(data);
+      onCalendarReady?.(data, answers);
     } catch {
       setError("Network error. Please check your connection and try again.");
     } finally {

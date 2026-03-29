@@ -6,6 +6,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import History from "@/pages/history";
+import Quiz from "@/pages/quiz";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,6 +22,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/history" component={History} />
+      <Route path="/quiz" component={Quiz} />
       <Route component={NotFound} />
     </Switch>
   );

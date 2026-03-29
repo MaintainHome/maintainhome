@@ -212,7 +212,7 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
   });
 
   const baseUrl = getBaseUrl(req);
-  res.redirect(`${baseUrl}/?loggedIn=1`);
+  res.redirect(`${baseUrl}/quiz`);
 });
 
 router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Response) => {

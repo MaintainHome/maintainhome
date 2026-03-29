@@ -17,14 +17,15 @@ export default function Home() {
   const [welcomeBanner, setWelcomeBanner] = useState(false);
   const [savedCalendar, setSavedCalendar] = useState<{ quizAnswers: any; calendarData: any } | null>(null);
   const [showAIChat, setShowAIChat] = useState(false);
-  const { user, loading: authLoading, logout, refreshUser } = useAuth();
+  const { user, loading: authLoading, logout } = useAuth();
   const userIsPro = isPro(user);
   const [, navigate] = useLocation();
 
+  // Show welcome banner when arriving from dashboard (e.g. after quiz completion)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("loggedIn") === "1") {
-      refreshUser().then(() => setWelcomeBanner(true));
+    if (params.get("welcome") === "1") {
+      setWelcomeBanner(true);
       window.history.replaceState({}, "", window.location.pathname);
       setTimeout(() => setWelcomeBanner(false), 6000);
     }
@@ -44,7 +45,14 @@ export default function Home() {
       .catch(() => {});
   }, [user?.id]);
 
-  const openAuthModal = () => setShowAuthModal(true);
+  // Primary CTA: logged-in users go to quiz, guests open auth modal
+  const handleTryNow = () => {
+    if (user) {
+      navigate("/quiz");
+    } else {
+      setShowAuthModal(true);
+    }
+  };
 
   const scrollToDemo = () => {
     setShowDemo(true);
@@ -78,16 +86,14 @@ export default function Home() {
           </a>
 
           <div className="flex items-center gap-2">
-            {/* Mobile only: Try Demo — only for guests */}
-            {!user && (
-              <button
-                onClick={openAuthModal}
-                className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                Try Demo
-              </button>
-            )}
+            {/* Mobile only: Try It Now — guests and logged-in users */}
+            <button
+              onClick={handleTryNow}
+              className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
+            >
+              <Zap className="w-3.5 h-3.5" />
+              Try It Now
+            </button>
 
             {/* Mobile auth: icon button */}
             {user ? (
@@ -134,14 +140,14 @@ export default function Home() {
               Pricing
             </button>
 
-            {/* Desktop only: primary CTA — guests only */}
+            {/* Desktop only: primary CTA */}
             {!user && (
               <button
-                onClick={openAuthModal}
+                onClick={handleTryNow}
                 className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25 transition-all"
               >
                 <Zap className="w-4 h-4" />
-                Try the Demo Now
+                Try It Now
               </button>
             )}
 
@@ -245,11 +251,11 @@ export default function Home() {
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <button 
-                    onClick={openAuthModal}
+                    onClick={handleTryNow}
                     className="px-8 py-4 rounded-xl font-bold text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-1 active:translate-y-0 flex items-center gap-2"
                   >
                     <Zap className="w-5 h-5" />
-                    Try the Demo Now
+                    Try It Now
                   </button>
                   <button
                     onClick={scrollToDemo}
@@ -345,7 +351,7 @@ export default function Home() {
 
         <Features />
 
-        <PricingSection onOpenAuth={openAuthModal} />
+        <PricingSection onOpenAuth={handleTryNow} />
 
         {/* CTA Section */}
         <section className="py-24 relative">
@@ -369,11 +375,11 @@ export default function Home() {
                 Get your personalized AI-generated home maintenance calendar in minutes. Start with a free account — no password, no hassle.
               </p>
               <button
-                onClick={openAuthModal}
+                onClick={handleTryNow}
                 className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-bold text-xl bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 hover:-translate-y-1"
               >
                 <Zap className="w-6 h-6" />
-                Try the Demo Now
+                Try It Now
               </button>
               <p className="mt-4 text-sm text-slate-400">Takes about 2 minutes · Free · No password required</p>
             </motion.div>
@@ -422,7 +428,7 @@ export default function Home() {
                   </h2>
                 </div>
                 <div id="quiz-start">
-                  <DemoQuiz key={savedCalendar ? "saved" : "fresh"} initialData={savedCalendar} onOpenAuth={openAuthModal} />
+                  <DemoQuiz key={savedCalendar ? "saved" : "fresh"} initialData={savedCalendar} onOpenAuth={handleTryNow} />
                 </div>
               </div>
             )}
