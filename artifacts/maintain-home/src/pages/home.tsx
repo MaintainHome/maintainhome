@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle } from "lucide-react";
-import { WaitlistForm } from "@/components/WaitlistForm";
 import { Features } from "@/components/Features";
 import { DemoQuiz } from "@/components/DemoQuiz";
 import { PricingSection } from "@/components/PricingSection";
@@ -10,12 +9,9 @@ import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { AuthModal } from "@/components/AuthModal";
 import { Dashboard } from "@/components/Dashboard";
 import { useAuth, isPro } from "@/contexts/AuthContext";
-import { useGetWaitlistCount } from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 
 export default function Home() {
-  const { data: waitlistData } = useGetWaitlistCount();
-  const count = waitlistData?.count || 0;
   const [showDemo, setShowDemo] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [welcomeBanner, setWelcomeBanner] = useState(false);
@@ -48,9 +44,7 @@ export default function Home() {
       .catch(() => {});
   }, [user?.id]);
 
-  const scrollToForm = () => {
-    document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const openAuthModal = () => setShowAuthModal(true);
 
   const scrollToDemo = () => {
     setShowDemo(true);
@@ -84,14 +78,14 @@ export default function Home() {
           </a>
 
           <div className="flex items-center gap-2">
-            {/* Mobile only: Try it! — only for guests */}
+            {/* Mobile only: Try Demo — only for guests */}
             {!user && (
               <button
-                onClick={scrollToDemo}
+                onClick={openAuthModal}
                 className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
               >
                 <Zap className="w-3.5 h-3.5" />
-                Try it!
+                Try Demo
               </button>
             )}
 
@@ -128,7 +122,7 @@ export default function Home() {
                 className="sm:hidden flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-colors"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                Sign Up
+                Sign In
               </button>
             )}
 
@@ -140,14 +134,14 @@ export default function Home() {
               Pricing
             </button>
 
-            {/* Desktop only: full demo CTA — guests only */}
+            {/* Desktop only: primary CTA — guests only */}
             {!user && (
               <button
-                onClick={scrollToDemo}
+                onClick={openAuthModal}
                 className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25 transition-all"
               >
                 <Zap className="w-4 h-4" />
-                Test Free Demo Now
+                Try the Demo Now
               </button>
             )}
 
@@ -251,34 +245,19 @@ export default function Home() {
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <button 
-                    onClick={scrollToForm}
-                    className="px-8 py-4 rounded-xl font-bold text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-1 active:translate-y-0"
+                    onClick={openAuthModal}
+                    className="px-8 py-4 rounded-xl font-bold text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-1 active:translate-y-0 flex items-center gap-2"
                   >
-                    Get Early Access
+                    <Zap className="w-5 h-5" />
+                    Try the Demo Now
                   </button>
                   <button
                     onClick={scrollToDemo}
                     className="flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg border-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-300 hover:-translate-y-0.5"
                   >
-                    <Zap className="w-5 h-5" />
-                    Try the AI Demo
+                    <Sparkles className="w-5 h-5" />
+                    See it first
                   </button>
-                  
-                  {count > 0 && (
-                    <div className="flex items-center gap-3 px-2">
-                      <div className="flex -space-x-3">
-                        {/* Fake avatars for social proof */}
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className={`w-10 h-10 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-500 shadow-sm z-${4-i}`}>
-                            {String.fromCharCode(64 + i)}
-                          </div>
-                        ))}
-                      </div>
-                      <p className="text-sm font-medium text-slate-600">
-                        Join <span className="text-primary font-bold">thousands</span> of others
-                      </p>
-                    </div>
-                  )}
                 </div>
               </motion.div>
 
@@ -366,15 +345,38 @@ export default function Home() {
 
         <Features />
 
-        <PricingSection />
+        <PricingSection onOpenAuth={openAuthModal} />
 
-        {/* Form Section */}
-        <section id="waitlist-form" className="py-24 relative">
+        {/* CTA Section */}
+        <section className="py-24 relative">
           <div className="absolute inset-0 bg-slate-900 z-0" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-full max-h-96 bg-primary/20 blur-[120px] rounded-full z-0" />
-          
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <WaitlistForm />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 text-primary rounded-full text-sm font-semibold mb-6">
+                <Sparkles className="w-4 h-4" />
+                Free to start — no credit card needed
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-display font-black text-white mb-4">
+                Ready to protect your home?
+              </h2>
+              <p className="text-lg text-slate-300 max-w-xl mx-auto mb-10">
+                Get your personalized AI-generated home maintenance calendar in minutes. Start with a free account — no password, no hassle.
+              </p>
+              <button
+                onClick={openAuthModal}
+                className="inline-flex items-center gap-3 px-10 py-5 rounded-2xl font-bold text-xl bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 hover:-translate-y-1"
+              >
+                <Zap className="w-6 h-6" />
+                Try the Demo Now
+              </button>
+              <p className="mt-4 text-sm text-slate-400">Takes about 2 minutes · Free · No password required</p>
+            </motion.div>
           </div>
         </section>
 
@@ -420,7 +422,7 @@ export default function Home() {
                   </h2>
                 </div>
                 <div id="quiz-start">
-                  <DemoQuiz key={savedCalendar ? "saved" : "fresh"} initialData={savedCalendar} />
+                  <DemoQuiz key={savedCalendar ? "saved" : "fresh"} initialData={savedCalendar} onOpenAuth={openAuthModal} />
                 </div>
               </div>
             )}

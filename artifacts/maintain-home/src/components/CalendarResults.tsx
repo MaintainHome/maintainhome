@@ -41,6 +41,7 @@ interface CalendarResultsProps {
   data: CalendarData;
   onReset: () => void;
   quizAnswers?: Record<string, string>;
+  onOpenAuth?: () => void;
 }
 
 interface CustomNote {
@@ -337,7 +338,7 @@ function OneTimeTaskRow({ taskKey, taskText, isCompleted, completionNote, onMark
 
 // ─── Main Results Component ───────────────────────────────────────────────────
 
-export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsProps) {
+export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: CalendarResultsProps) {
   const currentMonth = new Date().toLocaleString("default", { month: "long" });
   const currentMonthIndex = data.calendar?.findIndex(m => m.month === currentMonth);
   const orderedMonths = currentMonthIndex >= 0
@@ -957,7 +958,7 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
         {!user && (
           <div className="flex items-center gap-2 px-5 py-3 bg-amber-50 border-b border-amber-100">
             <span className="text-xs text-amber-700 font-medium">
-              ⚠ Demo — history resets on refresh. <button onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })} className="underline">Sign in</button> to save permanently.
+              ⚠ Demo — history resets on refresh. <button onClick={onOpenAuth} className="underline">Sign in</button> to save permanently.
             </span>
           </div>
         )}
@@ -1082,10 +1083,10 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
           Generate New Calendar
         </Button>
         <Button
-          onClick={() => document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" })}
+          onClick={onOpenAuth}
           className="flex items-center gap-2 rounded-xl h-12 px-6 bg-primary hover:bg-primary/90 text-white"
         >
-          Join the Waitlist for Full Access
+          Sign In for Full Access
         </Button>
       </div>
 

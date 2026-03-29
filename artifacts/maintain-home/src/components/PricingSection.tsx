@@ -105,7 +105,7 @@ function GuestUpgradeNote() {
   );
 }
 
-export function PricingSection() {
+export function PricingSection({ onOpenAuth }: { onOpenAuth?: () => void } = {}) {
   const { user, refreshUser } = useAuth();
   const proUser = isPro(user);
   const [showMonthlyForm, setShowMonthlyForm] = useState(false);
@@ -178,11 +178,9 @@ export function PricingSection() {
               <Button
                 variant="outline"
                 className="w-full rounded-xl border-slate-300"
-                onClick={() => {
-                  document.getElementById("waitlist-form")?.scrollIntoView({ behavior: "smooth" });
-                }}
+                onClick={onOpenAuth}
               >
-                Get started free
+                Try the Demo Free
               </Button>
             ) : null}
           </div>

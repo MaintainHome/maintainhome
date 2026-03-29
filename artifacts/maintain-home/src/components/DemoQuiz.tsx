@@ -98,7 +98,7 @@ const DEFAULT_ANSWERS: QuizAnswers = {
   landscaping: "",
 };
 
-export function DemoQuiz({ initialData }: { initialData?: { quizAnswers: QuizAnswers; calendarData: any } | null }) {
+export function DemoQuiz({ initialData, onOpenAuth }: { initialData?: { quizAnswers: QuizAnswers; calendarData: any } | null; onOpenAuth?: () => void }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>(initialData?.quizAnswers ?? DEFAULT_ANSWERS);
   const [loading, setLoading] = useState(false);
@@ -184,7 +184,7 @@ export function DemoQuiz({ initialData }: { initialData?: { quizAnswers: QuizAns
   };
 
   if (results) {
-    return <CalendarResults data={results} onReset={reset} quizAnswers={answers} />;
+    return <CalendarResults data={results} onReset={reset} quizAnswers={answers} onOpenAuth={onOpenAuth} />;
   }
 
   const activeSteps = getActiveSteps(answers);
