@@ -679,11 +679,10 @@ export function CalendarResults({ data, onReset, quizAnswers }: CalendarResultsP
                         alt="Maintly tip"
                         className="w-8 h-10 object-contain object-top cursor-pointer drop-shadow-sm hover:scale-110 transition-transform"
                       />
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-44 bg-slate-800 text-white text-xs rounded-xl px-3 py-2 text-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                        <span className="font-semibold text-primary-foreground">Maintly's Tip</span>
-                        <br />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-64 bg-slate-800 text-white text-xs rounded-xl px-3 py-2.5 text-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-slate-800" />
+                        <span className="font-semibold text-white block mb-0.5">Maintly's Tip</span>
                         {month.tasks?.[0]?.tip ?? "Stay on top of this month's tasks!"}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800" />
                       </div>
                     </div>
                   )}
