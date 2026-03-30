@@ -251,7 +251,7 @@ export default function Home() {
                 </div>
 
                 {/* Mobile-only: Maintly intro card */}
-                <div className="sm:hidden mt-6 flex items-center gap-5 bg-white rounded-2xl border border-slate-100 shadow-md px-6 py-5">
+                <button onClick={handleTryNow} className="sm:hidden mt-6 w-full flex items-center gap-5 bg-white rounded-2xl border border-slate-100 shadow-md px-6 py-5 text-left active:scale-[0.98] transition-transform">
                   <img
                     src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
                     alt="Maintly"
@@ -261,7 +261,7 @@ export default function Home() {
                     <p className="text-lg font-bold text-slate-900">Chat with me, <span className="text-primary">"Maintly"</span></p>
                     <p className="text-sm text-slate-500 leading-snug mt-1">Your custom AI Home Maintenance Chatbot.</p>
                   </div>
-                </div>
+                </button>
               </motion.div>
 
               {/* Hero Form Preview / Graphic area */}
