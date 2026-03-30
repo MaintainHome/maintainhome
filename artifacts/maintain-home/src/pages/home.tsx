@@ -388,7 +388,7 @@ export default function Home() {
 
         {/* CTA Section */}
         <section className="py-24 relative">
-          <div className="absolute inset-0 bg-slate-900 z-0" />
+          <div className="absolute inset-0 bg-slate-950 z-0" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl h-full max-h-96 bg-primary/20 blur-[120px] rounded-full z-0" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
             <motion.div
