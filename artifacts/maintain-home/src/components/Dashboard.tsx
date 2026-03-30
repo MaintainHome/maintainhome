@@ -111,20 +111,20 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               className="w-24 sm:w-32 h-auto object-contain shrink-0 drop-shadow-xl self-start sm:self-center"
             />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-xs font-bold text-primary uppercase tracking-wider">Your Dashboard</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-display font-black text-white leading-tight">
+              <h1 className="text-3xl sm:text-4xl font-display font-black text-white leading-tight">
                 Welcome back, {firstName}!
               </h1>
-              <p className="text-slate-300 mt-1 text-sm sm:text-base leading-snug">
+              <p className="text-slate-200 mt-2 text-base sm:text-lg leading-relaxed font-medium">
                 {state
-                  ? <>Here's your personalized home maintenance plan for <span className="text-primary font-semibold">{state}</span>.</>
+                  ? <>Here's your personalized home maintenance plan for{" "}<span className="text-primary font-bold">{state}</span>.</>
                   : "Here's your personalized home maintenance plan."}
               </p>
-              <p className="text-slate-400 text-xs sm:text-sm mt-1">
-                Stay ahead of repairs with smart reminders and Ai guidance.
+              <p className="text-slate-400 text-sm sm:text-base mt-2 leading-relaxed">
+                Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's Ai guidance</span>.
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -170,7 +170,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <div>
                 <p className="text-sm font-bold text-slate-900 group-hover:text-white transition-colors">Ask Maintly</p>
                 <p className="text-xs text-slate-500 group-hover:text-white/70 transition-colors leading-snug">
-                  Your Personal Ai<br />Home Care Chatbot
+                  Your personal Ai<br />home care chatbot
                 </p>
               </div>
             </button>
@@ -206,7 +206,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
             <div>
               <p className="text-sm font-bold text-slate-800 group-hover:text-white transition-colors">My Calendar</p>
-              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors">View all tasks</p>
+              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors leading-snug">View all<br />upcoming tasks</p>
             </div>
           </button>
 
@@ -220,7 +220,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
             <div>
               <p className="text-sm font-bold text-slate-800 group-hover:text-white transition-colors">History</p>
-              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors">Completed tasks</p>
+              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors leading-snug">Completed tasks<br />&amp; notes</p>
             </div>
           </button>
 
@@ -232,7 +232,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               </div>
               <div>
                 <p className="text-sm font-bold text-primary">Pro Member</p>
-                <p className="text-xs text-slate-400">Full access ✓</p>
+                <p className="text-xs text-slate-400 leading-snug">Full access ✓</p>
               </div>
             </div>
           ) : (
@@ -271,13 +271,17 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 Full calendar <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-            <div className="divide-y divide-slate-50">
+            <div className="divide-y divide-slate-100">
               {nextDueTasks.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 px-6 py-3.5">
-                  <div className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                <div key={i} className="flex items-start gap-4 px-6 py-4">
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{item.task}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{item.month} · {item.difficulty} · {item.cost}</p>
+                    <p className="text-sm sm:text-base font-bold text-slate-800 leading-snug">{item.task}</p>
+                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                      <span className="font-medium text-slate-600">{item.month}</span>
+                      {" · "}{item.difficulty}
+                      {" · "}<span className="text-emerald-600 font-medium">{item.cost}</span>
+                    </p>
                   </div>
                 </div>
               ))}
