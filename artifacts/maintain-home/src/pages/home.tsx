@@ -237,24 +237,26 @@ export default function Home() {
                   {" "}Home Plan:
                 </p>
                 
-                <ul className="mb-8 space-y-3">
-                  {([
-                    <>Help <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Prevent</span> Costly Future Repairs</>,
-                    <><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Smart Reminders</span> to Change Air Filters &amp; Smoke Detector Batteries</>,
-                    <>Interactive Home Maintenance <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Ai Chatbot</span> (Maintly)</>,
-                    <>Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Maintenance History</span> Log for Your Property</>,
-                    <>Custom <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Monthly Calendar</span> Specific to Your Home, State, &amp; Region</>,
-                  ] as React.ReactNode[]).map((item, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <span className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                        <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="2.5">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
-                        </svg>
-                      </span>
-                      <span className="text-base text-slate-700 leading-snug font-bold">{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mb-8 bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4">
+                  <ul className="space-y-3">
+                    {([
+                      <>Help <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Prevent</span> Costly Future Repairs</>,
+                      <><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Smart Reminders</span> to Change Air Filters &amp; Smoke Detector Batteries</>,
+                      <>Interactive Home Maintenance <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Ai Chatbot</span> (Maintly)</>,
+                      <>Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Maintenance History</span> Log for Your Property</>,
+                      <>Custom <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Monthly Calendar</span> Specific to Your Home, State, &amp; Region</>,
+                    ] as React.ReactNode[]).map((item, i) => (
+                      <li key={i} className="flex items-start gap-3">
+                        <span className="mt-0.5 w-5 h-5 rounded-full bg-emerald-200 flex items-center justify-center shrink-0">
+                          <svg className="w-3 h-3 text-emerald-700" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="2.5">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                          </svg>
+                        </span>
+                        <span className="text-base text-slate-700 leading-snug font-bold">{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
                 {/* Mobile-only: Maintly intro card — shows above buttons */}
                 <button onClick={handleTryNow} className="sm:hidden w-full flex items-center gap-5 bg-white rounded-2xl border border-slate-100 shadow-md px-6 py-5 text-left active:scale-[0.98] transition-transform">
