@@ -238,14 +238,14 @@ export default function Home() {
                 </p>
                 
                 <ul className="mb-8 space-y-3">
-                  {[
-                    "Help Prevent Costly Future Repairs",
-                    "Smart Reminders to Change Air Filters & Smoke Detector Batteries",
-                    "Interactive Home Maintenance Ai Chatbot (Maintly)",
-                    "Maintenance History Tracking Made Easy",
-                    "Streamline Resale Process When You're Ready to Move",
-                  ].map((item) => (
-                    <li key={item} className="flex items-start gap-3">
+                  {([
+                    <>Help <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Prevent</span> Costly Future Repairs</>,
+                    <><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Smart Reminders</span> to Change Air Filters &amp; Smoke Detector Batteries</>,
+                    <>Interactive Home Maintenance <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Ai Chatbot</span> (Maintly)</>,
+                    <><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Maintenance History</span> Tracking Made Easy</>,
+                    <>Streamline Resale Process When You&apos;re Ready to Move</>,
+                  ] as React.ReactNode[]).map((item, i) => (
+                    <li key={i} className="flex items-start gap-3">
                       <span className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                         <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="2.5">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
