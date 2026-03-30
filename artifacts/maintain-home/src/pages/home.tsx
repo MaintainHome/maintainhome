@@ -222,7 +222,7 @@ export default function Home() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="max-w-2xl"
               >
-                <h1 className="text-[1.65rem] sm:text-5xl lg:text-6xl font-display font-black text-foreground leading-[1.15] mb-4 tracking-tight">
+                <h1 className="text-[1.65rem] sm:text-4xl lg:text-5xl font-display font-black text-foreground leading-[1.15] mb-4 tracking-tight">
                   Overwhelmed by Home Maintenance?<br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
                     Not Anymore.
