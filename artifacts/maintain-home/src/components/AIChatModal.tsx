@@ -271,11 +271,11 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                   {messages.length === 0 ? (
                     /* Welcome / starter state */
                     <div className="h-full flex flex-col items-center justify-center gap-5 py-4">
-                      <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md text-center sm:text-left">
+                      <div className="flex flex-row items-center gap-4 w-full max-w-md">
                         <img
                           src={`${BASE}images/maintly_wrench.png`}
                           alt="Maintly"
-                          className="h-40 w-auto object-contain shrink-0 drop-shadow-md"
+                          className="h-24 sm:h-36 w-auto object-contain shrink-0 drop-shadow-md"
                         />
                         <div>
                           <h3 className="font-bold text-slate-900 mb-1">Chat with Maintly</h3>
