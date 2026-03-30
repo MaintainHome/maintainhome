@@ -1,9 +1,9 @@
-import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useCallback } from "react";
 import {
   Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
-  AlertCircle,
+  AlertCircle, Check,
 } from "lucide-react";
 import { DemoQuiz } from "@/components/DemoQuiz";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -70,10 +70,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [, navigate] = useLocation();
   const [recentLog, setRecentLog] = useState<LogEntry[]>([]);
   const [logLoading, setLogLoading] = useState(true);
+  const [nextDueTasks, setNextDueTasks] = useState(() => getNextDueTasks(savedCalendar?.calendarData));
+  const [completingKeys, setCompletingKeys] = useState<Set<string>>(new Set());
+  const [justDoneKey, setJustDoneKey] = useState<string | null>(null);
   const userIsPro = isPro(user);
   const firstName = user.name ? user.name.split(" ")[0] : user.email.split("@")[0];
   const state = savedCalendar?.calendarData?.state ?? null;
-  const nextDueTasks = getNextDueTasks(savedCalendar?.calendarData);
 
   useEffect(() => {
     fetch(`${API_BASE}/api/user/log`, { credentials: "include" })
@@ -82,6 +84,44 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       .catch(() => setRecentLog([]))
       .finally(() => setLogLoading(false));
   }, [user.id]);
+
+  const handleMarkDone = useCallback(async (item: { task: string; month: string; difficulty: string; cost: string }) => {
+    const taskKey = item.task.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const stateKey = `${taskKey}-${item.month}`;
+    if (completingKeys.has(stateKey)) return;
+
+    setCompletingKeys((prev) => new Set(prev).add(stateKey));
+    setJustDoneKey(stateKey);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/user/log`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskName: item.task,
+          taskKey,
+          month: item.month,
+          notes: null,
+        }),
+      });
+      if (res.ok) {
+        const newEntry: LogEntry = await res.json();
+        setRecentLog((prev) => [newEntry, ...prev].slice(0, 4));
+      }
+    } catch {
+      // silently ignore network errors — task still removed locally
+    }
+
+    setTimeout(() => {
+      setNextDueTasks((prev) => prev.filter((t) => {
+        const k = t.task.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        return `${k}-${t.month}` !== stateKey;
+      }));
+      setJustDoneKey(null);
+      setCompletingKeys((prev) => { const s = new Set(prev); s.delete(stateKey); return s; });
+    }, 900);
+  }, [completingKeys]);
 
   function scrollToCalendar() {
     document.getElementById("dashboard-calendar")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -273,21 +313,79 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 Full calendar <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-            <div className="divide-y divide-slate-100">
-              {nextDueTasks.map((item, i) => (
-                <div key={i} className="flex items-start gap-4 px-6 py-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0 mt-1.5" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm sm:text-base font-bold text-slate-800 leading-snug">{item.task}</p>
-                    <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                      <span className="font-medium text-slate-600">{item.month}</span>
-                      {" · "}{item.difficulty}
-                      {" · "}<span className="text-emerald-600 font-medium">{item.cost}</span>
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <AnimatePresence initial={false}>
+              {nextDueTasks.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center justify-center gap-2 px-6 py-10 text-center"
+                >
+                  <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+                  <p className="text-base font-bold text-slate-700">No tasks due soon</p>
+                  <p className="text-sm text-slate-400">Great job staying on top of things!</p>
+                </motion.div>
+              ) : (
+                nextDueTasks.map((item) => {
+                  const taskKey = item.task.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+                  const stateKey = `${taskKey}-${item.month}`;
+                  const isDone = justDoneKey === stateKey;
+                  const isCompleting = completingKeys.has(stateKey);
+
+                  return (
+                    <motion.div
+                      key={stateKey}
+                      layout
+                      initial={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+                      transition={{ duration: 0.35 }}
+                      className={`flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-slate-100 last:border-b-0 transition-colors duration-300 ${isDone ? "bg-emerald-50" : "bg-white"}`}
+                    >
+                      {/* Status dot */}
+                      <div className={`w-2.5 h-2.5 rounded-full shrink-0 transition-colors duration-300 ${isDone ? "bg-emerald-500" : "bg-amber-400"}`} />
+
+                      {/* Task info */}
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm sm:text-base font-bold leading-snug transition-colors duration-300 ${isDone ? "text-emerald-700 line-through decoration-emerald-400" : "text-slate-800"}`}>
+                          {item.task}
+                        </p>
+                        {isDone ? (
+                          <p className="text-xs sm:text-sm text-emerald-600 font-semibold mt-0.5">✓ Task completed!</p>
+                        ) : (
+                          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                            <span className="font-medium text-slate-600">{item.month}</span>
+                            {" · "}{item.difficulty}
+                            {" · "}<span className="text-emerald-600 font-medium">{item.cost}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Mark as Done button */}
+                      <button
+                        onClick={() => handleMarkDone(item)}
+                        disabled={isCompleting}
+                        aria-label="Mark as done"
+                        className={`
+                          shrink-0 flex items-center justify-center gap-1.5
+                          min-w-[44px] min-h-[44px] px-3 sm:px-4 rounded-xl
+                          text-xs sm:text-sm font-bold
+                          transition-all duration-200 active:scale-95
+                          ${isDone
+                            ? "bg-emerald-100 text-emerald-700 cursor-default"
+                            : "bg-slate-100 hover:bg-emerald-500 hover:text-white text-slate-600"
+                          }
+                        `}
+                      >
+                        {isDone
+                          ? <Check className="w-4 h-4 sm:w-5 sm:h-5" />
+                          : <><Check className="w-4 h-4" /><span className="hidden sm:inline">Done</span></>
+                        }
+                      </button>
+                    </motion.div>
+                  );
+                })
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 
