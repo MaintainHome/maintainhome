@@ -237,10 +237,24 @@ export default function Home() {
                   , Today.
                 </p>
                 
-                <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
-                  Experience revolutionary simplicity from your instantly built custom plan with smart reminders for air filters, smoke detector batteries, mold prevention, crawl space moisture, lawn care, and everything else —{" "}
-                  <span className="font-bold text-foreground">tailored to your home, state, and local climate.</span>
-                </p>
+                <ul className="mb-8 space-y-3">
+                  {[
+                    "Help Prevent Costly Future Repairs",
+                    "Smart Reminders to Change Air Filters & Smoke Detector Batteries",
+                    "Interactive Home Maintenance AI Chatbot (Maintly)",
+                    "Maintenance History Tracking Made Easy",
+                    "Streamline Resale Process When You're Ready to Move",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <span className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                        <svg className="w-3 h-3 text-primary" fill="none" viewBox="0 0 12 12" stroke="currentColor" strokeWidth="2.5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
+                        </svg>
+                      </span>
+                      <span className="text-base text-slate-700 leading-snug">{item}</span>
+                    </li>
+                  ))}
+                </ul>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <button 
