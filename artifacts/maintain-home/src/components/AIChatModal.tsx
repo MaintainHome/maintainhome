@@ -270,7 +270,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                 <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
                   {messages.length === 0 ? (
                     /* Welcome / starter state */
-                    <div className="h-full flex flex-col items-center justify-center gap-5 py-4">
+                    <div className="min-h-full flex flex-col items-center justify-center gap-5 py-4">
                       <div className="flex flex-row items-center gap-4 w-full max-w-md">
                         <img
                           src={`${BASE}images/maintly_wrench.png`}
