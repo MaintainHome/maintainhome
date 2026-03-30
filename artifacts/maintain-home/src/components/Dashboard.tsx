@@ -104,44 +104,46 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-blue-600/10 pointer-events-none" />
-          <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 p-6 sm:p-8">
+          <div className="relative flex flex-row items-center gap-4 p-4 sm:p-8">
+            {/* Avatar — always left, smaller on mobile */}
             <img
               src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
               alt="Maintly"
-              className="w-24 sm:w-32 h-auto object-contain shrink-0 drop-shadow-xl self-start sm:self-center"
+              className="w-16 sm:w-28 h-auto object-contain shrink-0 drop-shadow-xl self-end"
             />
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-xs font-bold text-primary uppercase tracking-wider">Your Dashboard</span>
+            {/* Text block */}
+            <div className="flex-1 min-w-0 py-2">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-wider">Your Dashboard</span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-display font-black text-white leading-tight">
+              <h1 className="text-xl sm:text-3xl font-display font-black text-white leading-tight">
                 Welcome back, {firstName}!
               </h1>
-              <p className="text-slate-200 mt-2 text-base sm:text-lg leading-relaxed font-medium">
+              <p className="text-slate-200 mt-1 text-sm sm:text-base leading-snug font-medium">
                 {state
-                  ? <>Here's your personalized home maintenance plan for{" "}<span className="text-primary font-bold">{state}</span>.</>
-                  : "Here's your personalized home maintenance plan."}
+                  ? <>Your plan for <span className="text-primary font-bold">{state}</span>.</>
+                  : "Your personalized maintenance plan."}
               </p>
-              <p className="text-slate-400 text-sm sm:text-base mt-2 leading-relaxed">
+              <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-snug">
                 Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's Ai guidance</span>.
               </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {userIsPro ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white rounded-full text-xs font-bold shadow-sm">
-                  <Zap className="w-3.5 h-3.5" />
-                  Pro Access
-                </span>
-              ) : (
-                <button
-                  onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-xs font-bold shadow-sm transition-colors"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  Free · Upgrade
-                </button>
-              )}
+              <div className="mt-2.5">
+                {userIsPro ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary text-white rounded-full text-xs font-bold shadow-sm">
+                    <Zap className="w-3 h-3" />
+                    Pro Access
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-xs font-bold shadow-sm transition-colors"
+                  >
+                    <Zap className="w-3 h-3" />
+                    Free · Upgrade
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
@@ -168,8 +170,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 />
               </div>
               <div>
-                <p className="text-sm font-bold text-slate-900 group-hover:text-white transition-colors">Ask Maintly</p>
-                <p className="text-xs text-slate-500 group-hover:text-white/70 transition-colors leading-snug">
+                <p className="text-base font-bold text-slate-900 group-hover:text-white transition-colors">Ask Maintly</p>
+                <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">
                   Your personal Ai<br />home care chatbot
                 </p>
               </div>
@@ -188,8 +190,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 />
               </div>
               <div>
-                <p className="text-sm font-bold text-amber-700">Ask Maintly</p>
-                <p className="text-xs text-amber-500 leading-snug">
+                <p className="text-base font-bold text-amber-700">Ask Maintly</p>
+                <p className="text-xs sm:text-sm text-amber-500 leading-snug">
                   Pro feature<br />Upgrade to unlock
                 </p>
               </div>
@@ -205,8 +207,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <Calendar className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-800 group-hover:text-white transition-colors">My Calendar</p>
-              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors leading-snug">View all<br />upcoming tasks</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Calendar</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">View all<br />upcoming tasks</p>
             </div>
           </button>
 
@@ -219,8 +221,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <ClipboardList className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-sm font-bold text-slate-800 group-hover:text-white transition-colors">History</p>
-              <p className="text-xs text-slate-400 group-hover:text-white/70 transition-colors leading-snug">Completed tasks<br />&amp; notes</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">History</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Completed tasks<br />&amp; notes</p>
             </div>
           </button>
 
@@ -231,8 +233,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <Zap className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-bold text-primary">Pro Member</p>
-                <p className="text-xs text-slate-400 leading-snug">Full access ✓</p>
+                <p className="text-base font-bold text-primary">Pro Member</p>
+                <p className="text-xs sm:text-sm text-slate-400 leading-snug">Full access ✓</p>
               </div>
             </div>
           ) : (
@@ -244,8 +246,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <Zap className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-sm font-bold text-amber-800">Upgrade</p>
-                <p className="text-xs text-amber-600">Unlock Pro</p>
+                <p className="text-base font-bold text-amber-800">Upgrade</p>
+                <p className="text-xs sm:text-sm text-amber-600">Unlock Pro</p>
               </div>
             </button>
           )}
