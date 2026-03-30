@@ -230,11 +230,11 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
 
             {!userIsPro ? (
               /* Pro gate for free users */
-              <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 text-center gap-6">
+              <div className="flex-1 flex flex-col items-center justify-center px-8 py-8 text-center gap-6">
                 <img
                   src={`${BASE}images/maintly_wrench.png`}
                   alt="Maintly"
-                  className="w-32 h-32 object-contain object-top drop-shadow-md"
+                  className="w-32 h-32 object-contain drop-shadow-md"
                 />
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Meet Maintly — Pro Members Only</h3>
@@ -271,11 +271,11 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                   {messages.length === 0 ? (
                     /* Welcome / starter state */
                     <div className="h-full flex flex-col items-center justify-center gap-5 py-4">
-                      <div className="flex items-center gap-4 w-full max-w-md">
+                      <div className="flex flex-col sm:flex-row items-center gap-4 w-full max-w-md text-center sm:text-left">
                         <img
                           src={`${BASE}images/maintly_wrench.png`}
                           alt="Maintly"
-                          className="h-36 w-auto object-contain object-top shrink-0 drop-shadow-md"
+                          className="h-40 w-auto object-contain shrink-0 drop-shadow-md"
                         />
                         <div>
                           <h3 className="font-bold text-slate-900 mb-1">Chat with Maintly</h3>

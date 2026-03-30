@@ -75,14 +75,16 @@ export default function Home() {
           </a>
 
           <div className="flex items-center gap-2">
-            {/* Mobile only: Try It Now — guests and logged-in users */}
-            <button
-              onClick={handleTryNow}
-              className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              Try It Now
-            </button>
+            {/* Mobile only: Try It Now — guests only */}
+            {!user && (
+              <button
+                onClick={handleTryNow}
+                className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Try It Now
+              </button>
+            )}
 
             {/* Mobile auth: icon button */}
             {user ? (
