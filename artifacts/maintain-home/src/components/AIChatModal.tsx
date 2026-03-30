@@ -290,7 +290,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                           <button
                             key={q}
                             onClick={() => sendMessage(q)}
-                            className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-primary/5 hover:border-primary/30 transition-all text-sm text-slate-700 flex items-center gap-3 group"
+                            className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-primary/5 hover:border-primary/30 transition-all text-base text-slate-700 flex items-center gap-3 group"
                           >
                             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0 transition-colors" />
                             <span>{q}</span>
@@ -322,7 +322,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
 
                         {/* Bubble */}
                         <div
-                          className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                          className={`max-w-[80%] px-4 py-3 rounded-2xl text-base leading-relaxed whitespace-pre-wrap ${
                             msg.role === "user"
                               ? "bg-primary text-white rounded-tr-sm"
                               : "bg-slate-100 text-slate-800 rounded-tl-sm"
@@ -352,7 +352,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
                       onKeyDown={handleKeyDown}
                       placeholder="Ask Maintly anything about your home..."
                       disabled={isStreaming}
-                      className="flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none disabled:opacity-60"
+                      className="flex-1 bg-transparent text-base text-slate-800 placeholder:text-slate-400 outline-none disabled:opacity-60"
                     />
                     <button
                       onClick={() => sendMessage(input)}
