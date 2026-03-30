@@ -222,17 +222,20 @@ export default function Home() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="max-w-2xl"
               >
-                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-black text-foreground leading-[1.1] mb-6 tracking-tight">
-                  Ai-Powered<br/>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-black text-foreground leading-[1.1] mb-4 tracking-tight">
+                  Overwhelmed by Home Maintenance?<br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
-                    Personalized
-                  </span><br/>
-                  Home Care Plan<br/>with Reminders.
+                    Not Anymore.
+                  </span>
                 </h1>
+
+                <p className="text-xl sm:text-2xl font-bold text-foreground mb-5 max-w-lg leading-snug">
+                  Start Your Ai-Powered Personalized Home Care Plan, Today.
+                </p>
                 
-                <p className="text-xl text-muted-foreground leading-relaxed mb-8 max-w-lg">
-                  Simplify your ownership and never forget air filters, smoke detector batteries, roof checks, crawl space moisture, lawn care & more. 
-                  <span className="font-semibold text-foreground"> Tailored specifically to your state and climate.</span>
+                <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
+                  Experience revolutionary simplicity from your instantly built custom plan with smart reminders for air filters, smoke detector batteries, mold prevention, crawl space moisture, lawn care, and everything else —{" "}
+                  <span className="font-bold text-foreground">tailored to your home, state, and local climate.</span>
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
