@@ -5,6 +5,7 @@ import {
   CheckCircle2, Sparkles, Lock, ChevronRight, RefreshCw,
 } from "lucide-react";
 import { DemoQuiz } from "@/components/DemoQuiz";
+import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { isPro } from "@/contexts/AuthContext";
 import type { AuthUser } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
@@ -48,6 +49,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        {/* ── Mobile: Add to Home Screen ── */}
+        <div className="sm:hidden flex justify-end">
+          <AddToHomeScreen />
+        </div>
 
         {/* ── Welcome Header ── */}
         <motion.div

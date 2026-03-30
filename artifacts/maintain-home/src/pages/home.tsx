@@ -4,7 +4,6 @@ import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardLi
 import { Features } from "@/components/Features";
 import { PricingSection } from "@/components/PricingSection";
 import { AIChatModal } from "@/components/AIChatModal";
-import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { AuthModal } from "@/components/AuthModal";
 import { Dashboard } from "@/components/Dashboard";
 import { useAuth, isPro } from "@/contexts/AuthContext";
@@ -221,11 +220,6 @@ export default function Home() {
                 transition={{ duration: 0.6, ease: "easeOut" }}
                 className="max-w-2xl"
               >
-                {/* Mobile: Add to Home Screen button in hero */}
-                <div className="sm:hidden mb-5 flex justify-end">
-                  <AddToHomeScreen />
-                </div>
-
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-black text-foreground leading-[1.1] mb-6 tracking-tight">
                   Ai-Powered<br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
@@ -249,11 +243,24 @@ export default function Home() {
                   </button>
                   <button
                     onClick={handleTryNow}
-                    className="flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg border-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-300 hover:-translate-y-0.5"
+                    className="hidden sm:flex items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg border-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/60 transition-all duration-300 hover:-translate-y-0.5"
                   >
                     <Sparkles className="w-5 h-5" />
                     See it first
                   </button>
+                </div>
+
+                {/* Mobile-only: Maintly intro card */}
+                <div className="sm:hidden mt-6 flex items-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-3">
+                  <img
+                    src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
+                    alt="Maintly"
+                    className="w-14 h-14 object-contain flex-shrink-0"
+                  />
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">Chat with me, <span className="text-primary">"Maintly"</span></p>
+                    <p className="text-xs text-slate-500 leading-snug">Your custom AI Home Maintenance Chatbot.</p>
+                  </div>
                 </div>
               </motion.div>
 
