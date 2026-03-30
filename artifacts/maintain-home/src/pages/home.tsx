@@ -230,7 +230,11 @@ export default function Home() {
                 </h1>
 
                 <p className="text-xl sm:text-2xl font-bold text-foreground mb-5 max-w-lg leading-snug">
-                  Start Your Ai-Powered Personalized Home Care Plan, Today.
+                  Start Your Ai-Powered{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
+                    Personalized Home Care Plan
+                  </span>
+                  , Today.
                 </p>
                 
                 <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
