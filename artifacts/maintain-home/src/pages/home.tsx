@@ -251,15 +251,15 @@ export default function Home() {
                 </div>
 
                 {/* Mobile-only: Maintly intro card */}
-                <div className="sm:hidden mt-6 flex items-center gap-3 bg-white rounded-2xl border border-slate-100 shadow-md px-4 py-3">
+                <div className="sm:hidden mt-6 flex items-center gap-5 bg-white rounded-2xl border border-slate-100 shadow-md px-6 py-5">
                   <img
                     src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
                     alt="Maintly"
-                    className="w-14 h-14 object-contain flex-shrink-0"
+                    className="w-24 h-24 object-contain flex-shrink-0"
                   />
                   <div>
-                    <p className="text-sm font-bold text-slate-900">Chat with me, <span className="text-primary">"Maintly"</span></p>
-                    <p className="text-xs text-slate-500 leading-snug">Your custom AI Home Maintenance Chatbot.</p>
+                    <p className="text-lg font-bold text-slate-900">Chat with me, <span className="text-primary">"Maintly"</span></p>
+                    <p className="text-sm text-slate-500 leading-snug mt-1">Your custom AI Home Maintenance Chatbot.</p>
                   </div>
                 </div>
               </motion.div>
