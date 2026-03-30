@@ -261,7 +261,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <ClipboardList className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">History</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">Maintenance Log</p>
               <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Completed tasks<br />&amp; notes</p>
             </div>
           </button>
