@@ -230,9 +230,9 @@ export default function Home() {
                 </h1>
 
                 <p className="text-xl sm:text-2xl font-bold text-foreground mb-5 max-w-lg leading-snug">
-                  Simplify Your Life With A{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
-                    Personalized Ai-Powered
+                  Simplify Your Life With A Personalized{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500 whitespace-nowrap">
+                    Ai-Powered
                   </span>
                   {" "}Home Plan:
                 </p>
