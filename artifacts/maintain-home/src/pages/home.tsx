@@ -271,7 +271,7 @@ export default function Home() {
                   </div>
                 </button>
 
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex flex-col sm:flex-row items-center sm:items-center gap-4 mt-6 sm:mt-0">
                   <button 
                     onClick={handleTryNow}
                     className="px-8 py-4 rounded-xl font-bold text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25 hover:shadow-2xl hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-1 active:translate-y-0 flex items-center gap-2"
