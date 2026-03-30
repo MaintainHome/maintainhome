@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { CalendarDays, BellRing, MapPin, Briefcase } from "lucide-react";
+import { CalendarDays, BellRing, MapPin, Briefcase, Zap } from "lucide-react";
 
 const featureList = [
   {
@@ -39,7 +39,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
 };
 
-export function Features() {
+export function Features({ onTryNow }: { onTryNow?: () => void }) {
   return (
     <div className="w-full pt-12 pb-24 bg-slate-50/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -78,6 +78,16 @@ export function Features() {
             </motion.div>
           ))}
         </motion.div>
+
+        <div className="flex justify-center mt-12">
+          <button
+            onClick={onTryNow}
+            className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold px-8 py-4 rounded-full text-lg shadow-lg shadow-primary/25 transition-all duration-200 hover:scale-105"
+          >
+            <Zap className="w-5 h-5" />
+            Try It Now
+          </button>
+        </div>
       </div>
     </div>
   );

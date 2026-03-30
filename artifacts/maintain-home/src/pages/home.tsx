@@ -369,7 +369,7 @@ export default function Home() {
           </div>
         </section>
 
-        <Features />
+        <Features onTryNow={handleTryNow} />
 
         {/* Mobile-only CTA between features and pricing */}
         <div className="sm:hidden flex justify-center -mt-12 pb-4">
