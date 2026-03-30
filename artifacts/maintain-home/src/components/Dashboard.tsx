@@ -149,7 +149,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <img
               src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
               alt="Maintly"
-              className="w-16 sm:w-28 h-auto object-contain shrink-0 drop-shadow-xl self-end"
+              className="w-16 sm:w-28 h-auto object-contain shrink-0 drop-shadow-xl self-center"
             />
             {/* Text block */}
             <div className="flex-1 min-w-0 py-2">
@@ -157,7 +157,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <Sparkles className="w-3.5 h-3.5 text-primary" />
                 <span className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-wider">Your Dashboard</span>
               </div>
-              <h1 className="text-xl sm:text-3xl font-display font-black text-white leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-display font-black text-white leading-tight">
                 Welcome back, {firstName}!
               </h1>
               <p className="text-slate-200 mt-1 text-sm sm:text-base leading-snug font-medium">
@@ -168,7 +168,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-snug">
                 Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's Ai guidance</span>.
               </p>
-              <div className="mt-2.5">
+              <div className="mt-2.5 hidden sm:block">
                 {userIsPro ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary text-white rounded-full text-xs font-bold shadow-sm">
                     <Zap className="w-3 h-3" />
