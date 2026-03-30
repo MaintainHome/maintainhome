@@ -241,7 +241,7 @@ export default function Home() {
                   {[
                     "Help Prevent Costly Future Repairs",
                     "Smart Reminders to Change Air Filters & Smoke Detector Batteries",
-                    "Interactive Home Maintenance AI Chatbot (Maintly)",
+                    "Interactive Home Maintenance Ai Chatbot (Maintly)",
                     "Maintenance History Tracking Made Easy",
                     "Streamline Resale Process When You're Ready to Move",
                   ].map((item) => (
