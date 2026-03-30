@@ -251,7 +251,7 @@ export default function Home() {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2 6l3 3 5-5" />
                         </svg>
                       </span>
-                      <span className="text-base text-slate-700 leading-snug">{item}</span>
+                      <span className="text-base text-slate-700 leading-snug font-bold">{item}</span>
                     </li>
                   ))}
                 </ul>
