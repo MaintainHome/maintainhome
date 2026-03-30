@@ -242,8 +242,8 @@ export default function Home() {
                     <>Help <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Prevent</span> Costly Future Repairs</>,
                     <><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Smart Reminders</span> to Change Air Filters &amp; Smoke Detector Batteries</>,
                     <>Interactive Home Maintenance <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Ai Chatbot</span> (Maintly)</>,
-                    <>Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Maintenance History</span> Log for Your Home</>,
-                    <>Custom Monthly Calendar Specific to Your Home, State, &amp; Region</>,
+                    <>Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Maintenance History</span> Log for Your Property</>,
+                    <>Custom <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Monthly Calendar</span> Specific to Your Home, State, &amp; Region</>,
                   ] as React.ReactNode[]).map((item, i) => (
                     <li key={i} className="flex items-start gap-3">
                       <span className="mt-0.5 w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
