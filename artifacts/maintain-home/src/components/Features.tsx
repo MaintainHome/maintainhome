@@ -64,15 +64,15 @@ export function Features() {
             <motion.div
               key={idx}
               variants={itemVariants}
-              className="bg-white rounded-2xl p-8 shadow-md shadow-slate-200/50 border border-slate-100 hover:shadow-xl hover:border-primary/20 transition-all duration-300 group"
+              className="bg-slate-900 rounded-2xl p-8 shadow-md shadow-slate-900/30 border border-slate-700 hover:shadow-xl hover:border-primary/40 transition-all duration-300 group"
             >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/20 transition-transform duration-300">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/30 transition-transform duration-300">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-foreground mb-3 leading-tight">
+              <h3 className="text-xl font-bold text-white mb-3 leading-tight">
                 {feature.title}
               </h3>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-slate-400 leading-relaxed">
                 {feature.description}
               </p>
             </motion.div>
