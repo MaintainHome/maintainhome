@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign,
-  Info, ChevronDown, ChevronUp, Lock, Check, FileDown, ClipboardList,
+  Info, ChevronDown, Lock, Check, FileDown, ClipboardList,
   X, Pencil, BookOpen, Zap, Star, MessageCircle, Paperclip, Upload,
   FileText, CalendarDays, Plus, Loader2,
 } from "lucide-react";
@@ -113,7 +113,7 @@ function TaskCard({ task, taskKey, isCompleted, completionNote, onMarkDone, onUn
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className={`font-semibold text-sm leading-snug mb-1.5 ${
+          <p className={`font-bold text-sm sm:text-base leading-snug mb-1.5 ${
             isCompleted ? "line-through text-slate-400" : "text-slate-900"
           }`}>
             {task.task}
@@ -140,10 +140,17 @@ function TaskCard({ task, taskKey, isCompleted, completionNote, onMarkDone, onUn
           </div>
         </div>
 
-        {expanded
-          ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
-          : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0 mt-1" />
-        }
+        {/* Expand indicator — pill badge with rotating chevron */}
+        <div className={`shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full border transition-all duration-200 ${
+          expanded
+            ? "bg-slate-100 border-slate-200 text-slate-500"
+            : "bg-primary/10 border-primary/25 text-primary hover:bg-primary/20"
+        }`}>
+          {!expanded && (
+            <span className="text-xs font-bold leading-none hidden xs:inline sm:inline">Details</span>
+          )}
+          <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
+        </div>
       </button>
 
       {/* Expanded detail */}
