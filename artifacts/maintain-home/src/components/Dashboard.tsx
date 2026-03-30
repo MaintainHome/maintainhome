@@ -51,7 +51,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
         {/* ── Mobile: Add to Home Screen ── */}
-        <div className="sm:hidden flex justify-end">
+        <div className="sm:hidden flex justify-center">
           <AddToHomeScreen />
         </div>
 
