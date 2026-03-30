@@ -256,6 +256,19 @@ export default function Home() {
                   ))}
                 </ul>
 
+                {/* Mobile-only: Maintly intro card — shows above buttons */}
+                <button onClick={handleTryNow} className="sm:hidden w-full flex items-center gap-5 bg-white rounded-2xl border border-slate-100 shadow-md px-6 py-5 text-left active:scale-[0.98] transition-transform">
+                  <img
+                    src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
+                    alt="Maintly"
+                    className="w-24 h-24 object-contain flex-shrink-0"
+                  />
+                  <div>
+                    <p className="text-lg font-bold text-slate-900">Chat with me, <span className="text-primary">"Maintly"</span></p>
+                    <p className="text-sm text-slate-500 leading-snug mt-1">Your custom Ai Home Maintenance Chatbot.</p>
+                  </div>
+                </button>
+
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                   <button 
                     onClick={handleTryNow}
@@ -272,19 +285,6 @@ export default function Home() {
                     See it first
                   </button>
                 </div>
-
-                {/* Mobile-only: Maintly intro card */}
-                <button onClick={handleTryNow} className="sm:hidden mt-6 w-full flex items-center gap-5 bg-white rounded-2xl border border-slate-100 shadow-md px-6 py-5 text-left active:scale-[0.98] transition-transform">
-                  <img
-                    src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
-                    alt="Maintly"
-                    className="w-24 h-24 object-contain flex-shrink-0"
-                  />
-                  <div>
-                    <p className="text-lg font-bold text-slate-900">Chat with me, <span className="text-primary">"Maintly"</span></p>
-                    <p className="text-sm text-slate-500 leading-snug mt-1">Your custom AI Home Maintenance Chatbot.</p>
-                  </div>
-                </button>
               </motion.div>
 
               {/* Hero Form Preview / Graphic area */}
@@ -372,7 +372,7 @@ export default function Home() {
         <Features onTryNow={handleTryNow} />
 
         {/* Mobile-only CTA between features and pricing */}
-        <div className="sm:hidden flex justify-center -mt-12 pb-4">
+        <div className="sm:hidden flex justify-center pb-8 pt-2">
           <button
             onClick={handleTryNow}
             className="px-10 py-4 rounded-xl font-bold text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25 flex items-center gap-2 active:scale-95 transition-all"

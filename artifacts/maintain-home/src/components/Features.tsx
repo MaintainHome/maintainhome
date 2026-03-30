@@ -64,7 +64,8 @@ export function Features({ onTryNow }: { onTryNow?: () => void }) {
             <motion.div
               key={idx}
               variants={itemVariants}
-              className="bg-slate-900 rounded-2xl p-8 shadow-md shadow-slate-900/30 border border-slate-700 hover:shadow-xl hover:border-primary/40 transition-all duration-300 group"
+              onClick={onTryNow}
+              className="bg-slate-900 rounded-2xl p-8 shadow-md shadow-slate-900/30 border border-slate-700 hover:shadow-xl hover:border-primary/40 transition-all duration-300 group cursor-pointer"
             >
               <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-primary/30 transition-transform duration-300">
                 {feature.icon}
