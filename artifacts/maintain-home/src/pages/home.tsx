@@ -225,7 +225,7 @@ export default function Home() {
                 <h1 className="text-[2rem] sm:text-4xl lg:text-5xl font-display font-black text-foreground leading-[1.15] mb-4 tracking-tight">
                   Overwhelmed by<br/>Home Maintenance?<br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
-                    Not Anymore.
+                    We Can Help.
                   </span>
                 </h1>
 
