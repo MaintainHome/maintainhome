@@ -350,6 +350,17 @@ export default function Home() {
 
         <Features />
 
+        {/* Mobile-only CTA between features and pricing */}
+        <div className="sm:hidden flex justify-center -mt-12 pb-4">
+          <button
+            onClick={handleTryNow}
+            className="px-10 py-4 rounded-xl font-bold text-lg bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25 flex items-center gap-2 active:scale-95 transition-all"
+          >
+            <Zap className="w-5 h-5" />
+            Try It Now
+          </button>
+        </div>
+
         <PricingSection onOpenAuth={handleTryNow} />
 
         {/* CTA Section */}

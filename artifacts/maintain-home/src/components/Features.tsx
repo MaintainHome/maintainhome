@@ -19,8 +19,8 @@ const featureList = [
   },
   {
     icon: <Briefcase className="w-6 h-6 text-primary" />,
-    title: "Broker White-Label",
-    description: "For real estate teams & builders: gift clients a branded dashboard pre-loaded with your preferred pros.",
+    title: 'Custom AI Chatbot "Maintly"',
+    description: '24/7 Access to an AI Powered Home Maintenance Advisor that integrates with your home\'s historical records.',
   }
 ];
 
