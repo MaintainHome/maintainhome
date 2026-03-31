@@ -4,7 +4,7 @@ import {
   Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
-  Send, Loader2, User,
+  Send, Loader2, User, TrendingDown, TrendingUp,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
