@@ -1,6 +1,6 @@
 import { Router, type Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
-import { db, usersTable } from "@workspace/db";
+import { db, usersTable, homeProfilesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 
@@ -70,13 +70,34 @@ function label(map: Record<string, string>, val: string | undefined): string {
   return map[val] ?? val;
 }
 
+interface HomeProfileData {
+  fullAddress?: string | null;
+  bedrooms?: number | null;
+  bathrooms?: string | null;
+  finishedBasement?: string | null;
+  poolOrHotTub?: string | null;
+  lastRenovationYear?: number | null;
+  mortgageRate?: string | null;
+}
+
 function buildSystemPrompt(
   userZip: string | null,
   state: string | null,
   qa: Record<string, string>,
+  homeProfile?: HomeProfileData | null,
 ): string {
   const location = state ? `${state}${userZip ? ` (ZIP ${userZip})` : ""}` : userZip ?? "Unknown";
   const hasProfile = Object.keys(qa).length > 0;
+
+  const extraLines: string[] = [];
+  if (homeProfile) {
+    if (homeProfile.bedrooms) extraLines.push(`- Bedrooms: ${homeProfile.bedrooms}`);
+    if (homeProfile.bathrooms) extraLines.push(`- Bathrooms: ${homeProfile.bathrooms}`);
+    if (homeProfile.finishedBasement === "yes") extraLines.push(`- Has finished basement`);
+    if (homeProfile.poolOrHotTub === "yes") extraLines.push(`- Has swimming pool or hot tub`);
+    if (homeProfile.lastRenovationYear) extraLines.push(`- Last major renovation: ${homeProfile.lastRenovationYear}`);
+    if (homeProfile.fullAddress) extraLines.push(`- Address: ${homeProfile.fullAddress}`);
+  }
 
   const profileSection = hasProfile
     ? `User profile:
@@ -89,8 +110,8 @@ function buildSystemPrompt(
 - Approximate size: ${label(SQFT_LABELS, qa.sqft)}
 - Crawl space: ${qa.crawlSpace === "yes" ? `Yes (${label(CRAWL_SEALED_LABELS, qa.crawlSpaceSealed)})` : qa.crawlSpace === "no" ? "No crawl space" : "Unknown"}
 - Pest schedule: ${label(PEST_LABELS, qa.pestSchedule)}
-- Landscaping: ${label(LANDSCAPING_LABELS, qa.landscaping)}${qa.allergies === "yes" && qa.allergiesDetails ? `\n- Pets/allergies: ${qa.allergiesDetails}` : ""}`
-    : `User profile:\n- Location: ${location}\n- Other details: Full home profile not available for this session.`;
+- Landscaping: ${label(LANDSCAPING_LABELS, qa.landscaping)}${qa.allergies === "yes" && qa.allergiesDetails ? `\n- Pets/allergies: ${qa.allergiesDetails}` : ""}${extraLines.length > 0 ? "\n" + extraLines.join("\n") : ""}`
+    : `User profile:\n- Location: ${location}\n- Other details: Full home profile not available for this session.${extraLines.length > 0 ? "\n" + extraLines.join("\n") : ""}`;
 
   return `You are Maintly, a friendly, practical, and experienced home maintenance assistant.
 You speak like a trusted, knowledgeable handyman who is helpful, clear, and safety-conscious.
@@ -151,7 +172,14 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
   const zip = quizAnswers.zip ?? user.zipCode ?? null;
   const state = zip ? await getStateFromZip(zip) : null;
 
-  const systemPrompt = buildSystemPrompt(zip, state, quizAnswers);
+  // Fetch home profile for richer context
+  const [homeProfile] = await db
+    .select()
+    .from(homeProfilesTable)
+    .where(eq(homeProfilesTable.userId, req.userId!))
+    .limit(1);
+
+  const systemPrompt = buildSystemPrompt(zip, state, quizAnswers, homeProfile ?? null);
 
   // Build messages array (keep last 10 turns for context)
   const contextHistory = history.slice(-10);

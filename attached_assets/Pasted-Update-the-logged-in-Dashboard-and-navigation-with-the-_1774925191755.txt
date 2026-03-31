@@ -1,0 +1,39 @@
+Update the logged-in Dashboard and navigation with the new "My Home Profile" section while keeping the existing layout intact.
+
+Requirements:
+
+1. Keep the first 3 quick-action tiles on the dashboard exactly as they currently are. Do not remove or change them.
+
+2. Add "My Home Profile" as a new top-level navigation item in the header (replace the previous "View Full Year" link if it exists as a top-level item).
+
+3. Create the "My Home Profile" page with:
+   - All original quiz answers (displayed, with option to edit)
+   - Additional editable fields:
+     - Full Address (optional)
+     - Number of Bedrooms
+     - Number of Bathrooms
+     - Finished Basement? (Yes/No)
+     - Swimming Pool or Hot Tub? (Yes/No)
+     - Last Major Renovation Year (optional)
+     - Current Mortgage Interest Rate (number input, e.g. 4.25)
+   - Mortgage Rate Comparison widget:
+     - Show "Your Rate: X.XX%" vs "Current Average 30-Year Fixed Rate: Y.YY%"
+     - Green if better, Red if higher, with appropriate message ("Great rate!" or "Consider contacting your lender about refinancing")
+     - Disclaimer: "Rates change daily. This is not financial advice."
+
+4. "View Full Year Calendar" access:
+   - Keep the button inside the "This Month" section (it should scroll down to the full calendar on the main dashboard page).
+   - Users can also scroll down on the main dashboard to see the full year calendar.
+   - Do NOT remove or hide the full calendar from the main dashboard.
+
+5. Update the master Claude system prompt (for both calendar generation and Maintly chat) to use all available data from the original quiz + new My Home Profile fields. If new fields are blank, gracefully fall back to the original data — do not break anything.
+
+Make the My Home Profile page clean, editable, and mobile-friendly. Use the same design style.
+
+After implementing, confirm:
+- First 3 tiles on dashboard are unchanged
+- "My Home Profile" appears in navigation
+- Full year calendar is still accessible via "This Month" button and scrolling
+- New profile fields enhance calendar/Maintly when filled in
+
+Do not break any existing functionality.

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle } from "lucide-react";
+import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle, Home as HomeIcon } from "lucide-react";
 import { Features } from "@/components/Features";
 import { PricingSection } from "@/components/PricingSection";
 import { AIChatModal } from "@/components/AIChatModal";
@@ -99,6 +99,13 @@ export default function Home() {
                   </button>
                 )}
                 <button
+                  onClick={() => navigate("/home-profile")}
+                  title="My Home Profile"
+                  className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
+                >
+                  <HomeIcon className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => navigate("/history")}
                   title="My Maintenance Log"
                   className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
@@ -157,6 +164,13 @@ export default function Home() {
                     Ask Maintly
                   </button>
                 )}
+                <button
+                  onClick={() => navigate("/home-profile")}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline px-3 py-2"
+                >
+                  <HomeIcon className="w-4 h-4" />
+                  My Home Profile
+                </button>
                 <button
                   onClick={() => navigate("/history")}
                   className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline px-3 py-2"

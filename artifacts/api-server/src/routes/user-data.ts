@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { db, savedCalendarsTable, maintenanceLogTable, maintenanceNotesTable, maintenanceDocumentsTable } from "@workspace/db";
+import { db, savedCalendarsTable, maintenanceLogTable, maintenanceNotesTable, maintenanceDocumentsTable, homeProfilesTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth, requirePro, type AuthRequest } from "../middleware/requireAuth";
 
@@ -155,6 +155,54 @@ router.delete("/user/documents/:id", requireAuth as any, async (req: AuthRequest
 
 router.get("/user/export", requireAuth as any, requirePro as any, async (_req: AuthRequest, res: Response) => {
   res.json({ status: "coming_soon", message: "PDF & CSV export coming soon for Pro users." });
+});
+
+// ─── Home Profile ─────────────────────────────────────────────────────────────
+
+router.get("/user/home-profile", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const [profile] = await db
+    .select()
+    .from(homeProfilesTable)
+    .where(eq(homeProfilesTable.userId, req.userId!))
+    .limit(1);
+  res.json(profile ?? null);
+});
+
+router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const { fullAddress, bedrooms, bathrooms, finishedBasement, poolOrHotTub, lastRenovationYear, mortgageRate } = req.body;
+
+  const values = {
+    userId: req.userId!,
+    fullAddress: fullAddress ?? null,
+    bedrooms: bedrooms != null ? Number(bedrooms) : null,
+    bathrooms: bathrooms ?? null,
+    finishedBasement: finishedBasement ?? null,
+    poolOrHotTub: poolOrHotTub ?? null,
+    lastRenovationYear: lastRenovationYear != null ? Number(lastRenovationYear) : null,
+    mortgageRate: mortgageRate ?? null,
+    updatedAt: new Date(),
+  };
+
+  const [existing] = await db
+    .select({ id: homeProfilesTable.id })
+    .from(homeProfilesTable)
+    .where(eq(homeProfilesTable.userId, req.userId!))
+    .limit(1);
+
+  let result;
+  if (existing) {
+    [result] = await db
+      .update(homeProfilesTable)
+      .set(values)
+      .where(eq(homeProfilesTable.userId, req.userId!))
+      .returning();
+  } else {
+    [result] = await db
+      .insert(homeProfilesTable)
+      .values(values)
+      .returning();
+  }
+  res.json(result);
 });
 
 export default router;

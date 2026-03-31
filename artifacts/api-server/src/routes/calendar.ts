@@ -74,6 +74,7 @@ router.post("/generate-calendar", async (req, res) => {
   const {
     zip, homeAge, homeType, roofType, waterSource, sewerSystem, pestSchedule,
     sqft, allergies, allergiesDetails, crawlSpace, crawlSpaceSealed, landscaping,
+    homeProfile,
   } = req.body;
 
   if (!zip) {
@@ -106,10 +107,22 @@ router.post("/generate-calendar", async (req, res) => {
 
   console.log(`[calendar] Generating for ZIP ${zip} → ${state}, ${homeTypeLabel}, ${homeAgeLabel}, roof: ${roofTypeLabel}`);
 
+  const homeProfileLines: string[] = [];
+  if (homeProfile) {
+    if (homeProfile.bedrooms) homeProfileLines.push(`Bedrooms: ${homeProfile.bedrooms}`);
+    if (homeProfile.bathrooms) homeProfileLines.push(`Bathrooms: ${homeProfile.bathrooms}`);
+    if (homeProfile.finishedBasement === "yes") homeProfileLines.push(`Has finished basement`);
+    if (homeProfile.poolOrHotTub === "yes") homeProfileLines.push(`Has swimming pool or hot tub`);
+    if (homeProfile.lastRenovationYear) homeProfileLines.push(`Last major renovation: ${homeProfile.lastRenovationYear}`);
+  }
+  const homeProfileContext = homeProfileLines.length > 0
+    ? `\nAdditional home details: ${homeProfileLines.join(". ")}.`
+    : "";
+
   const systemPrompt = `You are MaintainHome AI, a home maintenance scheduler.
 Location: ${state}. Home age: ${homeAgeLabel}. Type: ${homeTypeLabel}. Roof: ${roofTypeLabel}. Size: ${sqftLabel}.
 Water: ${waterSourceLabel}. Sewer: ${sewerLabel}. Pest prevention: ${pestLabel}.
-Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.
+Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.${homeProfileContext}
 
 Generate a 12-month maintenance calendar for ${state}. Spread tasks across all 12 months. Include 3-5 tasks per month. Be CONCISE — keep "why" and "tip" fields under 15 words each.
 

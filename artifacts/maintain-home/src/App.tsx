@@ -7,6 +7,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import History from "@/pages/history";
 import Quiz from "@/pages/quiz";
+import HomeProfile from "@/pages/home-profile";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/history" component={History} />
       <Route path="/quiz" component={Quiz} />
+      <Route path="/home-profile" component={HomeProfile} />
       <Route component={NotFound} />
     </Switch>
   );
