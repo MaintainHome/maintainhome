@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
-  AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle,
+  AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { DemoQuiz } from "@/components/DemoQuiz";
@@ -344,17 +344,17 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
           </button>
 
-          {/* Tile 4: Full Year Maintenance Schedule */}
+          {/* Tile 4: My Home Profile */}
           <button
-            onClick={scrollToCalendar}
+            onClick={() => navigate("/home-profile")}
             className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <Calendar className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+              <HomeIcon className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Full Year</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Calendar</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Home Profile</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Profile</p>
             </div>
           </button>
         </motion.div>
