@@ -16,6 +16,7 @@ interface AIChatModalProps {
   isOpen: boolean;
   onClose: () => void;
   quizAnswers?: Record<string, string>;
+  initialMessage?: string;
 }
 
 const STARTER_QUESTIONS = [
@@ -47,7 +48,7 @@ function MaintlyAvatar({ variant = "thumb" }: {
   );
 }
 
-export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) {
+export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AIChatModalProps) {
   const { user } = useAuth();
   const userIsPro = isPro(user);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -56,6 +57,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const initialMessageSentRef = useRef<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -65,6 +67,12 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
     if (isOpen && userIsPro) {
       setTimeout(() => inputRef.current?.focus(), 150);
     }
+    if (!isOpen) {
+      // Reset conversation when closed so next open starts fresh
+      setMessages([]);
+      setInput("");
+      initialMessageSentRef.current = null;
+    }
   }, [isOpen, userIsPro]);
 
   useEffect(() => {
@@ -72,6 +80,15 @@ export function AIChatModal({ isOpen, onClose, quizAnswers }: AIChatModalProps) 
       abortRef.current?.abort();
     }
   }, [isOpen]);
+
+  // Auto-send initialMessage when modal opens (once per unique message)
+  useEffect(() => {
+    if (isOpen && userIsPro && initialMessage && initialMessageSentRef.current !== initialMessage) {
+      initialMessageSentRef.current = initialMessage;
+      const timer = setTimeout(() => sendMessage(initialMessage), 400);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, initialMessage, userIsPro]);
 
   const sendMessage = async (text: string) => {
     const trimmed = text.trim();

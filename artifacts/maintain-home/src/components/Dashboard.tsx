@@ -3,8 +3,9 @@ import { useEffect, useState, useCallback } from "react";
 import {
   Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
-  AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell,
+  AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle,
 } from "lucide-react";
+import { AIChatModal } from "@/components/AIChatModal";
 import { DemoQuiz } from "@/components/DemoQuiz";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { isPro } from "@/contexts/AuthContext";
@@ -85,6 +86,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [snoozedThisMonth, setSnoozedThisMonth] = useState<Set<string>>(new Set());
   const [snoozedConfirm, setSnoozedConfirm] = useState<string | null>(null);
   const [deletingLogId, setDeletingLogId] = useState<number | null>(null);
+  const [taskChatOpen, setTaskChatOpen] = useState(false);
+  const [taskChatMessage, setTaskChatMessage] = useState<string>("");
   const userIsPro = isPro(user);
   const firstName = user.name ? user.name.split(" ")[0] : user.email.split("@")[0];
   const state = savedCalendar?.calendarData?.state ?? null;
@@ -187,6 +190,13 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   }, []);
 
   const visibleThisMonthTasks = thisMonthTasks.filter(t => !snoozedThisMonth.has(t._key));
+
+  function openChatForTask(taskName: string) {
+    const locationHint = state ? ` for a home in ${state}` : "";
+    const message = `Can you give me detailed, step-by-step instructions for "${taskName}"${locationHint}? Please include safety tips, what tools I'll need, how long it typically takes, and any common mistakes to avoid.`;
+    setTaskChatMessage(message);
+    setTaskChatOpen(true);
+  }
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -439,6 +449,24 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               </span>
                             )}
                           </div>
+                          {/* Ask Maintly button — Pro only */}
+                          {userIsPro ? (
+                            <button
+                              onClick={() => openChatForTask(task.task)}
+                              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 text-blue-700 text-xs font-semibold transition-colors"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                              Ask Maintly for more information
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+                              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 text-xs font-semibold transition-colors hover:bg-amber-100"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                              Ask Maintly — Pro feature
+                            </button>
+                          )}
                         </div>
                       </div>
 
@@ -820,6 +848,14 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         )}
 
       </div>
+
+      {/* Task-specific Maintly chat — opened from "This Month" task buttons */}
+      <AIChatModal
+        isOpen={taskChatOpen}
+        onClose={() => setTaskChatOpen(false)}
+        quizAnswers={savedCalendar?.quizAnswers ?? {}}
+        initialMessage={taskChatMessage}
+      />
     </div>
   );
 }
