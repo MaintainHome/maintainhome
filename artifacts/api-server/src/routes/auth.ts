@@ -99,6 +99,8 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
     .where(eq(usersTable.email, normalizedEmail))
     .limit(1);
 
+  const isNewUser = !user;
+
   if (!user) {
     // New user — create account with email (name/zip collected later via quiz)
     [user] = await db
@@ -134,7 +136,8 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
   await db.insert(magicLinkTokensTable).values({ email: normalizedEmail, token, expiresAt });
 
   const baseUrl = getBaseUrl(req);
-  const magicLink = `${baseUrl}/api/auth/verify?token=${token}&stay=${stay ? "1" : "0"}`;
+  const redirect = isNewUser ? "quiz" : "dashboard";
+  const magicLink = `${baseUrl}/api/auth/verify?token=${token}&stay=${stay ? "1" : "0"}&redirect=${redirect}`;
   console.log(`[auth] Magic link for ${normalizedEmail}: ${magicLink} stay=${stay}`);
 
   await sendMagicLinkEmail(req, normalizedEmail, user.name ?? trimmedName, magicLink);
@@ -149,7 +152,7 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
 });
 
 router.get("/auth/verify", async (req: Request, res: Response) => {
-  const { token, stay } = req.query as { token: string; stay?: string };
+  const { token, stay, redirect: redirectParam } = req.query as { token: string; stay?: string; redirect?: string };
   const staySignedIn = stay !== "0";
   if (!token) {
     res.status(400).send("Missing token. Please request a new sign-in link.");
@@ -212,7 +215,8 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
   });
 
   const baseUrl = getBaseUrl(req);
-  res.redirect(`${baseUrl}/quiz`);
+  const destination = redirectParam === "dashboard" ? "/" : "/quiz";
+  res.redirect(`${baseUrl}${destination}`);
 });
 
 router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Response) => {
