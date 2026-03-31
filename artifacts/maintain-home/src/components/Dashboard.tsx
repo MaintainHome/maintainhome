@@ -552,7 +552,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-500 hover:text-blue-700 text-sm font-medium transition-colors active:scale-[0.98]"
                                 >
                                   <Bell className="w-4 h-4" />
-                                  Remind Me Next Month
+                                  Snooze Till Next Month
                                 </button>
                               )}
                             </>
