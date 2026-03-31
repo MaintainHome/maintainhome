@@ -627,7 +627,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
         <div className="mb-8 bg-blue-50 border border-blue-200 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-3">
             <CheckCircle2 className="w-5 h-5 text-blue-600" />
-            <h4 className="font-bold text-blue-900">One-Time Setup Tasks</h4>
+            <h4 className="font-bold text-blue-900">Uncompleted One-Time Setup Tasks</h4>
             <p className="text-xs text-blue-500 ml-auto">Click to mark as done</p>
           </div>
           <ul className="space-y-2">
