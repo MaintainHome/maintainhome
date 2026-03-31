@@ -145,7 +145,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   }
 
   function scrollToThisMonth() {
-    document.getElementById("dashboard-this-month")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const el = document.getElementById("dashboard-this-month");
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({ top, behavior: "smooth" });
   }
 
   const handleThisMonthMarkDone = useCallback(async (taskKey: string, taskName: string, note: string) => {
