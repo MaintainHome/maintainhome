@@ -101,7 +101,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [chatStreaming, setChatStreaming] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
   const chatAbortRef = useRef<AbortController | null>(null);
 
@@ -123,7 +123,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   }, [user.id]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
   }, [chatMessages]);
 
   const sendInlineChat = useCallback(async (text: string) => {
@@ -702,27 +704,52 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         >
           {userIsPro ? (
             <>
-              {/* When conversation is active: compact header + history */}
-              {chatMessages.length > 0 && (
-                <>
-                  <div className="flex items-center gap-3 px-5 py-3 border-b border-slate-100">
-                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white border border-primary/20 shadow-sm">
-                      <img
-                        src={`${BASE}images/maintly_wrench.png`}
-                        alt="Maintly"
-                        className="w-full"
-                        style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
-                      />
+              {/* ── Always-visible header ── */}
+              <div className="flex items-center gap-3 px-5 py-3 border-b border-slate-100">
+                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white border border-primary/20 shadow-sm">
+                  <img
+                    src={`${BASE}images/maintly_wrench.png`}
+                    alt="Maintly"
+                    className="w-full"
+                    style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+                  />
+                </div>
+                <p className="flex-1 font-bold text-slate-900 text-sm">Chat with Maintly</p>
+                {chatMessages.length > 0 && (
+                  <button
+                    onClick={() => { chatAbortRef.current?.abort(); setChatMessages([]); }}
+                    className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              {/* ── Fixed-height body: idle OR messages (never resizes) ── */}
+              <div
+                ref={chatScrollRef}
+                className="h-[280px] overflow-y-auto px-4 py-4"
+              >
+                {chatMessages.length === 0 ? (
+                  /* Idle: avatar pointing down toward the input */
+                  <div className="h-full flex items-end gap-3 pb-1">
+                    <img
+                      src={`${BASE}images/maintly_point.png`}
+                      alt="Maintly"
+                      className="w-24 sm:w-28 h-auto object-contain shrink-0 self-end drop-shadow-sm"
+                    />
+                    <div className="pb-3">
+                      <p className="text-xl sm:text-2xl font-display font-black text-slate-900 leading-tight">
+                        Chat with Maintly
+                      </p>
+                      <p className="text-sm text-slate-400 mt-1">
+                        Ask me anything about your home.
+                      </p>
                     </div>
-                    <p className="flex-1 font-bold text-slate-900 text-sm">Chat with Maintly</p>
-                    <button
-                      onClick={() => { chatAbortRef.current?.abort(); setChatMessages([]); }}
-                      className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
-                    >
-                      Clear
-                    </button>
                   </div>
-                  <div className="px-4 py-4 space-y-4 max-h-[480px] overflow-y-auto">
+                ) : (
+                  /* Active: conversation messages */
+                  <div className="space-y-4">
                     {chatMessages.map((msg, idx) => (
                       <div
                         key={idx}
@@ -758,32 +785,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                         </div>
                       </div>
                     ))}
-                    <div ref={chatEndRef} />
                   </div>
-                </>
-              )}
+                )}
+              </div>
 
-              {/* Idle state: avatar pointing at input + big title */}
-              {chatMessages.length === 0 && (
-                <div className="flex items-end gap-0 px-4 pt-5 pb-2">
-                  <img
-                    src={`${BASE}images/maintly_point.png`}
-                    alt="Maintly"
-                    className="w-24 sm:w-28 h-auto object-contain shrink-0 self-end -mb-2 drop-shadow-sm"
-                  />
-                  <div className="flex-1 min-w-0 pb-3 pl-1">
-                    <p className="text-xl sm:text-2xl font-display font-black text-slate-900 leading-tight">
-                      Chat with Maintly
-                    </p>
-                    <p className="text-sm text-slate-400 mt-0.5">
-                      Ask me anything about your home.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Persistent input bar — always visible */}
-              <div className="px-4 pb-4 pt-2">
+              {/* ── Persistent input bar ── */}
+              <div className="px-4 pb-4 pt-2 border-t border-slate-100">
                 <div className="flex items-center gap-2 bg-slate-50 rounded-2xl border border-slate-200 px-4 py-3 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
                   <input
                     ref={chatInputRef}
