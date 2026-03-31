@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import {
   Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
-  AlertCircle, Check, Info, Wrench, DollarSign, X,
+  AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell,
 } from "lucide-react";
 import { DemoQuiz } from "@/components/DemoQuiz";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -82,6 +82,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [thisMonthCompleted, setThisMonthCompleted] = useState<Record<string, string>>({});
   const [thisMonthMarking, setThisMonthMarking] = useState<string | null>(null);
   const [thisMonthNoteText, setThisMonthNoteText] = useState("");
+  const [snoozedThisMonth, setSnoozedThisMonth] = useState<Set<string>>(new Set());
+  const [snoozedConfirm, setSnoozedConfirm] = useState<string | null>(null);
+  const [deletingLogId, setDeletingLogId] = useState<number | null>(null);
   const userIsPro = isPro(user);
   const firstName = user.name ? user.name.split(" ")[0] : user.email.split("@")[0];
   const state = savedCalendar?.calendarData?.state ?? null;
@@ -159,6 +162,24 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       }
     } catch {}
   }, [currentMonthName]);
+
+  const handleRemindNextMonth = useCallback((taskKey: string, taskName: string) => {
+    setSnoozedThisMonth(prev => { const s = new Set(prev); s.add(taskKey); return s; });
+    setSnoozedConfirm(taskKey);
+    setTimeout(() => setSnoozedConfirm(c => c === taskKey ? null : c), 3500);
+  }, []);
+
+  const handleDeleteLogEntry = useCallback(async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this entry? This cannot be undone.")) return;
+    setDeletingLogId(id);
+    try {
+      await fetch(`${API_BASE}/api/user/log/${id}`, { method: "DELETE", credentials: "include" });
+      setRecentLog(prev => prev.filter(e => e.id !== id));
+    } catch {}
+    setDeletingLogId(null);
+  }, []);
+
+  const visibleThisMonthTasks = thisMonthTasks.filter(t => !snoozedThisMonth.has(t._key));
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -343,7 +364,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                     This Month — {currentMonthName}
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    {thisMonthTasks.length} task{thisMonthTasks.length !== 1 ? "s" : ""} · {Object.keys(thisMonthCompleted).length} completed
+                    {visibleThisMonthTasks.length} task{visibleThisMonthTasks.length !== 1 ? "s" : ""} · {Object.keys(thisMonthCompleted).length} completed
                   </p>
                 </div>
               </div>
@@ -358,15 +379,19 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
 
             {/* Task cards */}
-            {thisMonthTasks.length === 0 ? (
+            {visibleThisMonthTasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-2 py-10 text-center px-6">
                 <CheckCircle2 className="w-10 h-10 text-emerald-400" />
                 <p className="text-base font-bold text-slate-700">All caught up for {currentMonthName}!</p>
-                <p className="text-sm text-slate-400">No tasks scheduled this month.</p>
+                <p className="text-sm text-slate-400">
+                  {snoozedThisMonth.size > 0
+                    ? `${snoozedThisMonth.size} task${snoozedThisMonth.size !== 1 ? "s" : ""} moved to next month.`
+                    : "No tasks scheduled this month."}
+                </p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
-                {thisMonthTasks.map((task) => {
+                {visibleThisMonthTasks.map((task) => {
                   const isProTask = task.difficulty?.toLowerCase().includes("pro");
                   const isCompleted = task._key in thisMonthCompleted;
                   const isMarking = thisMonthMarking === task._key;
@@ -448,7 +473,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
                       {/* Mark as Done area */}
                       {!isCompleted && (
-                        <div className="px-5 pb-5">
+                        <div className="px-5 pb-5 space-y-2">
                           {isMarking ? (
                             <div className="space-y-3">
                               <textarea
@@ -477,13 +502,29 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               </div>
                             </div>
                           ) : (
-                            <button
-                              onClick={() => setThisMonthMarking(task._key)}
-                              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-sm transition-colors active:scale-[0.98]"
-                            >
-                              <Check className="w-4 h-4" />
-                              Mark as Done
-                            </button>
+                            <>
+                              <button
+                                onClick={() => setThisMonthMarking(task._key)}
+                                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-sm transition-colors active:scale-[0.98]"
+                              >
+                                <Check className="w-4 h-4" />
+                                Mark as Done
+                              </button>
+                              {snoozedConfirm === task._key ? (
+                                <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold">
+                                  <Bell className="w-4 h-4 shrink-0" />
+                                  Task moved to next month ✓
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => handleRemindNextMonth(task._key, task.task)}
+                                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-500 hover:text-blue-700 text-sm font-medium transition-colors active:scale-[0.98]"
+                                >
+                                  <Bell className="w-4 h-4" />
+                                  Remind Me Next Month
+                                </button>
+                              )}
+                            </>
                           )}
                         </div>
                       )}
@@ -700,7 +741,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               </div>
             ) : (
               recentLog.map((entry) => (
-                <div key={entry.id} className="flex items-start gap-3 px-6 py-4">
+                <div key={entry.id} className="flex items-start gap-3 px-6 py-4 group">
                   <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   </div>
@@ -713,6 +754,17 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                       <p className="text-xs text-slate-500 mt-1 italic truncate">"{entry.notes}"</p>
                     )}
                   </div>
+                  <button
+                    onClick={() => handleDeleteLogEntry(entry.id)}
+                    disabled={deletingLogId === entry.id}
+                    className="shrink-0 p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
+                    title="Delete entry"
+                  >
+                    {deletingLogId === entry.id
+                      ? <RefreshCw className="w-4 h-4 animate-spin" />
+                      : <Trash2 className="w-4 h-4" />
+                    }
+                  </button>
                 </div>
               ))
             )}

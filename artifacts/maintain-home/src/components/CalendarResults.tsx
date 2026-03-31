@@ -3,7 +3,7 @@ import {
   RefreshCw, AlertTriangle, CheckCircle2, Wrench, DollarSign,
   Info, ChevronDown, Lock, Check, FileDown, ClipboardList,
   X, Pencil, BookOpen, Zap, Star, MessageCircle, Paperclip, Upload,
-  FileText, CalendarDays, Plus, Loader2,
+  FileText, CalendarDays, Plus, Loader2, Trash2,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
@@ -440,6 +440,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
   };
 
   const handleUnmark = async (key: string) => {
+    if (!window.confirm("Delete this completed task from your history? This cannot be undone.")) return;
     setCompletedTasks(prev => {
       const next = { ...prev };
       delete next[key];
@@ -481,6 +482,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
   };
 
   const handleDeleteNote = async (id: number) => {
+    if (!window.confirm("Delete this note? This cannot be undone.")) return;
     setCustomNotes(prev => prev.filter(n => n.id !== id));
     fetch(`/api/user/notes/${id}`, { method: "DELETE", credentials: "include" }).catch(() => {});
   };
@@ -533,6 +535,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
   };
 
   const handleDeleteDocument = async (id: number) => {
+    if (!window.confirm("Delete this document? This cannot be undone.")) return;
     setDocuments(prev => prev.filter(d => d.id !== id));
     fetch(`/api/user/documents/${id}`, { method: "DELETE", credentials: "include" }).catch(() => {});
   };
@@ -985,7 +988,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
             {historyItems.map((item, idx) => {
               if (item.type === "task") {
                 return (
-                  <li key={`task-${item.key}`} className="flex items-start gap-3 px-5 py-3.5">
+                  <li key={`task-${item.key}`} className="flex items-start gap-3 px-5 py-3.5 group">
                     <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
                       <Check className="w-3 h-3 text-white" strokeWidth={3} />
                     </div>
@@ -1000,10 +1003,10 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
                     </div>
                     <button
                       onClick={() => handleUnmark(item.key)}
-                      className="text-slate-300 hover:text-slate-500 transition-colors shrink-0 mt-0.5"
-                      title="Unmark"
+                      className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      title="Delete entry"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </li>
                 );
@@ -1011,7 +1014,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
               if (item.type === "note") {
                 const n = item.note;
                 return (
-                  <li key={`note-${n.id}`} className="flex items-start gap-3 px-5 py-3.5 bg-blue-50/40">
+                  <li key={`note-${n.id}`} className="flex items-start gap-3 px-5 py-3.5 bg-blue-50/40 group">
                     <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5">
                       <Pencil className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
                     </div>
@@ -1026,10 +1029,10 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
                     </div>
                     <button
                       onClick={() => handleDeleteNote(n.id)}
-                      className="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5"
+                      className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
                       title="Delete note"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </li>
                 );
@@ -1040,7 +1043,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
                 const dateStr = new Date(d.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                 const isImage = d.contentType.startsWith("image/");
                 return (
-                  <li key={`doc-${d.id}`} className="flex items-start gap-3 px-5 py-3.5 bg-blue-50/40">
+                  <li key={`doc-${d.id}`} className="flex items-start gap-3 px-5 py-3.5 bg-blue-50/40 group">
                     <div className="w-5 h-5 rounded-full bg-blue-400 flex items-center justify-center shrink-0 mt-0.5">
                       {isImage ? <FileText className="w-2.5 h-2.5 text-white" strokeWidth={2.5} /> : <Paperclip className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />}
                     </div>
@@ -1065,10 +1068,10 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
                     </div>
                     <button
                       onClick={() => handleDeleteDocument(d.id)}
-                      className="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5"
+                      className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
                       title="Delete document"
                     >
-                      <X className="w-3.5 h-3.5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </li>
                 );

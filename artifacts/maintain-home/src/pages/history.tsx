@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, ClipboardList, ArrowLeft, Loader2, LogOut, Calendar,
   Pencil, Paperclip, FileText, Plus, Upload, CalendarDays, Check, X,
-  AlertTriangle, Lock, FileDown, Zap,
+  AlertTriangle, Lock, FileDown, Zap, Trash2,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
@@ -124,7 +124,14 @@ export default function HistoryPage() {
     }
   };
 
+  const handleDeleteLogEntry = async (id: number) => {
+    if (!window.confirm("Are you sure you want to delete this entry? This cannot be undone.")) return;
+    setEntries(prev => prev.filter(e => e.id !== id));
+    fetch(`/api/user/log/${id}`, { method: "DELETE", credentials: "include" }).catch(() => {});
+  };
+
   const handleDeleteNote = (id: number) => {
+    if (!window.confirm("Delete this note? This cannot be undone.")) return;
     setCustomNotes(prev => prev.filter(n => n.id !== id));
     fetch(`/api/user/notes/${id}`, { method: "DELETE", credentials: "include" }).catch(() => {});
   };
@@ -177,6 +184,7 @@ export default function HistoryPage() {
   };
 
   const handleDeleteDocument = (id: number) => {
+    if (!window.confirm("Delete this document? This cannot be undone.")) return;
     setDocuments(prev => prev.filter(d => d.id !== id));
     fetch(`/api/user/documents/${id}`, { method: "DELETE", credentials: "include" }).catch(() => {});
   };
@@ -481,7 +489,7 @@ export default function HistoryPage() {
                 ) : (
                   <ul className="divide-y divide-slate-100">
                     {customNotes.map(n => (
-                      <li key={`note-${n.id}`} className="flex items-start gap-3 px-5 py-4 bg-blue-50/40">
+                      <li key={`note-${n.id}`} className="flex items-start gap-3 px-5 py-4 bg-blue-50/40 group">
                         <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shrink-0 mt-0.5">
                           <Pencil className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
                         </div>
@@ -496,10 +504,10 @@ export default function HistoryPage() {
                         </div>
                         <button
                           onClick={() => handleDeleteNote(n.id)}
-                          className="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5"
+                          className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
                           title="Delete note"
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </li>
                     ))}
@@ -508,7 +516,7 @@ export default function HistoryPage() {
                       const dateStr = new Date(d.uploadedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
                       const isImage = d.contentType.startsWith("image/");
                       return (
-                        <li key={`doc-${d.id}`} className="flex items-start gap-3 px-5 py-4 bg-blue-50/40">
+                        <li key={`doc-${d.id}`} className="flex items-start gap-3 px-5 py-4 bg-blue-50/40 group">
                           <div className="w-5 h-5 rounded-full bg-blue-400 flex items-center justify-center shrink-0 mt-0.5">
                             {isImage
                               ? <FileText className="w-2.5 h-2.5 text-white" strokeWidth={2.5} />
@@ -535,10 +543,10 @@ export default function HistoryPage() {
                           </div>
                           <button
                             onClick={() => handleDeleteDocument(d.id)}
-                            className="text-slate-300 hover:text-red-400 transition-colors shrink-0 mt-0.5"
+                            className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
                             title="Delete document"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </li>
                       );
@@ -577,7 +585,7 @@ export default function HistoryPage() {
                       </div>
                       <ul className="divide-y divide-slate-100">
                         {items.map((entry) => (
-                          <li key={entry.id} className="flex items-start gap-3 px-5 py-4">
+                          <li key={entry.id} className="flex items-start gap-3 px-5 py-4 group">
                             <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0 mt-0.5">
                               <CheckCircle2 className="w-3 h-3 text-white" strokeWidth={3} />
                             </div>
@@ -596,6 +604,13 @@ export default function HistoryPage() {
                                 {entry.zipCode ? ` · ZIP ${entry.zipCode}` : ""}
                               </p>
                             </div>
+                            <button
+                              onClick={() => handleDeleteLogEntry(entry.id)}
+                              className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                              title="Delete entry"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
                           </li>
                         ))}
                       </ul>
