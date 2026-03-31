@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import {
   Home, ArrowLeft, Save, CheckCircle2, AlertCircle, Edit2,
   MapPin, Bed, Bath, Layers, Waves, Calendar, Percent,
-  TrendingDown, TrendingUp, Info, RefreshCw,
+  TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2,
 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isPro } from "@/contexts/AuthContext";
+import { PricingSection } from "@/components/PricingSection";
 
 // ── Label maps (mirrors quiz + ai-chat server) ─────────────────────────────
 const HOME_AGE_LABELS: Record<string, string> = {
@@ -82,7 +83,7 @@ const emptyProfile: HomeProfile = {
 
 // ── Component ─────────────────────────────────────────────────────────────
 export default function HomeProfilePage() {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [, navigate] = useLocation();
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string> | null>(null);
   const [profile, setProfile] = useState<HomeProfile>(emptyProfile);
@@ -90,6 +91,12 @@ export default function HomeProfilePage() {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const userIsPro = isPro(user);
 
   useEffect(() => {
     if (!user) return;
@@ -137,6 +144,28 @@ export default function HomeProfilePage() {
       setError("Could not save profile. Please try again.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleDeleteAccount() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const r = await fetch("/api/auth/delete-account", {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!r.ok) {
+        const data = await r.json().catch(() => ({}));
+        setDeleteError(data.error ?? "Something went wrong. Please try again.");
+        setDeleting(false);
+        return;
+      }
+      await refreshUser();
+      navigate("/");
+    } catch {
+      setDeleteError("Network error. Please try again.");
+      setDeleting(false);
     }
   }
 
@@ -211,6 +240,52 @@ export default function HomeProfilePage() {
             Profile saved — Maintly will use your updated details for future advice.
           </motion.div>
         )}
+
+        {/* ── Current Plan ──────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+        >
+          <div className="px-5 py-4 border-b border-slate-100">
+            <h2 className="text-base font-bold text-slate-900">Current Plan</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Your active subscription and access level</p>
+          </div>
+          <div className="px-5 py-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${userIsPro ? "bg-primary/10" : "bg-slate-100"}`}>
+                {userIsPro
+                  ? <Zap className="w-5 h-5 text-primary" />
+                  : <CreditCard className="w-5 h-5 text-slate-400" />
+                }
+              </div>
+              <div>
+                <p className={`text-sm font-bold ${userIsPro ? "text-primary" : "text-slate-700"}`}>
+                  {user?.subscriptionStatus === "pro_monthly" && "Pro — Monthly"}
+                  {user?.subscriptionStatus === "pro_annual" && "Pro — Annual"}
+                  {user?.subscriptionStatus === "promo_pro" && "Pro — Promo (Beta)"}
+                  {(!user?.subscriptionStatus || user?.subscriptionStatus === "free") && "Free Plan"}
+                </p>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  {userIsPro
+                    ? "Full access — 12-month calendar, AI chat, history & more"
+                    : "Limited to 2 months · Upgrade for full access"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPricingModal(true)}
+              className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-sm transition-colors ${
+                userIsPro
+                  ? "border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  : "bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20"
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5" />
+              {userIsPro ? "Manage Plan" : "Upgrade to Pro"}
+            </button>
+          </div>
+        </motion.div>
 
         {/* ── Original Quiz Answers ──────────────────────────────────── */}
         <motion.div
@@ -466,7 +541,7 @@ export default function HomeProfilePage() {
         )}
 
         {/* ── Save button (bottom) ───────────────────────────────────── */}
-        <div className="pb-6">
+        <div>
           <button
             onClick={handleSave}
             disabled={saving}
@@ -476,7 +551,122 @@ export default function HomeProfilePage() {
             {saved ? "Profile Saved!" : saving ? "Saving…" : "Save Home Profile"}
           </button>
         </div>
+
+        {/* ── Danger Zone ────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden"
+        >
+          <div className="px-5 py-4 border-b border-red-50">
+            <h2 className="text-base font-bold text-red-700">Danger Zone</h2>
+            <p className="text-xs text-slate-500 mt-0.5">Permanent actions that cannot be undone</p>
+          </div>
+          <div className="px-5 py-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-800">Delete Account</p>
+              <p className="text-xs text-slate-400 mt-0.5">Permanently delete your account and all data. This cannot be undone.</p>
+            </div>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-bold text-sm transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Delete Account
+            </button>
+          </div>
+        </motion.div>
+
+        <div className="pb-6" />
       </div>
+
+      {/* ── Pricing Modal ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {showPricingModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 overflow-y-auto"
+            onClick={(e) => e.target === e.currentTarget && setShowPricingModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              className="min-h-screen px-4 py-8 flex flex-col items-center"
+            >
+              <div className="w-full max-w-4xl bg-slate-50 rounded-3xl shadow-2xl overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
+                  <div>
+                    <p className="font-bold text-slate-900 text-base">Plans &amp; Pricing</p>
+                    <p className="text-xs text-slate-400">Upgrade or manage your subscription</p>
+                  </div>
+                  <button
+                    onClick={() => setShowPricingModal(false)}
+                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <PricingSection />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Delete Confirmation Modal ─────────────────────────────────── */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={(e) => e.target === e.currentTarget && !deleting && setShowDeleteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.92, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              className="bg-white rounded-3xl p-7 w-full max-w-sm shadow-2xl"
+            >
+              <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-bold text-slate-900 text-center mb-2">Delete Account?</h3>
+              <p className="text-sm text-slate-500 text-center mb-2">
+                This will permanently delete your account, calendar, maintenance history, and all associated data.
+              </p>
+              <p className="text-sm font-bold text-red-600 text-center mb-6">This cannot be undone.</p>
+              {deleteError && (
+                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 text-center mb-4">{deleteError}</p>
+              )}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold text-sm transition-colors"
+                >
+                  {deleting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  {deleting ? "Deleting…" : "Yes, Delete My Account"}
+                </button>
+                <button
+                  onClick={() => { setShowDeleteModal(false); setDeleteError(null); }}
+                  disabled={deleting}
+                  className="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-sm transition-colors disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -251,7 +251,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 </>
               ) : (
                 <button
-                  onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+                  onClick={() => navigate("/home-profile")}
                   className="flex flex-col items-center gap-1.5 group"
                 >
                   <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 group-hover:bg-amber-500/30 flex items-center justify-center transition-colors">
@@ -295,7 +295,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </button>
           ) : (
             <button
-              onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+              onClick={() => navigate("/home-profile")}
               className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-dashed border-amber-300 hover:border-amber-400 hover:shadow-sm transition-all text-left group overflow-hidden"
             >
               <div className="w-14 h-16 overflow-hidden shrink-0 relative">
@@ -356,6 +356,64 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Profile</p>
             </div>
           </button>
+        </motion.div>
+
+        {/* ── Chat with Maintly card ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1 }}
+        >
+          {userIsPro ? (
+            <button
+              onClick={onOpenAIChat}
+              className="w-full flex items-center gap-4 sm:gap-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl px-5 py-4 sm:px-7 sm:py-5 hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all group text-left shadow-lg shadow-slate-900/20 overflow-hidden relative"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/15 to-blue-600/10 pointer-events-none" />
+              <img
+                src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
+                alt="Maintly"
+                className="w-20 sm:w-24 h-auto object-contain shrink-0 drop-shadow-xl -mb-2 -ml-1 self-end relative z-10"
+              />
+              <div className="flex-1 min-w-0 relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <MessageCircle className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold text-primary uppercase tracking-wider">AI Assistant</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-display font-black text-white leading-tight mb-1">Chat with Maintly</h3>
+                <p className="text-slate-300 text-sm leading-snug">Ask me anything about your home — repairs, maintenance tips, seasonal prep, and more.</p>
+              </div>
+              <div className="shrink-0 relative z-10">
+                <div className="w-10 h-10 rounded-full bg-primary/20 group-hover:bg-primary/40 flex items-center justify-center transition-colors">
+                  <ChevronRight className="w-5 h-5 text-primary" />
+                </div>
+              </div>
+            </button>
+          ) : (
+            <div className="w-full flex items-center gap-4 sm:gap-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl px-5 py-4 sm:px-7 sm:py-5 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/5 pointer-events-none" />
+              <img
+                src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
+                alt="Maintly"
+                className="w-20 sm:w-24 h-auto object-contain shrink-0 drop-shadow-xl -mb-2 -ml-1 self-end grayscale opacity-60 relative z-10"
+              />
+              <div className="flex-1 min-w-0 relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Pro Feature</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-display font-black text-white leading-tight mb-1">Chat with Maintly</h3>
+                <p className="text-slate-400 text-sm leading-snug mb-3">Unlock AI-powered home maintenance guidance personalized to your home.</p>
+                <button
+                  onClick={() => navigate("/home-profile")}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold transition-colors shadow-md shadow-amber-900/30"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  Upgrade to Pro
+                </button>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* ── This Month ── */}
@@ -692,29 +750,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           </motion.div>
         )}
 
-        {/* ── Free user upgrade banner ── */}
-        {!userIsPro && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.18 }}
-            className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl px-5 py-4"
-          >
-            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-              <Zap className="w-5 h-5 text-amber-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-amber-900">Upgrade to Pro for full access</p>
-              <p className="text-xs text-amber-700 mt-0.5">Full 12-month calendar · Ask Maintly Ai · Email reminders · Maintenance history</p>
-            </div>
-            <button
-              onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-              className="shrink-0 px-4 py-2 rounded-xl font-bold text-sm bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition-colors whitespace-nowrap"
-            >
-              See Plans
-            </button>
-          </motion.div>
-        )}
 
         {/* ── Recent Activity ── */}
         <motion.div
@@ -793,40 +828,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           )}
         </motion.div>
 
-        {/* ── Upgrade CTA (Free users) ── */}
-        {!userIsPro && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.34 }}
-            className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 sm:p-8 text-center"
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/20 text-primary rounded-full text-xs font-bold mb-4">
-              <Zap className="w-3.5 h-3.5" />
-              Unlock Full Access
-            </div>
-            <h3 className="text-xl sm:text-2xl font-display font-black text-white mb-2">
-              Upgrade to Pro — Get your full 12-month plan
-            </h3>
-            <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
-              Free users see 2 months. Pro unlocks all 12 months, the Ai assistant, email reminders, and more.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <button
-                onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-                className="px-6 py-3 rounded-xl font-bold text-sm bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-colors"
-              >
-                See Plans &amp; Pricing
-              </button>
-              <button
-                onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-                className="px-6 py-3 rounded-xl font-bold text-sm bg-white/10 hover:bg-white/20 text-white transition-colors"
-              >
-                Enter Promo Code
-              </button>
-            </div>
-          </motion.div>
-        )}
 
       </div>
 

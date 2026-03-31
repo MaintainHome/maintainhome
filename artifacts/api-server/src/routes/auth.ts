@@ -266,6 +266,25 @@ router.post("/auth/redeem-promo", requireAuth as any, async (req: AuthRequest, r
   res.json({ ok: true, subscriptionStatus: "promo_pro" });
 });
 
+router.delete("/auth/delete-account", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const userId = req.userId!;
+  try {
+    await db.delete(sessionsTable).where(eq(sessionsTable.userId, userId));
+    await db.delete(usersTable).where(eq(usersTable.id, userId));
+    res.clearCookie("mh_session", {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+    console.log(`[auth] Account deleted for userId=${userId}`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("[auth] Delete account error:", err);
+    res.status(500).json({ error: "Failed to delete account. Please try again." });
+  }
+});
+
 router.post("/auth/logout", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const token = req.cookies?.mh_session;
   if (token) {

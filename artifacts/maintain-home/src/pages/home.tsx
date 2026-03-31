@@ -223,8 +223,6 @@ export default function Home() {
             savedCalendar={savedCalendar}
             onOpenAIChat={() => setShowAIChat(true)}
           />
-          {/* Pricing section still accessible for upgrades */}
-          <PricingSection />
         </main>
       )}
 
