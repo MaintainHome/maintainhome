@@ -425,6 +425,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                             : <Wrench className={`w-6 h-6 ${isProTask ? "text-orange-600" : "text-emerald-600"}`} />
                           }
                         </div>
+
+                        {/* Task name + badges */}
                         <div className="flex-1 min-w-0">
                           <p className={`text-base sm:text-lg font-bold leading-snug ${isCompleted ? "line-through text-slate-400" : "text-slate-900"}`}>
                             {task.task}
@@ -449,22 +451,33 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               </span>
                             )}
                           </div>
-                          {/* Ask Maintly button — Pro only */}
+                        </div>
+
+                        {/* Right section — Maintly pointing at Ask button beside him */}
+                        <div className="shrink-0 flex items-center gap-2 ml-2">
+                          {/* Maintly avatar — pointing right toward the button */}
+                          <img
+                            src="/images/maintly_point.png"
+                            alt="Maintly"
+                            className="w-16 h-16 object-contain drop-shadow-sm select-none"
+                          />
+                          {/* Ask Maintly button — Maintly's finger points here */}
                           {userIsPro ? (
                             <button
                               onClick={() => openChatForTask(task.task)}
-                              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 text-blue-700 text-xs font-semibold transition-colors"
+                              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 text-blue-700 transition-colors"
                             >
-                              <MessageCircle className="w-3.5 h-3.5 shrink-0" />
-                              Ask Maintly for more information
+                              <MessageCircle className="w-4 h-4" />
+                              <span className="text-[10px] font-bold whitespace-nowrap leading-tight">Ask<br/>Maintly</span>
                             </button>
                           ) : (
                             <button
                               onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-                              className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 text-xs font-semibold transition-colors hover:bg-amber-100"
+                              title="Upgrade to Pro to ask Maintly"
+                              className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 transition-colors hover:bg-amber-100"
                             >
-                              <MessageCircle className="w-3.5 h-3.5 shrink-0" />
-                              Ask Maintly — Pro feature
+                              <MessageCircle className="w-4 h-4" />
+                              <span className="text-[10px] font-bold whitespace-nowrap leading-tight">Ask<br/>Maintly</span>
                             </button>
                           )}
                         </div>
