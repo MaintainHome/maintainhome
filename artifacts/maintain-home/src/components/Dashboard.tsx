@@ -468,7 +468,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 hover:border-blue-300 text-blue-700 transition-colors"
                             >
                               <MessageCircle className="w-4 h-4" />
-                              <span className="text-[10px] font-bold whitespace-nowrap leading-tight">Ask<br/>Maintly</span>
+                              <span className="text-[10px] font-bold whitespace-nowrap leading-tight">
+                                <span className="sm:hidden">Ask<br/>Maintly</span>
+                                <span className="hidden sm:inline">Ask Maintly<br/>About This Task</span>
+                              </span>
                             </button>
                           ) : (
                             <button
@@ -477,7 +480,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 transition-colors hover:bg-amber-100"
                             >
                               <MessageCircle className="w-4 h-4" />
-                              <span className="text-[10px] font-bold whitespace-nowrap leading-tight">Ask<br/>Maintly</span>
+                              <span className="text-[10px] font-bold whitespace-nowrap leading-tight">
+                                <span className="sm:hidden">Ask<br/>Maintly</span>
+                                <span className="hidden sm:inline">Ask Maintly<br/>About This Task</span>
+                              </span>
                             </button>
                           )}
                         </div>
