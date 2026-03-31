@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle, Home as HomeIcon } from "lucide-react";
+import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle, Home as HomeIcon, CalendarDays } from "lucide-react";
 import { Features } from "@/components/Features";
 import { PricingSection } from "@/components/PricingSection";
 import { AIChatModal } from "@/components/AIChatModal";
@@ -99,6 +99,13 @@ export default function Home() {
                   </button>
                 )}
                 <button
+                  onClick={() => navigate("/calendar")}
+                  title="My Calendar"
+                  className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
+                >
+                  <CalendarDays className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => navigate("/home-profile")}
                   title="My Home Profile"
                   className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
@@ -107,7 +114,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => navigate("/history")}
-                  title="My Maintenance Log"
+                  title="Maintenance History"
                   className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
                 >
                   <ClipboardList className="w-4 h-4" />
@@ -153,10 +160,23 @@ export default function Home() {
 
             {/* Desktop auth */}
             {user ? (
-              <div className="hidden sm:flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-1">
                 <span className="text-sm font-semibold text-slate-700 px-2">
                   Hi {user.name ? user.name.split(" ")[0] : user.email.split("@")[0]}
                 </span>
+                <button
+                  onClick={() => navigate("/")}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Dashboard
+                </button>
+                <button
+                  onClick={() => navigate("/calendar")}
+                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors"
+                >
+                  <CalendarDays className="w-4 h-4" />
+                  My Calendar
+                </button>
                 {userIsPro && (
                   <button
                     onClick={() => setShowAIChat(true)}
@@ -168,17 +188,17 @@ export default function Home() {
                 )}
                 <button
                   onClick={() => navigate("/home-profile")}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline px-3 py-2"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors"
                 >
                   <HomeIcon className="w-4 h-4" />
                   My Home Profile
                 </button>
                 <button
                   onClick={() => navigate("/history")}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline px-3 py-2"
+                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors"
                 >
                   <ClipboardList className="w-4 h-4" />
-                  My Log
+                  History
                 </button>
                 <button
                   onClick={logout}

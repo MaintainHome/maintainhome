@@ -6,7 +6,6 @@ import {
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
-import { DemoQuiz } from "@/components/DemoQuiz";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { isPro } from "@/contexts/AuthContext";
 import type { AuthUser } from "@/contexts/AuthContext";
@@ -144,7 +143,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   }, [completingKeys]);
 
   function scrollToCalendar() {
-    document.getElementById("dashboard-calendar")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    navigate("/calendar");
   }
 
   function scrollToThisMonth() {
@@ -716,43 +715,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </button>
           </motion.div>
         )}
-
-        {/* ── My Maintenance Calendar ── */}
-        <motion.div
-          id="dashboard-calendar"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.22 }}
-          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-        >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-display font-bold text-foreground">My Maintenance Calendar</h2>
-            </div>
-            {savedCalendar && (
-              <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                Saved ✓
-              </span>
-            )}
-          </div>
-          <div className="p-4 sm:p-6">
-            {savedCalendar ? (
-              <DemoQuiz key="saved" initialData={savedCalendar} />
-            ) : (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Sparkles className="w-8 h-8 text-primary" />
-                </div>
-                <h3 className="text-lg font-bold text-foreground mb-2">No calendar yet</h3>
-                <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">
-                  Answer a few quick questions about your home and get a full Ai-generated 12-month maintenance calendar.
-                </p>
-                <DemoQuiz key="fresh" initialData={null} />
-              </div>
-            )}
-          </div>
-        </motion.div>
 
         {/* ── Recent Activity ── */}
         <motion.div

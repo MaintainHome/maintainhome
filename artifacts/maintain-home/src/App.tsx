@@ -8,6 +8,7 @@ import Home from "@/pages/home";
 import History from "@/pages/history";
 import Quiz from "@/pages/quiz";
 import HomeProfile from "@/pages/home-profile";
+import CalendarPage from "@/pages/calendar-page";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/history" component={History} />
       <Route path="/quiz" component={Quiz} />
       <Route path="/home-profile" component={HomeProfile} />
+      <Route path="/calendar" component={CalendarPage} />
       <Route component={NotFound} />
     </Switch>
   );
