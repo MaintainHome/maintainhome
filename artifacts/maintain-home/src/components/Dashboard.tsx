@@ -452,10 +452,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                             </div>
                           )}
                           {task.tip && (
-                            <div className="flex gap-3 bg-emerald-50 rounded-xl p-3.5">
-                              <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                            <div className="flex gap-3 bg-blue-50 rounded-xl p-3.5">
+                              <CheckCircle2 className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
                               <div>
-                                <p className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider mb-1">How-to tip</p>
+                                <p className="text-[11px] font-bold text-blue-500 uppercase tracking-wider mb-1">How-to tip</p>
                                 <p className="text-sm text-slate-700 leading-relaxed">{task.tip}</p>
                               </div>
                             </div>
