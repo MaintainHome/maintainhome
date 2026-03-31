@@ -1,9 +1,10 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
+  Send, Loader2, User,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -12,6 +13,7 @@ import type { AuthUser } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+const BASE = import.meta.env.BASE_URL;
 
 const MONTHS = [
   "January","February","March","April","May","June",
@@ -23,6 +25,19 @@ const MONTH_EMOJIS: Record<string, string> = {
   May:"🌸", June:"☀️", July:"🌞", August:"🏖️",
   September:"🍂", October:"🎃", November:"🍁", December:"🎄",
 };
+
+const STARTER_QUESTIONS = [
+  "What should I check around my home this month?",
+  "My HVAC is making a strange noise — what should I check?",
+  "How do I know when it's time to replace my water heater?",
+  "What's the best way to prep my home before winter?",
+];
+
+interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  streaming?: boolean;
+}
 
 interface LogEntry {
   id: number;
@@ -87,6 +102,15 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [deletingLogId, setDeletingLogId] = useState<number | null>(null);
   const [taskChatOpen, setTaskChatOpen] = useState(false);
   const [taskChatMessage, setTaskChatMessage] = useState<string>("");
+
+  // ── Inline Chat State ──────────────────────────────────────────────────
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatStreaming, setChatStreaming] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLInputElement>(null);
+  const chatAbortRef = useRef<AbortController | null>(null);
+
   const userIsPro = isPro(user);
   const firstName = user.name ? user.name.split(" ")[0] : user.email.split("@")[0];
   const state = savedCalendar?.calendarData?.state ?? null;
@@ -103,6 +127,91 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       .catch(() => setRecentLog([]))
       .finally(() => setLogLoading(false));
   }, [user.id]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages]);
+
+  const sendInlineChat = useCallback(async (text: string) => {
+    const trimmed = text.trim();
+    if (!trimmed || chatStreaming) return;
+
+    const userMsg: ChatMessage = { role: "user", content: trimmed };
+    const updatedHistory = [...chatMessages, userMsg];
+    setChatMessages(updatedHistory);
+    setChatInput("");
+    setChatStreaming(true);
+
+    const placeholder: ChatMessage = { role: "assistant", content: "", streaming: true };
+    setChatMessages([...updatedHistory, placeholder]);
+
+    chatAbortRef.current = new AbortController();
+
+    try {
+      const res = await fetch("/api/ai/chat", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        signal: chatAbortRef.current.signal,
+        body: JSON.stringify({
+          message: trimmed,
+          history: chatMessages.map((m) => ({ role: m.role, content: m.content })),
+          quizAnswers: savedCalendar?.quizAnswers ?? {},
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: "Request failed." }));
+        setChatMessages((prev) => [
+          ...prev.slice(0, -1),
+          { role: "assistant", content: `Sorry, something went wrong: ${err.error ?? "Please try again."}` },
+        ]);
+        setChatStreaming(false);
+        return;
+      }
+
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let fullContent = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? "";
+        for (const part of parts) {
+          if (!part.startsWith("data: ")) continue;
+          try {
+            const data = JSON.parse(part.slice(6));
+            if (data.done) break;
+            if (data.content) {
+              fullContent += data.content;
+              setChatMessages((prev) => [
+                ...prev.slice(0, -1),
+                { role: "assistant", content: fullContent, streaming: true },
+              ]);
+            }
+          } catch {}
+        }
+      }
+
+      setChatMessages((prev) => [
+        ...prev.slice(0, -1),
+        { role: "assistant", content: fullContent },
+      ]);
+    } catch (err: any) {
+      if (err?.name !== "AbortError") {
+        setChatMessages((prev) => [
+          ...prev.slice(0, -1),
+          { role: "assistant", content: "Connection lost. Please try again." },
+        ]);
+      }
+    } finally {
+      setChatStreaming(false);
+    }
+  }, [chatMessages, chatStreaming, savedCalendar?.quizAnswers]);
 
   const handleMarkDone = useCallback(async (item: { task: string; month: string; difficulty: string; cost: string }) => {
     const taskKey = item.task.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -128,9 +237,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         const newEntry: LogEntry = await res.json();
         setRecentLog((prev) => [newEntry, ...prev].slice(0, 4));
       }
-    } catch {
-      // silently ignore network errors — task still removed locally
-    }
+    } catch {}
 
     setTimeout(() => {
       setNextDueTasks((prev) => prev.filter((t) => {
@@ -215,13 +322,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-blue-600/10 pointer-events-none" />
           <div className="relative flex flex-row items-center gap-3 sm:gap-6 p-4 sm:p-8">
-            {/* Avatar — always left, smaller on mobile */}
             <img
-              src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
+              src={`${BASE}images/maintly_thumb.png`}
               alt="Maintly"
               className="w-16 sm:w-28 h-auto object-contain shrink-0 drop-shadow-xl self-center"
             />
-            {/* Text block */}
             <div className="flex-1 min-w-0 py-2">
               <div className="flex items-center gap-1.5 mb-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-primary" />
@@ -239,7 +344,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's Ai guidance</span>.
               </p>
             </div>
-            {/* Right side: Pro Member badge */}
             <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 pl-3 sm:pl-6 border-l border-white/10 self-stretch">
               {userIsPro ? (
                 <>
@@ -275,12 +379,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           {/* Ask Maintly */}
           {userIsPro ? (
             <button
-              onClick={onOpenAIChat}
+              onClick={() => { chatInputRef.current?.focus(); scrollToChat(); }}
               className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group overflow-hidden"
             >
               <div className="w-14 h-16 overflow-hidden shrink-0">
                 <img
-                  src={`${import.meta.env.BASE_URL}images/maintly_wrench.png`}
+                  src={`${BASE}images/maintly_wrench.png`}
                   alt="Maintly"
                   className="w-14"
                   style={{ height: "240%", objectFit: "cover", objectPosition: "top center" }}
@@ -300,7 +404,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             >
               <div className="w-14 h-16 overflow-hidden shrink-0 relative">
                 <img
-                  src={`${import.meta.env.BASE_URL}images/maintly_wrench.png`}
+                  src={`${BASE}images/maintly_wrench.png`}
                   alt="Maintly"
                   className="w-14 grayscale opacity-50"
                   style={{ height: "240%", objectFit: "cover", objectPosition: "top center" }}
@@ -356,64 +460,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Profile</p>
             </div>
           </button>
-        </motion.div>
-
-        {/* ── Chat with Maintly card ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.1 }}
-        >
-          {userIsPro ? (
-            <button
-              onClick={onOpenAIChat}
-              className="w-full flex items-center gap-4 sm:gap-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl px-5 py-4 sm:px-7 sm:py-5 hover:from-slate-800 hover:via-slate-700 hover:to-slate-800 transition-all group text-left shadow-lg shadow-slate-900/20 overflow-hidden relative"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/15 to-blue-600/10 pointer-events-none" />
-              <img
-                src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
-                alt="Maintly"
-                className="w-20 sm:w-24 h-auto object-contain shrink-0 drop-shadow-xl -mb-2 -ml-1 self-end relative z-10"
-              />
-              <div className="flex-1 min-w-0 relative z-10">
-                <div className="flex items-center gap-2 mb-1">
-                  <MessageCircle className="w-4 h-4 text-primary" />
-                  <span className="text-xs font-bold text-primary uppercase tracking-wider">AI Assistant</span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-display font-black text-white leading-tight mb-1">Chat with Maintly</h3>
-                <p className="text-slate-300 text-sm leading-snug">Ask me anything about your home — repairs, maintenance tips, seasonal prep, and more.</p>
-              </div>
-              <div className="shrink-0 relative z-10">
-                <div className="w-10 h-10 rounded-full bg-primary/20 group-hover:bg-primary/40 flex items-center justify-center transition-colors">
-                  <ChevronRight className="w-5 h-5 text-primary" />
-                </div>
-              </div>
-            </button>
-          ) : (
-            <div className="w-full flex items-center gap-4 sm:gap-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl px-5 py-4 sm:px-7 sm:py-5 overflow-hidden relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-orange-500/5 pointer-events-none" />
-              <img
-                src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
-                alt="Maintly"
-                className="w-20 sm:w-24 h-auto object-contain shrink-0 drop-shadow-xl -mb-2 -ml-1 self-end grayscale opacity-60 relative z-10"
-              />
-              <div className="flex-1 min-w-0 relative z-10">
-                <div className="flex items-center gap-2 mb-1">
-                  <Zap className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Pro Feature</span>
-                </div>
-                <h3 className="text-xl sm:text-2xl font-display font-black text-white leading-tight mb-1">Chat with Maintly</h3>
-                <p className="text-slate-400 text-sm leading-snug mb-3">Unlock AI-powered home maintenance guidance personalized to your home.</p>
-                <button
-                  onClick={() => navigate("/home-profile")}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold transition-colors shadow-md shadow-amber-900/30"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  Upgrade to Pro
-                </button>
-              </div>
-            </div>
-          )}
         </motion.div>
 
         {/* ── This Month ── */}
@@ -510,15 +556,13 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                           </div>
                         </div>
 
-                        {/* Right section — Maintly pointing at Ask button beside him */}
+                        {/* Right: Maintly pointing at Ask button */}
                         <div className="shrink-0 flex items-center gap-2 ml-2">
-                          {/* Maintly avatar — pointing right toward the button */}
                           <img
                             src="/images/maintly_point.png"
                             alt="Maintly"
                             className="w-16 h-16 object-contain drop-shadow-sm select-none"
                           />
-                          {/* Ask Maintly button — Maintly's finger points here */}
                           {userIsPro ? (
                             <button
                               onClick={() => openChatForTask(task.task)}
@@ -532,7 +576,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                             </button>
                           ) : (
                             <button
-                              onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+                              onClick={() => navigate("/home-profile")}
                               title="Upgrade to Pro to ask Maintly"
                               className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 transition-colors hover:bg-amber-100"
                             >
@@ -654,12 +698,169 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           </motion.div>
         )}
 
+        {/* ── Chat with Maintly (inline persistent) ── */}
+        <motion.div
+          id="dashboard-chat"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.14 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+        >
+          {/* Chat header */}
+          <div className="flex items-center gap-3 px-5 py-3.5 border-b border-slate-100 bg-gradient-to-r from-primary/5 to-blue-500/5">
+            <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 bg-white border border-primary/20 shadow-sm">
+              <img
+                src={`${BASE}images/maintly_wrench.png`}
+                alt="Maintly"
+                className="w-full"
+                style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-slate-900 text-sm leading-tight">Chat with Maintly</p>
+              <p className="text-xs text-slate-400">Your AI home maintenance assistant</p>
+            </div>
+            {chatMessages.length > 0 && userIsPro && (
+              <button
+                onClick={() => { chatAbortRef.current?.abort(); setChatMessages([]); }}
+                className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+            {!userIsPro && (
+              <span className="flex items-center gap-1 text-[11px] font-bold text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2.5 py-1">
+                <Zap className="w-3 h-3" />Pro
+              </span>
+            )}
+          </div>
+
+          {userIsPro ? (
+            <>
+              {/* Message history — only shown when there are messages */}
+              {chatMessages.length > 0 && (
+                <div className="px-4 py-4 space-y-4 max-h-[480px] overflow-y-auto">
+                  {chatMessages.map((msg, idx) => (
+                    <div
+                      key={idx}
+                      className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                    >
+                      {msg.role === "user" ? (
+                        <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center shrink-0 mt-0.5">
+                          <User className="w-3.5 h-3.5" />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 bg-white border border-slate-100 shadow-sm">
+                          <img
+                            src={`${BASE}images/maintly_thumb.png`}
+                            alt="Maintly"
+                            className="w-full"
+                            style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+                          />
+                        </div>
+                      )}
+                      <div
+                        className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                          msg.role === "user"
+                            ? "bg-primary text-white rounded-tr-sm"
+                            : "bg-slate-100 text-slate-800 rounded-tl-sm"
+                        }`}
+                      >
+                        {msg.content || (msg.streaming && (
+                          <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                        ))}
+                        {msg.streaming && msg.content && (
+                          <span className="inline-block w-1.5 h-3.5 bg-slate-400 ml-0.5 animate-pulse rounded-sm align-middle" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
+              )}
+
+              {/* Starter questions — shown only when no messages */}
+              {chatMessages.length === 0 && (
+                <div className="px-4 pt-4 pb-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {STARTER_QUESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => sendInlineChat(q)}
+                      className="text-left px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-primary/5 hover:border-primary/30 transition-all text-sm text-slate-700 flex items-center gap-2.5 group"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary shrink-0 transition-colors" />
+                      <span className="line-clamp-2">{q}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Persistent input bar */}
+              <div className="px-4 py-3 border-t border-slate-100 bg-white">
+                <div className="flex items-center gap-2 bg-slate-50 rounded-2xl border border-slate-200 px-4 py-2.5 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+                  <input
+                    ref={chatInputRef}
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        sendInlineChat(chatInput);
+                      }
+                    }}
+                    placeholder="Ask Maintly anything about your home…"
+                    disabled={chatStreaming}
+                    className="flex-1 bg-transparent text-sm text-slate-800 placeholder:text-slate-400 outline-none disabled:opacity-60"
+                  />
+                  <button
+                    onClick={() => sendInlineChat(chatInput)}
+                    disabled={chatStreaming || !chatInput.trim()}
+                    className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 disabled:bg-slate-200 flex items-center justify-center transition-colors shrink-0"
+                  >
+                    {chatStreaming ? (
+                      <Loader2 className="w-3.5 h-3.5 text-white animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5 text-white" />
+                    )}
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-400 text-center mt-2">
+                  Maintly's advice is for guidance only — always consult a licensed professional for safety issues.
+                </p>
+              </div>
+            </>
+          ) : (
+            /* Free user — upgrade prompt inline */
+            <div className="px-5 py-6 flex flex-col sm:flex-row items-center gap-5">
+              <img
+                src={`${BASE}images/maintly_point.png`}
+                alt="Maintly"
+                className="w-20 h-auto object-contain shrink-0 grayscale opacity-50"
+              />
+              <div className="flex-1 min-w-0 text-center sm:text-left">
+                <p className="font-bold text-slate-800 mb-1">Unlock AI-Powered Guidance</p>
+                <p className="text-sm text-slate-500 mb-3">
+                  Upgrade to Pro to chat with Maintly — your personal home maintenance expert, personalized to your home.
+                </p>
+                <button
+                  onClick={() => navigate("/home-profile")}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold transition-colors shadow-md shadow-amber-900/20"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  Upgrade to Pro
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
         {/* ── Next Due Tasks ── */}
         {nextDueTasks.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.14 }}
+            transition={{ duration: 0.45, delay: 0.18 }}
             className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -702,10 +903,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                       transition={{ duration: 0.35 }}
                       className={`flex items-center gap-3 px-4 sm:px-6 py-4 border-b border-slate-100 last:border-b-0 transition-colors duration-300 ${isDone ? "bg-emerald-50" : "bg-white"}`}
                     >
-                      {/* Status dot */}
                       <div className={`w-2.5 h-2.5 rounded-full shrink-0 transition-colors duration-300 ${isDone ? "bg-emerald-500" : "bg-amber-400"}`} />
-
-                      {/* Task info */}
                       <div className="flex-1 min-w-0">
                         <p className={`text-sm sm:text-base font-bold leading-snug transition-colors duration-300 ${isDone ? "text-emerald-700 line-through decoration-emerald-400" : "text-slate-800"}`}>
                           {item.task}
@@ -720,8 +918,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                           </p>
                         )}
                       </div>
-
-                      {/* Mark as Done button */}
                       <button
                         onClick={() => handleMarkDone(item)}
                         disabled={isCompleting}
@@ -750,12 +946,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           </motion.div>
         )}
 
-
         {/* ── Recent Activity ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.28 }}
+          transition={{ duration: 0.45, delay: 0.22 }}
           className="bg-white rounded-2xl border border-slate-200 shadow-sm"
         >
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
@@ -828,7 +1023,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           )}
         </motion.div>
 
-
       </div>
 
       {/* Task-specific Maintly chat — opened from "This Month" task buttons */}
@@ -840,4 +1034,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       />
     </div>
   );
+}
+
+function scrollToChat() {
+  const el = document.getElementById("dashboard-chat");
+  if (!el) return;
+  const top = el.getBoundingClientRect().top + window.scrollY - 16;
+  window.scrollTo({ top, behavior: "smooth" });
 }
