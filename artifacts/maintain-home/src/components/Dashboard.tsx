@@ -327,7 +327,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
             <div>
               <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">This Month</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Tasks due<br />right now</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">To Do List</p>
             </div>
           </button>
 
@@ -340,8 +340,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <Calendar className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">Full Year</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Maintenance<br />schedule</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Full Year</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Calendar</p>
             </div>
           </button>
         </motion.div>
