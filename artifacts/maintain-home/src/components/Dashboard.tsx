@@ -144,6 +144,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
     document.getElementById("dashboard-calendar")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function scrollToThisMonth() {
+    document.getElementById("dashboard-this-month")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   const handleThisMonthMarkDone = useCallback(async (taskKey: string, taskName: string, note: string) => {
     setThisMonthCompleted(prev => ({ ...prev, [taskKey]: note }));
     setThisMonthMarking(null);
@@ -198,7 +202,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-blue-600/10 pointer-events-none" />
-          <div className="relative flex flex-row items-center gap-4 p-4 sm:p-8">
+          <div className="relative flex flex-row items-center gap-3 sm:gap-6 p-4 sm:p-8">
             {/* Avatar — always left, smaller on mobile */}
             <img
               src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
@@ -219,25 +223,32 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   ? <>Your plan for <span className="text-primary font-bold">{state}</span>.</>
                   : "Your personalized maintenance plan."}
               </p>
-              <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-snug">
+              <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-snug hidden sm:block">
                 Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's Ai guidance</span>.
               </p>
-              <div className="mt-2.5 hidden sm:block">
-                {userIsPro ? (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-primary text-white rounded-full text-xs font-bold shadow-sm">
-                    <Zap className="w-3 h-3" />
-                    Pro Access
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-full text-xs font-bold shadow-sm transition-colors"
-                  >
-                    <Zap className="w-3 h-3" />
-                    Free · Upgrade
-                  </button>
-                )}
-              </div>
+            </div>
+            {/* Right side: Pro Member badge */}
+            <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 pl-3 sm:pl-6 border-l border-white/10 self-stretch">
+              {userIsPro ? (
+                <>
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-primary/20 flex items-center justify-center">
+                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                  </div>
+                  <span className="text-[11px] sm:text-xs font-black text-primary text-center leading-tight whitespace-nowrap">Pro Member</span>
+                  <span className="text-[10px] text-slate-400 text-center">Full access ✓</span>
+                </>
+              ) : (
+                <button
+                  onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+                  className="flex flex-col items-center gap-1.5 group"
+                >
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 group-hover:bg-amber-500/30 flex items-center justify-center transition-colors">
+                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
+                  </div>
+                  <span className="text-[11px] sm:text-xs font-black text-amber-400 text-center leading-tight whitespace-nowrap">Upgrade</span>
+                  <span className="text-[10px] text-amber-500/70 text-center whitespace-nowrap">to Pro</span>
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
@@ -292,21 +303,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </button>
           )}
 
-          {/* My Calendar */}
-          <button
-            onClick={scrollToCalendar}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
-          >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <Calendar className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
-            </div>
-            <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Calendar</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">View all<br />upcoming tasks</p>
-            </div>
-          </button>
-
-          {/* Maintenance History */}
+          {/* Tile 2: Maintenance Log */}
           <button
             onClick={() => navigate("/history")}
             className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
@@ -320,36 +317,39 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
           </button>
 
-          {/* Pro badge or Upgrade */}
-          {userIsPro ? (
-            <div className="flex flex-col items-start gap-2 p-4 bg-gradient-to-br from-primary/5 to-blue-50 rounded-2xl border border-primary/20">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-base font-bold text-primary">Pro Member</p>
-                <p className="text-xs sm:text-sm text-slate-400 leading-snug">Full access ✓</p>
-              </div>
+          {/* Tile 3: This Month Tasks */}
+          <button
+            onClick={scrollToThisMonth}
+            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
-          ) : (
-            <button
-              onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-              className="flex flex-col items-start gap-2 p-4 bg-amber-50 rounded-2xl border border-amber-200 hover:border-amber-400 hover:shadow-md hover:shadow-amber-100 transition-all text-left group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition-colors">
-                <Zap className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-base font-bold text-amber-800">Upgrade</p>
-                <p className="text-xs sm:text-sm text-amber-600">Unlock Pro</p>
-              </div>
-            </button>
-          )}
+            <div>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">This Month</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Tasks due<br />right now</p>
+            </div>
+          </button>
+
+          {/* Tile 4: Full Year Maintenance Schedule */}
+          <button
+            onClick={scrollToCalendar}
+            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <Calendar className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+            </div>
+            <div>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">Full Year</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Maintenance<br />schedule</p>
+            </div>
+          </button>
         </motion.div>
 
         {/* ── This Month ── */}
         {savedCalendar && (
           <motion.div
+            id="dashboard-this-month"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.1 }}
