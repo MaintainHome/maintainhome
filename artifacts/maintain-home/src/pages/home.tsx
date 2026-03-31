@@ -165,12 +165,6 @@ export default function Home() {
                   Hi {user.name ? user.name.split(" ")[0] : user.email.split("@")[0]}
                 </span>
                 <button
-                  onClick={() => navigate("/")}
-                  className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors"
-                >
-                  Dashboard
-                </button>
-                <button
                   onClick={() => navigate("/calendar")}
                   className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors"
                 >
