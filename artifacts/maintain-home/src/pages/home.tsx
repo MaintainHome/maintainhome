@@ -130,13 +130,15 @@ export default function Home() {
               </button>
             )}
 
-            {/* Pricing link — desktop only */}
-            <button
-              onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-              className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
-            >
-              Pricing
-            </button>
+            {/* Pricing link — desktop only, hidden for Pro members */}
+            {!userIsPro && (
+              <button
+                onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+                className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors"
+              >
+                Pricing
+              </button>
+            )}
 
             {/* Desktop only: primary CTA */}
             {!user && (
