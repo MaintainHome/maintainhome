@@ -14,6 +14,7 @@ import { useLocation } from "wouter";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const BASE = import.meta.env.BASE_URL;
+const CURRENT_AVG_RATE = 6.79;
 
 const MONTHS = [
   "January","February","March","April","May","June",
@@ -97,6 +98,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [taskChatOpen, setTaskChatOpen] = useState(false);
   const [taskChatMessage, setTaskChatMessage] = useState<string>("");
 
+  // ── Mortgage Rate State ────────────────────────────────────────────────
+  const [mortgageRate, setMortgageRate] = useState<number | null | undefined>(undefined);
+
   // ── Inline Chat State ──────────────────────────────────────────────────
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
@@ -120,6 +124,16 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       .then((data) => setRecentLog(Array.isArray(data) ? data.slice(0, 4) : []))
       .catch(() => setRecentLog([]))
       .finally(() => setLogLoading(false));
+  }, [user.id]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/user/home-profile`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        const rate = data?.mortgageRate ? parseFloat(data.mortgageRate) : null;
+        setMortgageRate(isNaN(rate as number) ? null : rate);
+      })
+      .catch(() => setMortgageRate(null));
   }, [user.id]);
 
   useEffect(() => {
@@ -292,6 +306,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   }, []);
 
   const visibleThisMonthTasks = thisMonthTasks.filter(t => !snoozedThisMonth.has(t._key));
+
+  const rateDiff = mortgageRate != null ? mortgageRate - CURRENT_AVG_RATE : null;
+  const rateIsBetter = rateDiff != null && rateDiff < 0;
+  const rateIsHigher = rateDiff != null && rateDiff > 0;
 
   function openChatForTask(taskName: string) {
     const locationHint = state ? ` for a home in ${state}` : "";
@@ -848,6 +866,90 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
           )}
         </motion.div>
+
+        {/* ── My Mortgage Rate ── */}
+        {mortgageRate !== undefined && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.16 }}
+            className={`rounded-2xl border shadow-sm overflow-hidden ${
+              mortgageRate === null
+                ? "bg-white border-slate-200"
+                : rateIsBetter
+                ? "bg-emerald-50 border-emerald-200"
+                : rateIsHigher
+                ? "bg-red-50 border-red-200"
+                : "bg-slate-50 border-slate-200"
+            }`}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-black/5">
+              <h2 className="text-base font-bold text-slate-900">My Mortgage Rate</h2>
+              {mortgageRate !== null && (
+                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">30-yr Fixed</span>
+              )}
+            </div>
+
+            {mortgageRate === null ? (
+              /* ── No rate entered ── */
+              <div className="px-5 py-5 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                  <TrendingDown className="w-5 h-5 text-slate-400" />
+                </div>
+                <p className="text-sm text-slate-600 leading-snug">
+                  You haven't added your mortgage rate yet.{" "}
+                  <button
+                    onClick={() => navigate("/home-profile")}
+                    className="font-bold text-primary hover:underline"
+                  >
+                    Click here
+                  </button>
+                  {" "}to update your home profile.
+                </p>
+              </div>
+            ) : (
+              /* ── Rate comparison ── */
+              <div className="px-5 py-5 space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 text-center bg-white rounded-xl border border-slate-200 py-3 px-4 shadow-sm">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Your Rate</p>
+                    <p className={`text-3xl font-black ${rateIsBetter ? "text-emerald-600" : rateIsHigher ? "text-red-600" : "text-slate-800"}`}>
+                      {mortgageRate.toFixed(2)}%
+                    </p>
+                  </div>
+                  <div className="text-2xl font-bold text-slate-300">vs</div>
+                  <div className="flex-1 text-center bg-white rounded-xl border border-slate-200 py-3 px-4 shadow-sm">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Avg 30yr Fixed</p>
+                    <p className="text-3xl font-black text-slate-700">{CURRENT_AVG_RATE.toFixed(2)}%</p>
+                  </div>
+                </div>
+
+                <div className={`flex items-center gap-2.5 rounded-xl px-4 py-3 ${
+                  rateIsBetter ? "bg-emerald-100 text-emerald-800" : rateIsHigher ? "bg-red-100 text-red-800" : "bg-slate-100 text-slate-700"
+                }`}>
+                  {rateIsBetter
+                    ? <TrendingDown className="w-5 h-5 shrink-0" />
+                    : rateIsHigher
+                    ? <TrendingUp className="w-5 h-5 shrink-0" />
+                    : <Info className="w-5 h-5 shrink-0" />
+                  }
+                  <p className="text-sm font-semibold">
+                    {rateIsBetter
+                      ? `Great rate! You're ${Math.abs(rateDiff!).toFixed(2)}% below the current average.`
+                      : rateIsHigher
+                      ? `Your rate is ${rateDiff!.toFixed(2)}% above average. Consider contacting your lender about refinancing.`
+                      : "Your rate matches the current average."}
+                  </p>
+                </div>
+
+                <p className="text-[11px] text-slate-400 flex items-center gap-1">
+                  <Info className="w-3 h-3 shrink-0" />
+                  Rates change daily. This is not financial advice. Average rate is approximate for reference only.
+                </p>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         {/* ── Next Due Tasks ── */}
         {nextDueTasks.length > 0 && (
