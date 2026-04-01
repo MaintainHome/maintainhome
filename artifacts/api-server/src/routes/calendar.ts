@@ -70,6 +70,37 @@ const CRAWL_SEALED_LABELS: Record<string, string> = {
   not_sure: "Not sure",
 };
 
+const BIG_TICKET_FORECAST_ITEMS = [
+  { name: "Roof", avgLife: 25, costRange: "$12,000–$25,000", metalTileLife: 50, flatLife: 15 },
+  { name: "HVAC system", avgLife: 17, costRange: "$8,000–$15,000" },
+  { name: "Water heater", avgLife: 12, costRange: "$1,200–$3,500" },
+  { name: "Windows", avgLife: 25, costRange: "$8,000–$20,000" },
+  { name: "Exterior paint", avgLife: 8, costRange: "$3,000–$8,000" },
+  { name: "Electrical panel", avgLife: 30, costRange: "$2,500–$6,000" },
+  { name: "Major appliances", avgLife: 12, costRange: "$1,000–$3,000 each" },
+];
+
+function buildCalendarForecastContext(yearBuilt: number | null | undefined, currentYear: number, roofType?: string): string {
+  if (!yearBuilt) return "";
+  const age = currentYear - yearBuilt;
+  const lines = BIG_TICKET_FORECAST_ITEMS.map(item => {
+    let life = item.avgLife;
+    if (item.name === "Roof" && roofType) {
+      if (roofType === "metal" || roofType === "tile") life = (item as any).metalTileLife ?? life;
+      else if (roofType === "flat") life = (item as any).flatLife ?? life;
+    }
+    const dueYear = yearBuilt + life;
+    const yearsLeft = dueYear - currentYear;
+    const status = yearsLeft < 0
+      ? `OVERDUE by ${Math.abs(yearsLeft)} yr(s) — consider adding an inspection task`
+      : yearsLeft <= 5 ? `due ~${dueYear} (IMMINENT — include preparatory inspection tasks)`
+      : yearsLeft <= 10 ? `due ~${dueYear} (approaching — include monitoring tasks)`
+      : `due ~${dueYear} (${yearsLeft} years — routine maintenance only)`;
+    return `  - ${item.name}: ${status}, cost ${item.costRange}`;
+  });
+  return `\n\nBig-ticket component forecasts for this ${age}-year-old home (built ${yearBuilt}):\n${lines.join("\n")}\nUse these forecasts to: (1) include relevant inspection tasks in the calendar, (2) flag any overdue or imminent items as big_ticket_alerts, and (3) suggest one-time inspection tasks for items due within 5 years.`;
+}
+
 router.post("/generate-calendar", async (req, res) => {
   const {
     zip, homeAge, homeType, roofType, waterSource, sewerSystem, pestSchedule,
@@ -130,10 +161,12 @@ router.post("/generate-calendar", async (req, res) => {
     ? `\nAdditional home details: ${homeProfileLines.join(". ")}.`
     : "";
 
+  const forecastContext = buildCalendarForecastContext(homeProfile?.yearBuilt, currentYear, roofType);
+
   const systemPrompt = `You are MaintainHome AI, a home maintenance scheduler.
 Location: ${state}. ${homeAgeContext}. Type: ${homeTypeLabel}. Roof: ${roofTypeLabel}. Size: ${sqftLabel}.
 Water: ${waterSourceLabel}. Sewer: ${sewerLabel}. Pest prevention: ${pestLabel}.
-Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.${homeProfileContext}
+Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.${homeProfileContext}${forecastContext}
 
 Generate a 12-month maintenance calendar for ${state}. Spread tasks across all 12 months. Include 3-5 tasks per month. Be CONCISE — keep "why" and "tip" fields under 15 words each.
 

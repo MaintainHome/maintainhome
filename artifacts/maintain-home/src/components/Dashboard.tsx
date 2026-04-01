@@ -5,6 +5,7 @@ import {
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
   Send, Loader2, User, TrendingDown, TrendingUp, Shield, ChevronDown, ChevronUp,
+  Clock, TriangleAlert,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -144,6 +145,50 @@ function ScoreGauge({ score }: { score: number }) {
       </text>
     </svg>
   );
+}
+
+// ── Big-Ticket Forecasting ────────────────────────────────────────────────
+interface BigTicketItem {
+  key: string;
+  name: string;
+  emoji: string;
+  avgLife: number;
+  costRange: string;
+  note?: string;
+}
+
+const BIG_TICKET_ITEMS: BigTicketItem[] = [
+  { key: "roof",       name: "Roof",              emoji: "🏠", avgLife: 25, costRange: "$12,000–$25,000", note: "Asphalt shingles" },
+  { key: "hvac",       name: "HVAC System",        emoji: "❄️", avgLife: 17, costRange: "$8,000–$15,000" },
+  { key: "water",      name: "Water Heater",       emoji: "🚿", avgLife: 12, costRange: "$1,200–$3,500" },
+  { key: "windows",    name: "Windows",            emoji: "🪟", avgLife: 25, costRange: "$8,000–$20,000" },
+  { key: "paint",      name: "Exterior Paint",     emoji: "🎨", avgLife: 8,  costRange: "$3,000–$8,000" },
+  { key: "panel",      name: "Electrical Panel",   emoji: "⚡", avgLife: 30, costRange: "$2,500–$6,000" },
+  { key: "garage",     name: "Garage Door",        emoji: "🚪", avgLife: 15, costRange: "$1,000–$3,500" },
+  { key: "appliances", name: "Major Appliances",   emoji: "🍳", avgLife: 12, costRange: "$1,000–$3,000 ea" },
+];
+
+interface ForecastResult extends BigTicketItem {
+  dueYear: number;
+  yearsLeft: number;
+  urgency: "overdue" | "critical" | "watch" | "good";
+}
+
+function computeForecasts(yearBuilt: number, currentYear: number, roofType?: string): ForecastResult[] {
+  return BIG_TICKET_ITEMS.map(item => {
+    let life = item.avgLife;
+    if (item.key === "roof" && roofType) {
+      if (roofType === "metal" || roofType === "tile") life = 50;
+      else if (roofType === "flat") life = 15;
+    }
+    const dueYear = yearBuilt + life;
+    const yearsLeft = dueYear - currentYear;
+    const urgency: ForecastResult["urgency"] =
+      yearsLeft < 0 ? "overdue" :
+      yearsLeft <= 5 ? "critical" :
+      yearsLeft <= 10 ? "watch" : "good";
+    return { ...item, dueYear, yearsLeft, urgency };
+  }).sort((a, b) => a.yearsLeft - b.yearsLeft);
 }
 
 function getNextDueTasks(calendarData: any, limit = 5): { task: string; month: string; difficulty: string; cost: string }[] {
@@ -418,6 +463,14 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
     : healthScore.total >= 60
     ? { label: "Good", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", msg: "A few things need attention to reach Excellent." }
     : { label: "Needs Attention", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", msg: "Several important tasks are overdue or incomplete." };
+
+  // ── Big-Ticket Forecasts ─────────────────────────────────────────────────
+  const currentYear = new Date().getFullYear();
+  const yearBuiltNum = homeProfile?.yearBuilt ? parseInt(homeProfile.yearBuilt) : null;
+  const roofType = savedCalendar?.quizAnswers?.roofType ?? undefined;
+  const forecasts: ForecastResult[] = yearBuiltNum
+    ? computeForecasts(yearBuiltNum, currentYear, roofType)
+    : [];
 
   function openChatForTask(taskName: string) {
     const locationHint = state ? ` for a home in ${state}` : "";
@@ -747,6 +800,139 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             )}
           </AnimatePresence>
         </motion.div>
+
+        {/* ── Upcoming Major Expenses (Pro) ── */}
+        {userIsPro && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.1 }}
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
+                <h2 className="text-base font-bold text-slate-900">Upcoming Major Expenses</h2>
+              </div>
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full uppercase tracking-wide">Pro</span>
+            </div>
+
+            {!yearBuiltNum ? (
+              /* No year built — nudge to add it */
+              <div className="px-5 py-6 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 mb-1">Add your home's year built to unlock forecasts</p>
+                  <p className="text-sm text-slate-500 leading-snug mb-3">
+                    Once you enter the year your home was built, we'll predict when your roof, HVAC, water heater, and other major systems are likely to need replacement — along with estimated costs.
+                  </p>
+                  <button
+                    onClick={() => navigate("/home-profile")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20"
+                  >
+                    Add Year Built →
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="px-5 py-4">
+                  <p className="text-xs text-slate-500 leading-snug mb-1">
+                    Based on your home built in <span className="font-semibold text-slate-700">{yearBuiltNum}</span> ({currentYear - yearBuiltNum} years old).
+                    {roofType && roofType !== "asphalt" && (
+                      <span> Roof lifespan adjusted for <span className="font-semibold text-slate-700">{roofType}</span> material.</span>
+                    )}
+                  </p>
+                </div>
+
+                {/* Forecast grid */}
+                <div className="px-5 pb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {forecasts.map(item => {
+                    const isOverdue = item.urgency === "overdue";
+                    const isCritical = item.urgency === "critical";
+                    const isWatch = item.urgency === "watch";
+
+                    const cardBg = isOverdue || isCritical ? "bg-red-50 border-red-200" :
+                      isWatch ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200";
+                    const badgeColor = isOverdue || isCritical ? "bg-red-100 text-red-700" :
+                      isWatch ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
+                    const yearColor = isOverdue || isCritical ? "text-red-700" :
+                      isWatch ? "text-amber-700" : "text-emerald-700";
+                    const Icon = isOverdue || isCritical ? TriangleAlert : isWatch ? Clock : CheckCircle2;
+
+                    const yearsLabel = isOverdue
+                      ? `Overdue by ${Math.abs(item.yearsLeft)} yr${Math.abs(item.yearsLeft) !== 1 ? "s" : ""}`
+                      : item.yearsLeft === 0 ? "Due this year"
+                      : `~${item.yearsLeft} year${item.yearsLeft !== 1 ? "s" : ""}`;
+
+                    return (
+                      <div key={item.key} className={`rounded-xl border px-4 py-3 ${cardBg}`}>
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg leading-none">{item.emoji}</span>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900 leading-tight">{item.name}</p>
+                              {item.note && <p className="text-[10px] text-slate-400">{item.note}</p>}
+                            </div>
+                          </div>
+                          <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
+                            {yearsLabel}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 mt-2">
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${yearColor}`} />
+                          <p className="text-xs text-slate-700 leading-snug">
+                            <span className={`font-bold ${yearColor}`}>
+                              {isOverdue ? "Already due" : `Due ~${item.dueYear}`}
+                            </span>
+                            {" "}(±3 yrs) · <span className="font-semibold">{item.costRange}</span>
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="px-5 pb-4">
+                  <p className="text-[11px] text-slate-400 flex items-start gap-1 leading-snug">
+                    <Info className="w-3 h-3 mt-0.5 shrink-0" />
+                    These are estimates based on industry averages. Actual timing varies by brand, climate, usage, and maintenance history. Always get a professional inspection before major decisions.
+                  </p>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Upgrade teaser for free users ── */}
+        {!userIsPro && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.1 }}
+            className="bg-white rounded-2xl border border-dashed border-amber-300 overflow-hidden"
+          >
+            <div className="px-5 py-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-800">Upcoming Major Expenses — Pro Feature</p>
+                <p className="text-xs text-slate-500 mt-0.5 leading-snug">See when your roof, HVAC, water heater & more are due for replacement, with estimated costs.</p>
+              </div>
+              <button
+                onClick={() => navigate("/home-profile")}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold transition-colors shadow-sm"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Upgrade
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* ── This Month ── */}
         {savedCalendar && (

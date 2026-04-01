@@ -81,6 +81,45 @@ interface HomeProfileData {
   mortgageRate?: string | null;
 }
 
+interface BigTicketForecast {
+  name: string;
+  avgLife: number;
+  costRange: string;
+  roofLifeAdjust?: Record<string, number>;
+}
+
+const BIG_TICKET_FORECASTS: BigTicketForecast[] = [
+  { name: "Roof", avgLife: 25, costRange: "$12,000–$25,000", roofLifeAdjust: { metal: 50, tile: 50, flat: 15 } },
+  { name: "HVAC system", avgLife: 17, costRange: "$8,000–$15,000" },
+  { name: "Water heater", avgLife: 12, costRange: "$1,200–$3,500" },
+  { name: "Windows", avgLife: 25, costRange: "$8,000–$20,000" },
+  { name: "Exterior paint", avgLife: 8, costRange: "$3,000–$8,000" },
+  { name: "Electrical panel", avgLife: 30, costRange: "$2,500–$6,000" },
+  { name: "Garage door", avgLife: 15, costRange: "$1,000–$3,500" },
+  { name: "Major appliances", avgLife: 12, costRange: "$1,000–$3,000 each" },
+];
+
+function buildForecastContext(yearBuilt: number | null | undefined, currentYear: number, roofType?: string): string {
+  if (!yearBuilt) return "";
+  const age = currentYear - yearBuilt;
+  const lines = BIG_TICKET_FORECASTS.map(item => {
+    let life = item.avgLife;
+    if (item.name === "Roof" && roofType && item.roofLifeAdjust?.[roofType]) {
+      life = item.roofLifeAdjust[roofType];
+    }
+    const dueYear = yearBuilt + life;
+    const yearsLeft = dueYear - currentYear;
+    const status = yearsLeft < 0
+      ? `OVERDUE by ${Math.abs(yearsLeft)} year(s)`
+      : yearsLeft === 0 ? "DUE THIS YEAR"
+      : yearsLeft <= 5 ? `due in ~${yearsLeft} years (IMMINENT)`
+      : yearsLeft <= 10 ? `due in ~${yearsLeft} years (watch soon)`
+      : `due ~${dueYear} (${yearsLeft} years away)`;
+    return `  - ${item.name}: ${status}, est. cost ${item.costRange}`;
+  });
+  return `\nBig-ticket component forecasts (home built ${yearBuilt}, now ${age} years old):\n${lines.join("\n")}\nReference these forecasts when the user asks about major systems, planning, budgeting, or inspection timing. Always note these are averages and recommend professional inspection.`;
+}
+
 function buildSystemPrompt(
   userZip: string | null,
   state: string | null,
@@ -112,6 +151,8 @@ function buildSystemPrompt(
     if (homeProfile.fullAddress) extraLines.push(`- Address: ${homeProfile.fullAddress}`);
   }
 
+  const forecastContext = buildForecastContext(homeProfile?.yearBuilt, currentYear, qa.roofType);
+
   const profileSection = hasProfile
     ? `User profile:
 - Location: ${location}
@@ -129,7 +170,7 @@ function buildSystemPrompt(
   return `You are Maintly, a friendly, practical, and experienced home maintenance assistant.
 You speak like a trusted, knowledgeable handyman who is helpful, clear, and safety-conscious.
 
-${profileSection}
+${profileSection}${forecastContext}
 
 Tone guidelines:
 - Warm and approachable, but professional

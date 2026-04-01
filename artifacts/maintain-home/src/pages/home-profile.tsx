@@ -611,6 +611,68 @@ export default function HomeProfilePage() {
           </motion.div>
         )}
 
+        {/* ── Upcoming Major Expenses Preview ────────────────────────── */}
+        {!loading && (() => {
+          const yb = profile.yearBuilt ? parseInt(profile.yearBuilt) : null;
+          if (!yb || isNaN(yb)) return null;
+          const now = new Date().getFullYear();
+          const age = now - yb;
+          type Urgency = "overdue" | "critical" | "watch" | "good";
+          const items: { name: string; emoji: string; avgLife: number; costRange: string; dueYear: number; yearsLeft: number; urgency: Urgency }[] = [
+            { name: "Roof", emoji: "🏠", avgLife: 25, costRange: "$12,000–$25,000" },
+            { name: "HVAC System", emoji: "❄️", avgLife: 17, costRange: "$8,000–$15,000" },
+            { name: "Water Heater", emoji: "🚿", avgLife: 12, costRange: "$1,200–$3,500" },
+            { name: "Windows", emoji: "🪟", avgLife: 25, costRange: "$8,000–$20,000" },
+            { name: "Exterior Paint", emoji: "🎨", avgLife: 8, costRange: "$3,000–$8,000" },
+            { name: "Electrical Panel", emoji: "⚡", avgLife: 30, costRange: "$2,500–$6,000" },
+          ].map(i => {
+            const dueYear = yb + i.avgLife;
+            const yearsLeft = dueYear - now;
+            const urgency: Urgency = yearsLeft < 0 ? "overdue" : yearsLeft <= 5 ? "critical" : yearsLeft <= 10 ? "watch" : "good";
+            return { ...i, dueYear, yearsLeft, urgency };
+          }).sort((a, b) => a.yearsLeft - b.yearsLeft);
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 }}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+            >
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">Upcoming Major Expenses</h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Based on your home built in <span className="font-semibold text-slate-700">{yb}</span> ({age} yrs old) · averages, ±3 yrs
+                  </p>
+                </div>
+                <Shield className="w-4 h-4 text-primary shrink-0" />
+              </div>
+              <div className="divide-y divide-slate-50">
+                {items.map(item => {
+                  const isOverdue = item.urgency === "overdue";
+                  const isCritical = item.urgency === "critical";
+                  const isWatch = item.urgency === "watch";
+                  const dot = isOverdue || isCritical ? "bg-red-400" : isWatch ? "bg-amber-400" : "bg-emerald-400";
+                  const label = isOverdue ? `Overdue ~${Math.abs(item.yearsLeft)}yr` : item.yearsLeft === 0 ? "Due this year" : `~${item.dueYear}`;
+                  const labelColor = isOverdue || isCritical ? "text-red-600" : isWatch ? "text-amber-600" : "text-emerald-600";
+                  return (
+                    <div key={item.name} className="flex items-center gap-3 px-5 py-2.5">
+                      <span className="text-base leading-none w-5 text-center">{item.emoji}</span>
+                      <span className="flex-1 text-sm text-slate-800 font-medium">{item.name}</span>
+                      <span className={`text-xs font-bold ${labelColor}`}>{label}</span>
+                      <div className={`w-2 h-2 rounded-full ${dot} shrink-0`} />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="px-5 py-3 border-t border-slate-50">
+                <p className="text-[11px] text-slate-400">Full detailed forecasts with costs appear on your Dashboard (Pro). These are estimates — consult a professional before major decisions.</p>
+              </div>
+            </motion.div>
+          );
+        })()}
+
         {/* ── Save button (bottom) ───────────────────────────────────── */}
         <div>
           <button
