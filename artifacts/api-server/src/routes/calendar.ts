@@ -107,6 +107,17 @@ router.post("/generate-calendar", async (req, res) => {
 
   console.log(`[calendar] Generating for ZIP ${zip} → ${state}, ${homeTypeLabel}, ${homeAgeLabel}, roof: ${roofTypeLabel}`);
 
+  const currentYear = new Date().getFullYear();
+
+  // Determine precise home age: prefer yearBuilt from home profile, fall back to quiz homeAge range
+  let homeAgeContext: string;
+  if (homeProfile?.yearBuilt) {
+    const age = currentYear - homeProfile.yearBuilt;
+    homeAgeContext = `Home built in ${homeProfile.yearBuilt} (${age} years old — use this precise age for lifespan calculations: roof, HVAC, windows, appliances, water heater, etc.)`;
+  } else {
+    homeAgeContext = `Home age: ${homeAgeLabel}`;
+  }
+
   const homeProfileLines: string[] = [];
   if (homeProfile) {
     if (homeProfile.bedrooms) homeProfileLines.push(`Bedrooms: ${homeProfile.bedrooms}`);
@@ -120,7 +131,7 @@ router.post("/generate-calendar", async (req, res) => {
     : "";
 
   const systemPrompt = `You are MaintainHome AI, a home maintenance scheduler.
-Location: ${state}. Home age: ${homeAgeLabel}. Type: ${homeTypeLabel}. Roof: ${roofTypeLabel}. Size: ${sqftLabel}.
+Location: ${state}. ${homeAgeContext}. Type: ${homeTypeLabel}. Roof: ${roofTypeLabel}. Size: ${sqftLabel}.
 Water: ${waterSourceLabel}. Sewer: ${sewerLabel}. Pest prevention: ${pestLabel}.
 Allergies: ${allergiesText}. Crawl space: ${crawlSpaceText}. Landscaping: ${landscapingLabel}.${homeProfileContext}
 

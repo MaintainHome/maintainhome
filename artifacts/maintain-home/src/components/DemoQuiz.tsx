@@ -98,7 +98,7 @@ const DEFAULT_ANSWERS: QuizAnswers = {
   landscaping: "",
 };
 
-export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady }: { initialData?: { quizAnswers: QuizAnswers; calendarData: any } | null; onOpenAuth?: () => void; onCalendarReady?: (data: any, answers: QuizAnswers) => void }) {
+export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile }: { initialData?: { quizAnswers: QuizAnswers; calendarData: any } | null; onOpenAuth?: () => void; onCalendarReady?: (data: any, answers: QuizAnswers) => void; homeProfile?: Record<string, unknown> | null }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswers>(initialData?.quizAnswers ?? DEFAULT_ANSWERS);
   const [loading, setLoading] = useState(false);
@@ -155,7 +155,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady }: { initial
       const res = await fetch("/api/generate-calendar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers),
+        body: JSON.stringify({ ...answers, ...(homeProfile ? { homeProfile } : {}) }),
       });
       const data = await res.json();
       if (!res.ok) {

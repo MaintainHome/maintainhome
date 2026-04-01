@@ -10,6 +10,7 @@ export default function Quiz() {
   const [, navigate] = useLocation();
   const [stage, setStage] = useState<"quiz" | "saving" | "ready">("quiz");
   const [checkingCalendar, setCheckingCalendar] = useState(true);
+  const [homeProfile, setHomeProfile] = useState<Record<string, unknown> | null>(null);
 
   // Redirect guests to home
   useEffect(() => {
@@ -19,18 +20,20 @@ export default function Quiz() {
   }, [user, loading]);
 
   // If user already has a calendar, send them straight to the dashboard
+  // Also fetch home profile to forward to AI calendar generation
   useEffect(() => {
     if (!user) return;
-    fetch("/api/user/calendar/latest", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data?.calendarData) {
-          navigate("/");
-        } else {
-          setCheckingCalendar(false);
-        }
-      })
-      .catch(() => setCheckingCalendar(false));
+    Promise.all([
+      fetch("/api/user/calendar/latest", { credentials: "include" }).then(r => r.ok ? r.json() : null),
+      fetch("/api/user/home-profile", { credentials: "include" }).then(r => r.ok ? r.json() : null),
+    ]).then(([calData, prof]) => {
+      if (calData?.calendarData) {
+        navigate("/");
+      } else {
+        setCheckingCalendar(false);
+        if (prof) setHomeProfile(prof);
+      }
+    }).catch(() => setCheckingCalendar(false));
   }, [user?.id]);
 
   const handleCalendarReady = async (data: any, answers: any) => {
@@ -133,7 +136,7 @@ export default function Quiz() {
 
       {/* Quiz */}
       <div className="flex-1 py-6">
-        <DemoQuiz onCalendarReady={handleCalendarReady} />
+        <DemoQuiz onCalendarReady={handleCalendarReady} homeProfile={homeProfile} />
       </div>
     </div>
   );

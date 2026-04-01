@@ -67,6 +67,7 @@ interface HomeProfile {
   bathrooms: string;
   finishedBasement: string;
   poolOrHotTub: string;
+  yearBuilt: string;
   lastRenovationYear: string;
   mortgageRate: string;
 }
@@ -77,6 +78,7 @@ const emptyProfile: HomeProfile = {
   bathrooms: "",
   finishedBasement: "",
   poolOrHotTub: "",
+  yearBuilt: "",
   lastRenovationYear: "",
   mortgageRate: "",
 };
@@ -112,6 +114,7 @@ export default function HomeProfilePage() {
           bathrooms: prof.bathrooms ?? "",
           finishedBasement: prof.finishedBasement ?? "",
           poolOrHotTub: prof.poolOrHotTub ?? "",
+          yearBuilt: prof.yearBuilt != null ? String(prof.yearBuilt) : "",
           lastRenovationYear: prof.lastRenovationYear != null ? String(prof.lastRenovationYear) : "",
           mortgageRate: prof.mortgageRate ?? "",
         });
@@ -133,6 +136,7 @@ export default function HomeProfilePage() {
           bathrooms: profile.bathrooms || null,
           finishedBasement: profile.finishedBasement || null,
           poolOrHotTub: profile.poolOrHotTub || null,
+          yearBuilt: profile.yearBuilt ? parseInt(profile.yearBuilt) : null,
           lastRenovationYear: profile.lastRenovationYear ? parseInt(profile.lastRenovationYear) : null,
           mortgageRate: profile.mortgageRate || null,
         }),
@@ -444,20 +448,38 @@ export default function HomeProfilePage() {
               </div>
             </div>
 
-            {/* Last Renovation Year */}
-            <div>
-              <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
-                <Calendar className="w-4 h-4 text-slate-400" />
-                Last Major Renovation Year <span className="text-slate-400 font-normal">(optional)</span>
-              </label>
-              <input
-                type="number"
-                min="1950" max={new Date().getFullYear()}
-                value={profile.lastRenovationYear}
-                onChange={e => setProfile(p => ({ ...p, lastRenovationYear: e.target.value }))}
-                placeholder={String(new Date().getFullYear() - 5)}
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all"
-              />
+            {/* Year Built + Last Renovation Year */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  Year Built <span className="text-slate-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="number"
+                  min="1800" max={new Date().getFullYear()}
+                  value={profile.yearBuilt}
+                  onChange={e => setProfile(p => ({ ...p, yearBuilt: e.target.value }))}
+                  placeholder="1998"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all"
+                />
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">Used for precise roof, HVAC &amp; appliance lifespan estimates</p>
+              </div>
+              <div>
+                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                  <Calendar className="w-4 h-4 text-slate-400" />
+                  Last Major Renovation <span className="text-slate-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  type="number"
+                  min="1950" max={new Date().getFullYear()}
+                  value={profile.lastRenovationYear}
+                  onChange={e => setProfile(p => ({ ...p, lastRenovationYear: e.target.value }))}
+                  placeholder={String(new Date().getFullYear() - 5)}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all"
+                />
+                <p className="text-[11px] text-slate-400 mt-1 leading-snug">Year of last major remodel or renovation</p>
+              </div>
             </div>
 
             {/* Mortgage Rate */}

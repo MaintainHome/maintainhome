@@ -77,6 +77,7 @@ interface HomeProfileData {
   finishedBasement?: string | null;
   poolOrHotTub?: string | null;
   lastRenovationYear?: number | null;
+  yearBuilt?: number | null;
   mortgageRate?: string | null;
 }
 
@@ -88,6 +89,18 @@ function buildSystemPrompt(
 ): string {
   const location = state ? `${state}${userZip ? ` (ZIP ${userZip})` : ""}` : userZip ?? "Unknown";
   const hasProfile = Object.keys(qa).length > 0;
+  const currentYear = new Date().getFullYear();
+
+  // Determine precise age line: prefer yearBuilt, fall back to quiz homeAge range
+  let homeAgeLine: string;
+  if (homeProfile?.yearBuilt) {
+    const age = currentYear - homeProfile.yearBuilt;
+    homeAgeLine = `Home built in ${homeProfile.yearBuilt} (${age} years old)`;
+  } else if (hasProfile) {
+    homeAgeLine = label(HOME_AGE_LABELS, qa.homeAge);
+  } else {
+    homeAgeLine = "Unknown";
+  }
 
   const extraLines: string[] = [];
   if (homeProfile) {
@@ -102,7 +115,7 @@ function buildSystemPrompt(
   const profileSection = hasProfile
     ? `User profile:
 - Location: ${location}
-- Home age: ${label(HOME_AGE_LABELS, qa.homeAge)}
+- Home age: ${homeAgeLine}
 - Home type: ${label(HOME_TYPE_LABELS, qa.homeType)}
 - Roof type: ${label(ROOF_TYPE_LABELS, qa.roofType)}
 - Water: ${label(WATER_SOURCE_LABELS, qa.waterSource)}
@@ -111,7 +124,7 @@ function buildSystemPrompt(
 - Crawl space: ${qa.crawlSpace === "yes" ? `Yes (${label(CRAWL_SEALED_LABELS, qa.crawlSpaceSealed)})` : qa.crawlSpace === "no" ? "No crawl space" : "Unknown"}
 - Pest schedule: ${label(PEST_LABELS, qa.pestSchedule)}
 - Landscaping: ${label(LANDSCAPING_LABELS, qa.landscaping)}${qa.allergies === "yes" && qa.allergiesDetails ? `\n- Pets/allergies: ${qa.allergiesDetails}` : ""}${extraLines.length > 0 ? "\n" + extraLines.join("\n") : ""}`
-    : `User profile:\n- Location: ${location}\n- Other details: Full home profile not available for this session.${extraLines.length > 0 ? "\n" + extraLines.join("\n") : ""}`;
+    : `User profile:\n- Location: ${location}\n- Home age: ${homeAgeLine}\n- Other details: Full home profile not available for this session.${extraLines.length > 0 ? "\n" + extraLines.join("\n") : ""}`;
 
   return `You are Maintly, a friendly, practical, and experienced home maintenance assistant.
 You speak like a trusted, knowledgeable handyman who is helpful, clear, and safety-conscious.

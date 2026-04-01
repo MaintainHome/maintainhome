@@ -169,7 +169,7 @@ router.get("/user/home-profile", requireAuth as any, async (req: AuthRequest, re
 });
 
 router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  const { fullAddress, bedrooms, bathrooms, finishedBasement, poolOrHotTub, lastRenovationYear, mortgageRate } = req.body;
+  const { fullAddress, bedrooms, bathrooms, finishedBasement, poolOrHotTub, lastRenovationYear, yearBuilt, mortgageRate } = req.body;
 
   const values = {
     userId: req.userId!,
@@ -179,6 +179,7 @@ router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, re
     finishedBasement: finishedBasement ?? null,
     poolOrHotTub: poolOrHotTub ?? null,
     lastRenovationYear: lastRenovationYear != null ? Number(lastRenovationYear) : null,
+    yearBuilt: yearBuilt != null ? Number(yearBuilt) : null,
     mortgageRate: mortgageRate ?? null,
     updatedAt: new Date(),
   };

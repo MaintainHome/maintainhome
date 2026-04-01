@@ -50,6 +50,7 @@ export const homeProfilesTable = pgTable("home_profiles", {
   finishedBasement: text("finished_basement"),
   poolOrHotTub: text("pool_or_hot_tub"),
   lastRenovationYear: integer("last_renovation_year"),
+  yearBuilt: integer("year_built"),
   mortgageRate: text("mortgage_rate"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
