@@ -25,6 +25,7 @@ export const sessionsTable = pgTable("sessions", {
   token: text("token").primaryKey(),
   userId: integer("user_id").notNull().references(() => usersTable.id),
   expiresAt: timestamp("expires_at").notNull(),
+  staySignedIn: boolean("stay_signed_in").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

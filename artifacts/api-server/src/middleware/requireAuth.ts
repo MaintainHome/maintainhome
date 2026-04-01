@@ -7,6 +7,7 @@ export interface AuthRequest extends Request {
   userEmail?: string;
   userSubscriptionStatus?: string;
   userFullAccess?: boolean;
+  sessionStaySignedIn?: boolean;
 }
 
 function isProStatus(status: string | undefined, fullAccess: boolean | undefined): boolean {
@@ -26,7 +27,10 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
   }
 
   const [session] = await db
-    .select({ userId: sessionsTable.userId })
+    .select({
+      userId: sessionsTable.userId,
+      staySignedIn: sessionsTable.staySignedIn,
+    })
     .from(sessionsTable)
     .where(and(eq(sessionsTable.token, token), gt(sessionsTable.expiresAt, new Date())))
     .limit(1);
@@ -56,6 +60,7 @@ export async function requireAuth(req: AuthRequest, res: Response, next: NextFun
   req.userEmail = user.email;
   req.userSubscriptionStatus = user.subscriptionStatus;
   req.userFullAccess = user.fullAccess;
+  req.sessionStaySignedIn = session.staySignedIn ?? false;
   next();
 }
 

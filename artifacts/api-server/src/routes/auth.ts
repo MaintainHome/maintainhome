@@ -7,6 +7,9 @@ import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 
 const router = Router();
 
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const THIRTY_DAYS_SECONDS = 30 * 24 * 60 * 60;
+
 function getResend() {
   const key = process.env.RESEND_API_KEY;
   if (!key) return null;
@@ -21,6 +24,22 @@ function getBaseUrl(req: Request): string {
   const proto = (req.headers["x-forwarded-proto"] as string) ?? req.protocol ?? "https";
   const host = (req.headers["x-forwarded-host"] as string) ?? req.get("host") ?? "localhost";
   return `${proto}://${host}`;
+}
+
+function isRequestHttps(req: Request): boolean {
+  const forwarded = req.headers["x-forwarded-proto"] as string | undefined;
+  if (forwarded) return forwarded === "https";
+  return req.secure;
+}
+
+function setSessionCookie(res: Response, token: string, staySignedIn: boolean, isHttps: boolean) {
+  res.cookie("mh_session", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    secure: isHttps,
+    ...(staySignedIn ? { maxAge: THIRTY_DAYS_MS } : {}),
+  });
 }
 
 async function sendMagicLinkEmail(
@@ -193,26 +212,21 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
     [user] = await db.insert(usersTable).values({ email: linkRecord.email }).returning();
     console.log(`[auth] New user created via verify: ${linkRecord.email}`);
   } else {
-    console.log(`[auth] Existing user signed in: ${linkRecord.email}`);
+    console.log(`[auth] Existing user signed in: ${linkRecord.email} staySignedIn=${staySignedIn}`);
   }
 
   const sessionToken = crypto.randomBytes(32).toString("hex");
-  const sessionExpires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const isProd = process.env.NODE_ENV === "production";
+  const sessionExpires = new Date(Date.now() + THIRTY_DAYS_MS);
+  const https = isRequestHttps(req);
 
   await db.insert(sessionsTable).values({
     token: sessionToken,
     userId: user.id,
     expiresAt: sessionExpires,
+    staySignedIn,
   });
 
-  res.cookie("mh_session", sessionToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    ...(staySignedIn ? { expires: sessionExpires } : {}),
-    path: "/",
-    secure: isProd,
-  });
+  setSessionCookie(res, sessionToken, staySignedIn, https);
 
   const baseUrl = getBaseUrl(req);
   const destination = redirectParam === "dashboard" ? "/" : "/quiz";
@@ -236,6 +250,18 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
     res.status(401).json({ error: "User not found" });
     return;
   }
+
+  // Refresh persistent cookies so 30-day window slides forward on activity
+  const currentToken = req.cookies?.mh_session;
+  if (currentToken && req.sessionStaySignedIn) {
+    const newExpiry = new Date(Date.now() + THIRTY_DAYS_MS);
+    await db
+      .update(sessionsTable)
+      .set({ expiresAt: newExpiry })
+      .where(eq(sessionsTable.token, currentToken));
+    setSessionCookie(res, currentToken, true, isRequestHttps(req));
+  }
+
   res.json(user);
 });
 
@@ -275,7 +301,7 @@ router.delete("/auth/delete-account", requireAuth as any, async (req: AuthReques
       path: "/",
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: isRequestHttps(req),
     });
     console.log(`[auth] Account deleted for userId=${userId}`);
     res.json({ ok: true });
@@ -294,7 +320,7 @@ router.post("/auth/logout", requireAuth as any, async (req: AuthRequest, res: Re
     path: "/",
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: isRequestHttps(req),
   });
   res.json({ ok: true });
 });

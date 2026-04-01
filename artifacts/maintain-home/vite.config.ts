@@ -5,6 +5,7 @@ import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const rawPort = process.env.PORT;
+const apiServerUrl = process.env.VITE_API_SERVER_URL || "http://localhost:8080";
 
 if (!rawPort) {
   throw new Error(
@@ -65,6 +66,12 @@ export default defineConfig({
     fs: {
       strict: true,
       deny: ["**/.*"],
+    },
+    proxy: {
+      "/api": {
+        target: apiServerUrl,
+        changeOrigin: true,
+      },
     },
   },
   preview: {
