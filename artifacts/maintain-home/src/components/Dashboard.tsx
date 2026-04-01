@@ -22,6 +22,18 @@ const MONTHS = [
   "July","August","September","October","November","December",
 ];
 
+function getNextMonthInfo(currentMonthName: string): { month: string; year: number } {
+  const idx = MONTHS.indexOf(currentMonthName);
+  const yr = new Date().getFullYear();
+  return idx === 11
+    ? { month: MONTHS[0], year: yr + 1 }
+    : { month: MONTHS[idx + 1], year: yr };
+}
+
+function snoozeStorageKey(month: string, year: number) {
+  return `maintly_snoozed_v1_${month}_${year}`;
+}
+
 const MONTH_EMOJIS: Record<string, string> = {
   January:"❄️", February:"🌨️", March:"🌱", April:"🌧️",
   May:"🌸", June:"☀️", July:"🌞", August:"🏖️",
@@ -246,6 +258,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [thisMonthNoteText, setThisMonthNoteText] = useState("");
   const [snoozedThisMonth, setSnoozedThisMonth] = useState<Set<string>>(new Set());
   const [snoozedConfirm, setSnoozedConfirm] = useState<string | null>(null);
+  const [extraThisMonthTasks, setExtraThisMonthTasks] = useState<(CalendarTask & { _key: string })[]>([]);
   const [deletingLogId, setDeletingLogId] = useState<number | null>(null);
   const [taskChatOpen, setTaskChatOpen] = useState(false);
   const [taskChatMessage, setTaskChatMessage] = useState<string>("");
@@ -543,10 +556,34 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
     } catch {}
   }, [currentMonthName]);
 
-  const handleRemindNextMonth = useCallback((taskKey: string, taskName: string) => {
-    setSnoozedThisMonth(prev => { const s = new Set(prev); s.add(taskKey); return s; });
-    setSnoozedConfirm(taskKey);
-    setTimeout(() => setSnoozedConfirm(c => c === taskKey ? null : c), 3500);
+  const handleRemindNextMonth = useCallback((task: CalendarTask & { _key: string }) => {
+    setSnoozedThisMonth(prev => { const s = new Set(prev); s.add(task._key); return s; });
+    setSnoozedConfirm(task._key);
+    setTimeout(() => setSnoozedConfirm(c => c === task._key ? null : c), 3500);
+    // Persist to next month via localStorage
+    try {
+      const now = new Date();
+      const { month: nextMonth, year: nextYear } = getNextMonthInfo(MONTHS[now.getMonth()]);
+      const lsKey = snoozeStorageKey(nextMonth, nextYear);
+      const raw = localStorage.getItem(lsKey);
+      const existing: CalendarTask[] = raw ? JSON.parse(raw) : [];
+      const { _key, ...baseTask } = task;
+      existing.push(baseTask);
+      localStorage.setItem(lsKey, JSON.stringify(existing));
+    } catch {}
+  }, []);
+
+  // Load tasks snoozed-to-this-month from localStorage
+  useEffect(() => {
+    try {
+      const now = new Date();
+      const lsKey = snoozeStorageKey(MONTHS[now.getMonth()], now.getFullYear());
+      const raw = localStorage.getItem(lsKey);
+      if (raw) {
+        const tasks: CalendarTask[] = JSON.parse(raw);
+        setExtraThisMonthTasks(tasks.map((t, i) => ({ ...t, _key: `snoozed-${i}` })));
+      }
+    } catch {}
   }, []);
 
   const handleDeleteLogEntry = useCallback(async (id: number) => {
@@ -559,7 +596,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
     setDeletingLogId(null);
   }, []);
 
-  const visibleThisMonthTasks = thisMonthTasks.filter(t => !snoozedThisMonth.has(t._key));
+  const allThisMonthTasks = [...thisMonthTasks, ...extraThisMonthTasks];
+  const visibleThisMonthTasks = allThisMonthTasks.filter(t => !snoozedThisMonth.has(t._key));
 
   const rateDiff = mortgageRate != null ? mortgageRate - CURRENT_AVG_RATE : null;
   const rateIsBetter = rateDiff != null && rateDiff < 0;
@@ -681,9 +719,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 />
               </div>
               <div>
-                <p className="text-base font-bold text-slate-900 group-hover:text-white transition-colors">Ask Maintly</p>
+                <p className="text-base font-bold text-slate-900 group-hover:text-white transition-colors">Talk to Maintly</p>
                 <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">
-                  Your personal Ai<br />home care chatbot
+                  Your Personal AI Home<br />Maintenance Chatbot
                 </p>
               </div>
             </button>
@@ -701,7 +739,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 />
               </div>
               <div>
-                <p className="text-base font-bold text-amber-700">Ask Maintly</p>
+                <p className="text-base font-bold text-amber-700">Talk to Maintly</p>
                 <p className="text-xs sm:text-sm text-amber-500 leading-snug">
                   Pro feature<br />Upgrade to unlock
                 </p>
@@ -718,8 +756,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <ClipboardList className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">Maintenance Log</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Completed tasks<br />&amp; notes</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">Home Maintenance Log</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Completed Tasks<br />&amp; Notes</p>
             </div>
           </button>
 
@@ -732,8 +770,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">This Month</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">To Do List</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">This Month To Do List</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Custom Suggestions<br />For Your Home</p>
             </div>
           </button>
 
@@ -747,7 +785,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
             <div>
               <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Home Profile</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Profile</p>
+              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Detailed Facts About<br />Your Property</p>
             </div>
           </button>
         </motion.div>
@@ -916,139 +954,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           </AnimatePresence>
         </motion.div>
 
-        {/* ── Upcoming Major Expenses (Pro) ── */}
-        {userIsPro && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.1 }}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-          >
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary" />
-                <h2 className="text-base font-bold text-slate-900">Upcoming Major Expenses</h2>
-              </div>
-              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full uppercase tracking-wide">Pro</span>
-            </div>
-
-            {!yearBuiltNum ? (
-              /* No year built — nudge to add it */
-              <div className="px-5 py-6 flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                  <Clock className="w-5 h-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-800 mb-1">Add your home's year built to unlock forecasts</p>
-                  <p className="text-sm text-slate-500 leading-snug mb-3">
-                    Once you enter the year your home was built, we'll predict when your roof, HVAC, water heater, and other major systems are likely to need replacement — along with estimated costs.
-                  </p>
-                  <button
-                    onClick={() => navigate("/home-profile")}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20"
-                  >
-                    Add Year Built →
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="px-5 py-4">
-                  <p className="text-xs text-slate-500 leading-snug mb-1">
-                    Based on your home built in <span className="font-semibold text-slate-700">{yearBuiltNum}</span> ({currentYear - yearBuiltNum} years old).
-                    {roofType && roofType !== "asphalt" && (
-                      <span> Roof lifespan adjusted for <span className="font-semibold text-slate-700">{roofType}</span> material.</span>
-                    )}
-                  </p>
-                </div>
-
-                {/* Forecast grid */}
-                <div className="px-5 pb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {forecasts.map(item => {
-                    const isOverdue = item.urgency === "overdue";
-                    const isCritical = item.urgency === "critical";
-                    const isWatch = item.urgency === "watch";
-
-                    const cardBg = isOverdue || isCritical ? "bg-red-50 border-red-200" :
-                      isWatch ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200";
-                    const badgeColor = isOverdue || isCritical ? "bg-red-100 text-red-700" :
-                      isWatch ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
-                    const yearColor = isOverdue || isCritical ? "text-red-700" :
-                      isWatch ? "text-amber-700" : "text-emerald-700";
-                    const Icon = isOverdue || isCritical ? TriangleAlert : isWatch ? Clock : CheckCircle2;
-
-                    const yearsLabel = isOverdue
-                      ? `Overdue by ${Math.abs(item.yearsLeft)} yr${Math.abs(item.yearsLeft) !== 1 ? "s" : ""}`
-                      : item.yearsLeft === 0 ? "Due this year"
-                      : `~${item.yearsLeft} year${item.yearsLeft !== 1 ? "s" : ""}`;
-
-                    return (
-                      <div key={item.key} className={`rounded-xl border px-4 py-3 ${cardBg}`}>
-                        <div className="flex items-start justify-between gap-2 mb-1.5">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg leading-none">{item.emoji}</span>
-                            <div>
-                              <p className="text-sm font-bold text-slate-900 leading-tight">{item.name}</p>
-                              {item.note && <p className="text-[10px] text-slate-400">{item.note}</p>}
-                            </div>
-                          </div>
-                          <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
-                            {yearsLabel}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 mt-2">
-                          <Icon className={`w-3.5 h-3.5 shrink-0 ${yearColor}`} />
-                          <p className="text-xs text-slate-700 leading-snug">
-                            <span className={`font-bold ${yearColor}`}>
-                              {isOverdue ? "Already due" : `Due ~${item.dueYear}`}
-                            </span>
-                            {" "}(±3 yrs) · <span className="font-semibold">{item.costRange}</span>
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="px-5 pb-4">
-                  <p className="text-[11px] text-slate-400 flex items-start gap-1 leading-snug">
-                    <Info className="w-3 h-3 mt-0.5 shrink-0" />
-                    These are estimates based on industry averages. Actual timing varies by brand, climate, usage, and maintenance history. Always get a professional inspection before major decisions.
-                  </p>
-                </div>
-              </>
-            )}
-          </motion.div>
-        )}
-
-        {/* ── Upgrade teaser for free users ── */}
-        {!userIsPro && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.1 }}
-            className="bg-white rounded-2xl border border-dashed border-amber-300 overflow-hidden"
-          >
-            <div className="px-5 py-4 flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                <Clock className="w-5 h-5 text-amber-600" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800">Upcoming Major Expenses — Pro Feature</p>
-                <p className="text-xs text-slate-500 mt-0.5 leading-snug">See when your roof, HVAC, water heater & more are due for replacement, with estimated costs.</p>
-              </div>
-              <button
-                onClick={() => navigate("/home-profile")}
-                className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold transition-colors shadow-sm"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                Upgrade
-              </button>
-            </div>
-          </motion.div>
-        )}
-
         {/* ── This Month ── */}
         {savedCalendar && (
           <motion.div
@@ -1088,7 +993,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <p className="text-base font-bold text-slate-700">All caught up for {currentMonthName}!</p>
                 <p className="text-sm text-slate-400">
                   {snoozedThisMonth.size > 0
-                    ? `${snoozedThisMonth.size} task${snoozedThisMonth.size !== 1 ? "s" : ""} moved to next month.`
+                    ? `${snoozedThisMonth.size} task${snoozedThisMonth.size !== 1 ? "s" : ""} snoozed until next month.`
                     : "No tasks scheduled this month."}
                 </p>
               </div>
@@ -1251,11 +1156,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               {snoozedConfirm === task._key ? (
                                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-700 text-sm font-semibold">
                                   <Bell className="w-4 h-4 shrink-0" />
-                                  Task moved to next month ✓
+                                  Task snoozed until next month ✓
                                 </div>
                               ) : (
                                 <button
-                                  onClick={() => handleRemindNextMonth(task._key, task.task)}
+                                  onClick={() => handleRemindNextMonth(task)}
                                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-500 hover:text-blue-700 text-sm font-medium transition-colors active:scale-[0.98]"
                                 >
                                   <Bell className="w-4 h-4" />
@@ -1506,6 +1411,133 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
           )}
         </motion.div>
+
+        {/* ── Future Big-Ticket Items (Pro) ── */}
+        {userIsPro && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.17 }}
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+          >
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-primary" />
+                <h2 className="text-base font-bold text-slate-900">Future Big-Ticket Items</h2>
+              </div>
+              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full uppercase tracking-wide">Pro</span>
+            </div>
+
+            {!yearBuiltNum ? (
+              <div className="px-5 py-6 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-slate-800 mb-1">Add your home's year built to unlock forecasts</p>
+                  <p className="text-sm text-slate-500 leading-snug mb-3">
+                    Once you enter the year your home was built, we'll predict when your roof, HVAC, water heater, and other major systems are likely to need replacement — along with estimated costs.
+                  </p>
+                  <button
+                    onClick={() => navigate("/home-profile")}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-colors shadow-sm shadow-primary/20"
+                  >
+                    Add Year Built →
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="px-5 py-4">
+                  <p className="text-xs text-slate-500 leading-snug mb-1">
+                    Based on your home built in <span className="font-semibold text-slate-700">{yearBuiltNum}</span> ({currentYear - yearBuiltNum} years old).
+                    {roofType && roofType !== "asphalt" && (
+                      <span> Roof lifespan adjusted for <span className="font-semibold text-slate-700">{roofType}</span> material.</span>
+                    )}
+                  </p>
+                </div>
+
+                <div className="px-5 pb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {forecasts.map(item => {
+                    const isOverdue = item.urgency === "overdue";
+                    const isCritical = item.urgency === "critical";
+                    const isWatch = item.urgency === "watch";
+                    const cardBg = isOverdue || isCritical ? "bg-red-50 border-red-200" :
+                      isWatch ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200";
+                    const badgeColor = isOverdue || isCritical ? "bg-red-100 text-red-700" :
+                      isWatch ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
+                    const yearColor = isOverdue || isCritical ? "text-red-700" :
+                      isWatch ? "text-amber-700" : "text-emerald-700";
+                    const Icon = isOverdue || isCritical ? TriangleAlert : isWatch ? Clock : CheckCircle2;
+                    const yearsLabel = isOverdue
+                      ? `Overdue by ${Math.abs(item.yearsLeft)} yr${Math.abs(item.yearsLeft) !== 1 ? "s" : ""}`
+                      : item.yearsLeft === 0 ? "Due this year"
+                      : `~${item.yearsLeft} year${item.yearsLeft !== 1 ? "s" : ""}`;
+                    return (
+                      <div key={item.key} className={`rounded-xl border px-4 py-3 ${cardBg}`}>
+                        <div className="flex items-start justify-between gap-2 mb-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg leading-none">{item.emoji}</span>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900 leading-tight">{item.name}</p>
+                              {item.note && <p className="text-[10px] text-slate-400">{item.note}</p>}
+                            </div>
+                          </div>
+                          <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
+                            {yearsLabel}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Icon className={`w-3.5 h-3.5 shrink-0 ${yearColor}`} />
+                          <p className="text-xs text-slate-700 leading-snug">
+                            <span className={`font-bold ${yearColor}`}>
+                              {isOverdue ? "Already due" : `Due ~${item.dueYear}`}
+                            </span>
+                            {" "}(±3 yrs) · <span className="font-semibold">{item.costRange}</span>
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="px-5 pb-4">
+                  <p className="text-[11px] text-slate-400 flex items-start gap-1 leading-snug">
+                    <Info className="w-3 h-3 mt-0.5 shrink-0" />
+                    These are estimates based on industry averages. Actual timing varies by brand, climate, usage, and maintenance history. Always get a professional inspection before major decisions.
+                  </p>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Future Big-Ticket teaser for free users ── */}
+        {!userIsPro && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.17 }}
+            className="bg-white rounded-2xl border border-dashed border-amber-300 overflow-hidden"
+          >
+            <div className="px-5 py-4 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                <Clock className="w-5 h-5 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-slate-800">Future Big-Ticket Items — Pro Feature</p>
+                <p className="text-xs text-slate-500 mt-0.5 leading-snug">See when your roof, HVAC, water heater & more are due for replacement, with estimated costs.</p>
+              </div>
+              <button
+                onClick={() => navigate("/home-profile")}
+                className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold transition-colors shadow-sm"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Upgrade
+              </button>
+            </div>
+          </motion.div>
+        )}
 
         {/* ── My Mortgage Rate ── */}
         {mortgageRate !== undefined && (

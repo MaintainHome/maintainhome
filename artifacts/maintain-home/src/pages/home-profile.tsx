@@ -642,7 +642,7 @@ export default function HomeProfilePage() {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">Upcoming Major Expenses</h2>
+                  <h2 className="text-base font-bold text-slate-900">Future Big-Ticket Items</h2>
                   <p className="text-xs text-slate-500 mt-0.5">
                     Based on your home built in <span className="font-semibold text-slate-700">{yb}</span> ({age} yrs old) · averages, ±3 yrs
                   </p>
