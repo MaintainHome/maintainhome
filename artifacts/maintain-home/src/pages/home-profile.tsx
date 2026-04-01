@@ -5,6 +5,7 @@ import {
   Home, ArrowLeft, Save, CheckCircle2, AlertCircle, Edit2,
   MapPin, Bed, Bath, Layers, Waves, Calendar, Percent,
   TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2, Shield,
+  ExternalLink,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { PricingSection } from "@/components/PricingSection";
@@ -669,6 +670,139 @@ export default function HomeProfilePage() {
               <div className="px-5 py-3 border-t border-slate-50">
                 <p className="text-[11px] text-slate-400">Full detailed forecasts with costs appear on your Dashboard (Pro). These are estimates — consult a professional before major decisions.</p>
               </div>
+            </motion.div>
+          );
+        })()}
+
+        {/* ── Home Value Estimates ──────────────────────────────────── */}
+        {(() => {
+          const addr = profile.fullAddress.trim();
+          const zip  = quizAnswers?.zip ?? "";
+          const placeholder = `123 Main St, Charlotte, NC${zip ? ` ${zip}` : ""}`;
+
+          function makeZillowUrl(a: string) {
+            return `https://www.zillow.com/homes/${encodeURIComponent(a)}_rb/`;
+          }
+          function makeRedfinUrl(a: string) {
+            return `https://www.redfin.com/query-location?location=${encodeURIComponent(a)}`;
+          }
+          function makeRealtorUrl(a: string) {
+            return `https://www.realtor.com/realestateandhomes-search/${encodeURIComponent(a)}`;
+          }
+
+          const sites: {
+            label: string;
+            sub: string;
+            color: string;
+            bg: string;
+            border: string;
+            href: string;
+          }[] = [
+            {
+              label: "Zillow",
+              sub: "Zestimate® home value",
+              color: "text-[#006AFF]",
+              bg: "hover:bg-blue-50",
+              border: "border-blue-200 hover:border-blue-400",
+              href: addr ? makeZillowUrl(addr) : "https://www.zillow.com",
+            },
+            {
+              label: "Redfin",
+              sub: "Real-time estimate",
+              color: "text-[#d93025]",
+              bg: "hover:bg-red-50",
+              border: "border-red-200 hover:border-red-400",
+              href: addr ? makeRedfinUrl(addr) : "https://www.redfin.com",
+            },
+            {
+              label: "Realtor.com",
+              sub: "RealEstimate℠ value",
+              color: "text-[#d64200]",
+              bg: "hover:bg-orange-50",
+              border: "border-orange-200 hover:border-orange-400",
+              href: addr ? makeRealtorUrl(addr) : "https://www.realtor.com",
+            },
+          ];
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.14 }}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+            >
+              <div className="px-5 py-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-primary shrink-0" />
+                  <h2 className="text-base font-bold text-slate-900">Home Value Estimates</h2>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5 ml-6">Enter your address to look up live estimates on major real estate sites</p>
+              </div>
+
+              <div className="px-5 pt-4 pb-2 space-y-4">
+                {/* Address input */}
+                <div>
+                  <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                    <MapPin className="w-4 h-4 text-slate-400" />
+                    Full Street Address
+                    <span className="text-slate-400 font-normal">(optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={profile.fullAddress}
+                    onChange={e => setProfile(p => ({ ...p, fullAddress: e.target.value }))}
+                    placeholder={placeholder}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all"
+                  />
+                  {zip && !addr && (
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      Your ZIP is <span className="font-semibold text-slate-600">{zip}</span> — add your full street address above for the best results
+                    </p>
+                  )}
+                  {addr && (
+                    <p className="text-[11px] text-emerald-600 mt-1 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Address saved — links below are pre-filled
+                    </p>
+                  )}
+                </div>
+
+                {/* 3 estimate cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {sites.map(site => (
+                    <a
+                      key={site.label}
+                      href={site.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl border transition-all ${site.bg} ${site.border} ${!addr ? "opacity-60" : ""}`}
+                    >
+                      <div className="min-w-0">
+                        <p className={`text-sm font-black leading-tight ${site.color}`}>{site.label}</p>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">{site.sub}</p>
+                      </div>
+                      <ExternalLink className={`w-4 h-4 shrink-0 ${site.color}`} />
+                    </a>
+                  ))}
+                </div>
+
+                {/* Disclaimer */}
+                <div className="flex items-start gap-2 bg-slate-50 rounded-xl px-4 py-3">
+                  <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    These are live estimates from major real estate sites. They update regularly and can be useful for tracking your home's value over time.
+                    {" "}<span className="font-semibold text-slate-600">This is not financial advice.</span>
+                  </p>
+                </div>
+              </div>
+
+              {!addr && (
+                <div className="px-5 pb-4">
+                  <p className="text-xs text-amber-600 font-semibold text-center">
+                    Save your address above to pre-fill estimate links
+                  </p>
+                </div>
+              )}
             </motion.div>
           );
         })()}
