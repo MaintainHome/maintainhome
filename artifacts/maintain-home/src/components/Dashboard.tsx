@@ -1196,105 +1196,141 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.14 }}
-          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+          className={`rounded-2xl overflow-hidden ${userIsPro ? "border border-primary/20 shadow-md shadow-primary/5" : "border border-slate-200 shadow-sm"} bg-white`}
         >
           {userIsPro ? (
             <>
-              {/* ── Always-visible header ── */}
-              <div className="flex items-center gap-3 px-5 py-3 border-b border-slate-100">
-                <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white border border-primary/20 shadow-sm">
-                  <img
-                    src={`${BASE}images/maintly_wrench.png`}
-                    alt="Maintly"
-                    className="w-full"
-                    style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
-                  />
-                </div>
-                <p className="flex-1 font-bold text-slate-900 text-sm">Chat with Maintly</p>
-                {chatMessages.some(m => !m.isWelcome) && (
-                  <button
-                    onClick={() => { chatAbortRef.current?.abort(); setChatMessages([MAINTLY_WELCOME]); clearChatFile(); }}
-                    className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+              {/* ── IDLE: Hero welcome with pointing avatar + speech bubble ── */}
+              {!chatMessages.some(m => !m.isWelcome) ? (
+                <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/15 to-blue-600/5 pointer-events-none" />
+                  <div className="relative flex items-end gap-4 sm:gap-6 px-5 pt-5 pb-6">
+                    {/* Pointing avatar — stands at bottom, points right toward bubble */}
+                    <img
+                      src={`${BASE}images/maintly_point.png`}
+                      alt="Maintly"
+                      className="w-28 sm:w-36 h-auto object-contain shrink-0 self-end drop-shadow-2xl"
+                    />
 
-              {/* ── Fixed-height body ── */}
-              <div
-                ref={chatScrollRef}
-                className="h-[280px] overflow-y-auto px-4 py-4"
-              >
-                <div className="space-y-4">
-                  {chatMessages.map((msg, idx) => (
-                    <div
-                      key={idx}
-                      className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
-                    >
-                      {/* Avatar */}
-                      {msg.role === "user" ? (
-                        <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center shrink-0 mt-0.5">
-                          <User className="w-3.5 h-3.5" />
-                        </div>
-                      ) : (
-                        <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 bg-white border border-slate-100 shadow-sm">
-                          <img
-                            src={`${BASE}images/maintly_thumb.png`}
-                            alt="Maintly"
-                            className="w-full"
-                            style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
-                          />
-                        </div>
-                      )}
-
-                      <div className="max-w-[80%] flex flex-col gap-1">
-                        {/* File attachment (user messages) */}
-                        {msg.fileInfo && (
-                          <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-primary/80 text-white self-end">
-                            {msg.fileInfo.previewUrl ? (
-                              <img src={msg.fileInfo.previewUrl} alt={msg.fileInfo.name}
-                                className="w-28 h-20 object-cover rounded-lg" />
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <FileText className="w-4 h-4 shrink-0" />
-                                <span className="max-w-[140px] truncate">{msg.fileInfo.name}</span>
-                              </div>
-                            )}
+                    {/* Speech bubble */}
+                    <div className="relative flex-1 min-w-0 mb-4">
+                      {/* Tail pointing left toward avatar */}
+                      <div
+                        className="absolute bottom-6 -left-2.5 w-5 h-5 bg-white rotate-45"
+                        style={{ boxShadow: "-2px 2px 4px rgba(0,0,0,0.08)" }}
+                      />
+                      <div className="relative bg-white rounded-2xl rounded-bl-sm px-5 py-4 shadow-2xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-6 h-6 rounded-full overflow-hidden border border-primary/20 shadow-sm shrink-0">
+                            <img
+                              src={`${BASE}images/maintly_thumb.png`}
+                              alt="Maintly"
+                              className="w-full"
+                              style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+                            />
                           </div>
-                        )}
-
-                        {/* "Analyzing file" label */}
-                        {msg.isFileAnalysis && msg.role === "assistant" && (
-                          <p className="text-[10px] font-bold text-primary uppercase tracking-wider px-1">
-                            Analyzing uploaded file
-                          </p>
-                        )}
-
-                        {/* Bubble */}
-                        <div
-                          className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                            msg.role === "user"
-                              ? "bg-primary text-white rounded-tr-sm"
-                              : "bg-slate-100 text-slate-800 rounded-tl-sm"
-                          }`}
-                        >
-                          {msg.content || (msg.streaming && (
-                            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
-                          ))}
-                          {msg.streaming && msg.content && (
-                            <span className="inline-block w-1.5 h-3.5 bg-slate-400 ml-0.5 animate-pulse rounded-sm align-middle" />
-                          )}
+                          <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Maintly AI</span>
                         </div>
+                        <p className="font-black text-slate-900 text-base sm:text-lg leading-tight mb-2">
+                          Hello friend! I'm Maintly.
+                        </p>
+                        <p className="text-slate-600 text-sm leading-relaxed">
+                          Ask me anything about your home — maintenance tips, repair schedules, or specific issues.{" "}
+                          I can also analyze photos, warranties, invoices, and other documents you upload.
+                        </p>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
-              </div>
+              ) : (
+                /* ── ACTIVE: Compact header + scrollable conversation ── */
+                <>
+                  <div className="flex items-center gap-3 px-5 py-3 border-b border-slate-100">
+                    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white border border-primary/20 shadow-sm">
+                      <img
+                        src={`${BASE}images/maintly_thumb.png`}
+                        alt="Maintly"
+                        className="w-full"
+                        style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+                      />
+                    </div>
+                    <p className="flex-1 font-bold text-slate-900 text-sm">Chat with Maintly</p>
+                    <button
+                      onClick={() => { chatAbortRef.current?.abort(); setChatMessages([MAINTLY_WELCOME]); clearChatFile(); }}
+                      className="text-xs text-slate-400 hover:text-slate-600 px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  </div>
 
-              {/* ── Persistent input bar ── */}
-              <div className="px-4 pb-4 pt-2 border-t border-slate-100 space-y-2">
-                {/* File preview */}
+                  <div
+                    ref={chatScrollRef}
+                    className="h-[300px] overflow-y-auto px-4 py-4"
+                  >
+                    <div className="space-y-4">
+                      {chatMessages.map((msg, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                        >
+                          {msg.role === "user" ? (
+                            <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center shrink-0 mt-0.5">
+                              <User className="w-3.5 h-3.5" />
+                            </div>
+                          ) : (
+                            <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 bg-white border border-slate-100 shadow-sm">
+                              <img
+                                src={`${BASE}images/maintly_thumb.png`}
+                                alt="Maintly"
+                                className="w-full"
+                                style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
+                              />
+                            </div>
+                          )}
+
+                          <div className="max-w-[80%] flex flex-col gap-1">
+                            {msg.fileInfo && (
+                              <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-primary/80 text-white self-end">
+                                {msg.fileInfo.previewUrl ? (
+                                  <img src={msg.fileInfo.previewUrl} alt={msg.fileInfo.name}
+                                    className="w-28 h-20 object-cover rounded-lg" />
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="w-4 h-4 shrink-0" />
+                                    <span className="max-w-[140px] truncate">{msg.fileInfo.name}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {msg.isFileAnalysis && msg.role === "assistant" && (
+                              <p className="text-[10px] font-bold text-primary uppercase tracking-wider px-1">
+                                Analyzing uploaded file
+                              </p>
+                            )}
+                            <div
+                              className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                                msg.role === "user"
+                                  ? "bg-primary text-white rounded-tr-sm"
+                                  : "bg-slate-100 text-slate-800 rounded-tl-sm"
+                              }`}
+                            >
+                              {msg.content || (msg.streaming && (
+                                <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                              ))}
+                              {msg.streaming && msg.content && (
+                                <span className="inline-block w-1.5 h-3.5 bg-slate-400 ml-0.5 animate-pulse rounded-sm align-middle" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* ── Always-visible input bar ── */}
+              <div className="px-4 pb-4 pt-3 border-t border-slate-100 space-y-2">
                 <AnimatePresence>
                   {chatPendingFile && (
                     <motion.div
@@ -1323,14 +1359,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   )}
                 </AnimatePresence>
 
-                {/* File error */}
                 {chatFileError && (
                   <p className="text-xs text-red-600 font-semibold px-1">{chatFileError}</p>
                 )}
 
-                {/* Input row */}
                 <div className="flex items-center gap-2 bg-slate-50 rounded-2xl border border-slate-200 px-3 py-2.5 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-                  {/* Paperclip */}
                   <button
                     type="button"
                     onClick={() => { setChatFileError(null); chatFileInputRef.current?.click(); }}
@@ -1377,7 +1410,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   Photos (JPG/PNG, 5MB) &amp; PDFs (8MB) · Guidance only — consult a professional for safety issues.
                 </p>
 
-                {/* Hidden file input */}
                 <input
                   ref={chatFileInputRef}
                   type="file"
@@ -1388,25 +1420,33 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               </div>
             </>
           ) : (
-            /* Free user — upgrade prompt inline */
-            <div className="px-5 py-6 flex flex-col sm:flex-row items-center gap-5">
-              <img
-                src={`${BASE}images/maintly_point.png`}
-                alt="Maintly"
-                className="w-20 h-auto object-contain shrink-0 grayscale opacity-50"
-              />
-              <div className="flex-1 min-w-0 text-center sm:text-left">
-                <p className="font-bold text-slate-800 mb-1">Unlock AI-Powered Guidance</p>
-                <p className="text-sm text-slate-500 mb-3">
-                  Upgrade to Pro to chat with Maintly — your personal home maintenance expert, personalized to your home.
-                </p>
-                <button
-                  onClick={() => navigate("/home-profile")}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold transition-colors shadow-md shadow-amber-900/20"
-                >
-                  <Zap className="w-3.5 h-3.5" />
-                  Upgrade to Pro
-                </button>
+            /* Free user — upgrade prompt with greyed avatar */
+            <div className="relative overflow-hidden">
+              <div className="flex items-end gap-4 px-5 pt-5 pb-4 bg-gradient-to-br from-slate-100 to-slate-50">
+                <img
+                  src={`${BASE}images/maintly_point.png`}
+                  alt="Maintly"
+                  className="w-24 h-auto object-contain shrink-0 self-end grayscale opacity-40"
+                />
+                <div className="relative flex-1 min-w-0 mb-3">
+                  <div
+                    className="absolute bottom-6 -left-2.5 w-5 h-5 bg-amber-50 rotate-45"
+                    style={{ boxShadow: "-2px 2px 4px rgba(0,0,0,0.06)" }}
+                  />
+                  <div className="relative bg-amber-50 border border-amber-200 rounded-2xl rounded-bl-sm px-5 py-4 shadow-sm">
+                    <p className="font-black text-slate-800 text-base mb-1">Unlock AI-Powered Guidance</p>
+                    <p className="text-sm text-slate-500 leading-relaxed mb-3">
+                      Upgrade to Pro to chat with Maintly — your personal home maintenance expert, personalized to your home.
+                    </p>
+                    <button
+                      onClick={() => navigate("/home-profile")}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold transition-colors shadow-md shadow-amber-900/20"
+                    >
+                      <Zap className="w-3.5 h-3.5" />
+                      Upgrade to Pro
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
