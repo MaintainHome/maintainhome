@@ -4,7 +4,7 @@ import {
   Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
-  Send, Loader2, User, TrendingDown, TrendingUp,
+  Send, Loader2, User, TrendingDown, TrendingUp, Shield, ChevronDown, ChevronUp,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -62,6 +62,90 @@ interface DashboardProps {
   onOpenAIChat: () => void;
 }
 
+// ── Home Health Score ─────────────────────────────────────────────────────
+interface HomeProfileData {
+  fullAddress?: string | null;
+  bedrooms?: string | null;
+  bathrooms?: string | null;
+  yearBuilt?: string | null;
+  lastRenovationYear?: string | null;
+  mortgageRate?: string | null;
+}
+
+interface HealthScore {
+  total: number;
+  profile: number;
+  calendar: number;
+  completion: number;
+  history: number;
+}
+
+function computeHealthScore(params: {
+  homeProfile: HomeProfileData | null;
+  hasCalendar: boolean;
+  thisMonthTotal: number;
+  thisMonthDone: number;
+  logCount: number;
+}): HealthScore {
+  const { homeProfile, hasCalendar, thisMonthTotal, thisMonthDone, logCount } = params;
+
+  let profile = 0;
+  if (homeProfile?.fullAddress?.trim()) profile += 5;
+  if (homeProfile?.bedrooms) profile += 4;
+  if (homeProfile?.bathrooms) profile += 4;
+  if (homeProfile?.yearBuilt) profile += 8;
+  if (homeProfile?.lastRenovationYear) profile += 4;
+
+  const calendar = hasCalendar ? 20 : 0;
+
+  let completion = 0;
+  if (thisMonthTotal === 0) {
+    completion = hasCalendar ? 15 : 0;
+  } else {
+    const rate = thisMonthDone / thisMonthTotal;
+    if (rate >= 1) completion = 30;
+    else if (rate >= 0.5) completion = 22;
+    else if (rate > 0) completion = 15;
+    else completion = 5;
+  }
+
+  let history = 0;
+  if (logCount >= 4) history = 25;
+  else if (logCount >= 2) history = 16;
+  else if (logCount >= 1) history = 8;
+
+  const total = Math.min(100, profile + calendar + completion + history);
+  return { total, profile, calendar, completion, history };
+}
+
+function ScoreGauge({ score }: { score: number }) {
+  const r = 70;
+  const cx = 100;
+  const cy = 98;
+  const arcLength = Math.PI * r;
+  const filled = (score / 100) * arcLength;
+  const color = score >= 80 ? "#1f9e6e" : score >= 60 ? "#f59e0b" : "#ef4444";
+  const trackColor = score >= 80 ? "#d1fae5" : score >= 60 ? "#fef3c7" : "#fee2e2";
+  const d = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+  return (
+    <svg viewBox="0 0 200 110" className="w-full max-w-[180px] mx-auto">
+      <path d={d} fill="none" stroke={trackColor} strokeWidth="16" strokeLinecap="round" />
+      <path
+        d={d}
+        fill="none"
+        stroke={color}
+        strokeWidth="16"
+        strokeLinecap="round"
+        strokeDasharray={`${filled} ${arcLength + 1}`}
+        style={{ transition: "stroke-dasharray 0.9s cubic-bezier(0.4,0,0.2,1)" }}
+      />
+      <text x="100" y="88" textAnchor="middle" fill={color} fontSize="32" fontWeight="900" fontFamily="system-ui">
+        {score}
+      </text>
+    </svg>
+  );
+}
+
 function getNextDueTasks(calendarData: any, limit = 5): { task: string; month: string; difficulty: string; cost: string }[] {
   if (!calendarData?.calendar) return [];
   const now = new Date();
@@ -98,8 +182,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [taskChatOpen, setTaskChatOpen] = useState(false);
   const [taskChatMessage, setTaskChatMessage] = useState<string>("");
 
-  // ── Mortgage Rate State ────────────────────────────────────────────────
+  // ── Mortgage Rate + Home Profile State ────────────────────────────────
   const [mortgageRate, setMortgageRate] = useState<number | null | undefined>(undefined);
+  const [homeProfile, setHomeProfile] = useState<HomeProfileData | null>(null);
+  const [showScoreBreakdown, setShowScoreBreakdown] = useState(false);
 
   // ── Inline Chat State ──────────────────────────────────────────────────
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -132,8 +218,16 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       .then((data) => {
         const rate = data?.mortgageRate ? parseFloat(data.mortgageRate) : null;
         setMortgageRate(isNaN(rate as number) ? null : rate);
+        setHomeProfile(data ? {
+          fullAddress: data.fullAddress ?? null,
+          bedrooms: data.bedrooms != null ? String(data.bedrooms) : null,
+          bathrooms: data.bathrooms ?? null,
+          yearBuilt: data.yearBuilt != null ? String(data.yearBuilt) : null,
+          lastRenovationYear: data.lastRenovationYear != null ? String(data.lastRenovationYear) : null,
+          mortgageRate: data.mortgageRate ?? null,
+        } : null);
       })
-      .catch(() => setMortgageRate(null));
+      .catch(() => { setMortgageRate(null); setHomeProfile(null); });
   }, [user.id]);
 
   useEffect(() => {
@@ -311,6 +405,20 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const rateIsBetter = rateDiff != null && rateDiff < 0;
   const rateIsHigher = rateDiff != null && rateDiff > 0;
 
+  // ── Home Health Score ────────────────────────────────────────────────────
+  const healthScore = computeHealthScore({
+    homeProfile,
+    hasCalendar: !!savedCalendar,
+    thisMonthTotal: visibleThisMonthTasks.length + snoozedThisMonth.size,
+    thisMonthDone: Object.keys(thisMonthCompleted).length,
+    logCount: recentLog.length,
+  });
+  const scoreGrade = healthScore.total >= 80
+    ? { label: "Excellent", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", msg: "Your home is well maintained — great work!" }
+    : healthScore.total >= 60
+    ? { label: "Good", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", msg: "A few things need attention to reach Excellent." }
+    : { label: "Needs Attention", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", msg: "Several important tasks are overdue or incomplete." };
+
   function openChatForTask(taskName: string) {
     const locationHint = state ? ` for a home in ${state}` : "";
     const message = `Can you give me detailed, step-by-step instructions for "${taskName}"${locationHint}? Please include safety tips, what tools I'll need, how long it typically takes, and any common mistakes to avoid.`;
@@ -474,6 +582,170 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Profile</p>
             </div>
           </button>
+        </motion.div>
+
+        {/* ── Home Health Score ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.09 }}
+          className={`rounded-2xl border shadow-sm overflow-hidden ${scoreGrade.bg} ${scoreGrade.border}`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-black/5">
+            <div className="flex items-center gap-2">
+              <Shield className={`w-4 h-4 ${scoreGrade.color}`} />
+              <h2 className="text-base font-bold text-slate-900">Home Health Score</h2>
+            </div>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+              healthScore.total >= 80 ? "bg-emerald-100 text-emerald-700" :
+              healthScore.total >= 60 ? "bg-amber-100 text-amber-700" :
+              "bg-red-100 text-red-700"
+            }`}>{scoreGrade.label}</span>
+          </div>
+
+          <div className="px-5 py-5 flex flex-col sm:flex-row items-center gap-5 sm:gap-8">
+            {/* Gauge */}
+            <div className="shrink-0 w-40 sm:w-44">
+              <ScoreGauge score={healthScore.total} />
+              <p className="text-center text-[11px] text-slate-500 -mt-1">out of 100</p>
+            </div>
+
+            {/* Right side */}
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <p className={`text-xl font-black ${scoreGrade.color} leading-tight`}>{scoreGrade.msg}</p>
+              <p className="text-sm text-slate-600 mt-1.5 leading-snug">
+                Your score is based on <span className="font-semibold text-slate-800">profile completeness</span>, <span className="font-semibold text-slate-800">task completion</span>, <span className="font-semibold text-slate-800">maintenance history</span>, and whether you have a <span className="font-semibold text-slate-800">personalized calendar</span>.
+              </p>
+
+              {/* Improvement hints for lower scores */}
+              {healthScore.total < 80 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {!savedCalendar && (
+                    <button onClick={() => navigate("/quiz")} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                      + Generate calendar
+                    </button>
+                  )}
+                  {!homeProfile?.yearBuilt && (
+                    <button onClick={() => navigate("/home-profile")} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                      + Add year built
+                    </button>
+                  )}
+                  {!homeProfile?.fullAddress && (
+                    <button onClick={() => navigate("/home-profile")} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                      + Add home address
+                    </button>
+                  )}
+                  {recentLog.length === 0 && (
+                    <button onClick={() => navigate("/history")} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-primary hover:text-primary transition-colors shadow-sm">
+                      + Log a completed task
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Pro: breakdown toggle */}
+              {userIsPro && (
+                <button
+                  onClick={() => setShowScoreBreakdown(v => !v)}
+                  className="mt-3 flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
+                >
+                  {showScoreBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  {showScoreBreakdown ? "Hide breakdown" : "See detailed breakdown"}
+                </button>
+              )}
+              {!userIsPro && (
+                <p className="mt-3 text-[11px] text-slate-400 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-amber-400" />
+                  <button onClick={() => navigate("/home-profile")} className="hover:underline text-amber-600 font-semibold">Upgrade to Pro</button> for a detailed score breakdown
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Pro breakdown panel */}
+          <AnimatePresence>
+            {userIsPro && showScoreBreakdown && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="overflow-hidden"
+              >
+                <div className="border-t border-black/5 px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    {
+                      label: "Profile Completeness",
+                      earned: healthScore.profile,
+                      max: 25,
+                      tip: healthScore.profile < 25 ? "Add year built, address & renovation year for full points." : "Profile is fully complete.",
+                      action: () => navigate("/home-profile"),
+                      actionLabel: "Edit Profile",
+                    },
+                    {
+                      label: "Calendar Generated",
+                      earned: healthScore.calendar,
+                      max: 20,
+                      tip: healthScore.calendar < 20 ? "Generate your personalized 12-month calendar." : "Calendar generated.",
+                      action: () => navigate("/quiz"),
+                      actionLabel: "Generate Calendar",
+                    },
+                    {
+                      label: "This Month's Tasks",
+                      earned: healthScore.completion,
+                      max: 30,
+                      tip: healthScore.completion < 30
+                        ? Object.keys(thisMonthCompleted).length === 0
+                          ? "Start completing your tasks for this month."
+                          : "Keep going — complete all tasks for full points."
+                        : "All tasks complete for this month!",
+                      action: undefined,
+                      actionLabel: null,
+                    },
+                    {
+                      label: "Maintenance History",
+                      earned: healthScore.history,
+                      max: 25,
+                      tip: recentLog.length === 0
+                        ? "Log your first completed maintenance task."
+                        : recentLog.length < 4
+                        ? "Log a few more tasks to build your history."
+                        : "Great maintenance history!",
+                      action: () => navigate("/history"),
+                      actionLabel: "View History",
+                    },
+                  ].map(item => {
+                    const pct = Math.round((item.earned / item.max) * 100);
+                    const barColor = pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-400" : "bg-red-400";
+                    return (
+                      <div key={item.label} className="bg-white rounded-xl border border-slate-200 px-4 py-3 shadow-sm">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-bold text-slate-700">{item.label}</span>
+                          <span className="text-xs font-black text-slate-900">{item.earned}<span className="text-slate-400 font-normal">/{item.max}</span></span>
+                        </div>
+                        <div className="h-2 rounded-full bg-slate-100 overflow-hidden mb-2">
+                          <div
+                            className={`h-full rounded-full transition-all duration-700 ${barColor}`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <p className="text-[11px] text-slate-500 leading-snug">{item.tip}</p>
+                        {item.action && item.earned < item.max && (
+                          <button
+                            onClick={item.action}
+                            className="mt-1.5 text-[11px] font-bold text-primary hover:underline"
+                          >
+                            {item.actionLabel} →
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* ── This Month ── */}

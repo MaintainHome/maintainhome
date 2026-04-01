@@ -4,7 +4,7 @@ import { useLocation } from "wouter";
 import {
   Home, ArrowLeft, Save, CheckCircle2, AlertCircle, Edit2,
   MapPin, Bed, Bath, Layers, Waves, Calendar, Percent,
-  TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2,
+  TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2, Shield,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { PricingSection } from "@/components/PricingSection";
@@ -244,6 +244,55 @@ export default function HomeProfilePage() {
             Profile saved — Maintly will use your updated details for future advice.
           </motion.div>
         )}
+
+        {/* ── Profile Strength ──────────────────────────────────────── */}
+        {!loading && (() => {
+          const fields = [
+            { label: "Address", filled: !!profile.fullAddress?.trim(), pts: 5 },
+            { label: "Bedrooms", filled: !!profile.bedrooms, pts: 4 },
+            { label: "Bathrooms", filled: !!profile.bathrooms, pts: 4 },
+            { label: "Year Built", filled: !!profile.yearBuilt, pts: 8 },
+            { label: "Renovation Year", filled: !!profile.lastRenovationYear, pts: 4 },
+          ];
+          const earned = fields.filter(f => f.filled).reduce((s, f) => s + f.pts, 0);
+          const max = 25;
+          const pct = Math.round((earned / max) * 100);
+          const color = pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-400" : "bg-red-400";
+          const textColor = pct >= 80 ? "text-emerald-600" : pct >= 50 ? "text-amber-600" : "text-red-600";
+          const missing = fields.filter(f => !f.filled);
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+            >
+              <div className="px-5 py-4 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2.5 shrink-0">
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${pct >= 80 ? "bg-emerald-100" : pct >= 50 ? "bg-amber-100" : "bg-red-100"}`}>
+                    <Shield className={`w-4.5 h-4.5 ${textColor}`} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">Profile Strength</p>
+                    <p className={`text-xs font-bold ${textColor}`}>{earned}/{max} pts · {pct}% complete</p>
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 max-w-xs">
+                  <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-700 ${color}`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                  {missing.length > 0 && (
+                    <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                      Add: {missing.map(f => f.label).join(", ")} to improve your <span className="font-semibold text-slate-600">Home Health Score</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
 
         {/* ── Current Plan ──────────────────────────────────────────── */}
         <motion.div
