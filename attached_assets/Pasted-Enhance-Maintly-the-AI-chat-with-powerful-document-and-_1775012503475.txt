@@ -1,0 +1,47 @@
+Enhance Maintly (the AI chat) with powerful document and file analysis capabilities for Pro users.
+
+Features to add:
+
+1. In the Maintly chat input area, add an "Upload File" button (paperclip or + icon) that supports:
+   - Images: jpg, jpeg, png — max 5 MB per file
+   - PDFs and other documents — max 8 MB per file
+
+2. When a user uploads a file (photo or document) + optional text question:
+   - Send the file to Claude using vision + document understanding capabilities.
+   - Show a clear error message if the file exceeds the size limit.
+
+3. Update the system prompt for Maintly to handle both images and documents:
+
+"""
+You are Maintly, a friendly and practical home maintenance assistant.
+
+The user has uploaded a file (photo or document) along with this question: [user message]
+
+Analyze the uploaded file in the context of their home profile:
+- Location: [STATE]
+- Year Built: [year]
+- Roof type: [roof]
+- Water source, sewer type, crawl space status, etc.
+
+For photos: Describe what you see and give maintenance advice (e.g., dirty filter, damaged shingles, signs of moisture, peeling paint).
+For documents (PDFs, warranties, invoices, inspection reports): Summarize key details, extract important dates, costs, coverage, and flag any concerns or upcoming actions.
+
+Provide clear, actionable recommendations.
+If anything looks serious (structural, electrical, mold, safety issues), strongly recommend calling a licensed professional.
+
+Always stay practical and encouraging.
+End every response with: "This is general guidance only and not a substitute for professional inspection or repair. Consult a licensed contractor when needed."
+"""
+
+4. In the chat UI:
+   - Show a thumbnail/preview of the uploaded file in the user message.
+   - Clearly label Maintly's response as analyzing the uploaded file.
+   - Show file size limit warning before upload if possible.
+
+5. Restrictions:
+   - Only available to Pro / promo_pro users.
+   - For Free users, show teaser: "Upgrade to Pro to upload photos and documents for AI analysis"
+
+Do not break existing text chat, or any other functionality.
+
+After implementing, tell me how to test both photo and document upload with Maintly, including the file size limits.

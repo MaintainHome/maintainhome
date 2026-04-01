@@ -1,10 +1,25 @@
 import { Router, type Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
+import multer from "multer";
 import { db, usersTable, homeProfilesTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 
 const router = Router();
+
+// Multer – memory storage, 8 MB hard cap (per-type limits enforced in handler)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "application/pdf"];
+    if (allowed.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only JPG, PNG images and PDF documents are supported."));
+    }
+  },
+});
 
 async function getStateFromZip(zip: string): Promise<string | null> {
   try {
@@ -275,5 +290,112 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
     res.end();
   }
 });
+
+// ── POST /api/ai/chat-with-file  (Pro only, multipart) ────────────────────
+router.post(
+  "/ai/chat-with-file",
+  requireAuth as any,
+  (upload.single("file") as any),
+  async (req: AuthRequest, res: Response) => {
+    // Pro check
+    const [user] = await db
+      .select({ subscriptionStatus: usersTable.subscriptionStatus, zipCode: usersTable.zipCode })
+      .from(usersTable)
+      .where(eq(usersTable.id, req.userId!))
+      .limit(1);
+
+    if (!user) { res.status(401).json({ error: "User not found." }); return; }
+
+    const proStatuses = ["pro_monthly", "pro_annual", "promo_pro"];
+    if (!proStatuses.includes(user.subscriptionStatus)) {
+      res.status(403).json({ error: "Pro subscription required to upload files." });
+      return;
+    }
+
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) { res.status(503).json({ error: "AI service not configured." }); return; }
+
+    const file = (req as any).file as Express.Multer.File | undefined;
+    if (!file) { res.status(400).json({ error: "No file uploaded." }); return; }
+
+    // Per-type size enforcement
+    const isImage = file.mimetype.startsWith("image/");
+    const maxBytes = isImage ? 5 * 1024 * 1024 : 8 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      res.status(400).json({ error: `File is too large. Max ${isImage ? "5MB" : "8MB"} for ${isImage ? "images" : "PDFs"}.` });
+      return;
+    }
+
+    const message = ((req.body.message as string) || "").trim();
+    let quizAnswers: Record<string, string> = {};
+    try { quizAnswers = JSON.parse((req.body.quizAnswers as string) || "{}"); } catch {}
+
+    // Look up state + home profile
+    const zip = quizAnswers.zip ?? user.zipCode ?? null;
+    const state = zip ? await getStateFromZip(zip) : null;
+    const [homeProfile] = await db
+      .select()
+      .from(homeProfilesTable)
+      .where(eq(homeProfilesTable.userId, req.userId!))
+      .limit(1);
+
+    const systemPrompt = buildSystemPrompt(zip, state, quizAnswers, homeProfile ?? null);
+
+    // Build Claude content blocks
+    const base64Data = file.buffer.toString("base64");
+    const userText = message || (isImage
+      ? "Please analyze this image and give me maintenance advice based on what you see."
+      : "Please analyze this document and summarize key details, flag concerns, and suggest any maintenance actions needed.");
+
+    type ImageBlock = {
+      type: "image";
+      source: { type: "base64"; media_type: "image/jpeg" | "image/png" | "image/gif" | "image/webp"; data: string };
+    };
+    type DocumentBlock = {
+      type: "document";
+      source: { type: "base64"; media_type: "application/pdf"; data: string };
+    };
+    type TextBlock = { type: "text"; text: string };
+
+    const fileBlock: ImageBlock | DocumentBlock = isImage
+      ? { type: "image", source: { type: "base64", media_type: file.mimetype as "image/jpeg" | "image/png", data: base64Data } }
+      : { type: "document", source: { type: "base64", media_type: "application/pdf", data: base64Data } };
+
+    const content: (ImageBlock | DocumentBlock | TextBlock)[] = [
+      fileBlock,
+      { type: "text", text: userText },
+    ];
+
+    // SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+
+    const anthropic = new Anthropic({ apiKey });
+
+    try {
+      const stream = anthropic.messages.stream({
+        model: "claude-haiku-4-5",
+        max_tokens: 8192,
+        system: systemPrompt,
+        messages: [{ role: "user", content: content as any }],
+      });
+
+      for await (const event of stream) {
+        if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+          res.write(`data: ${JSON.stringify({ content: event.delta.text })}\n\n`);
+        }
+      }
+
+      res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+      res.end();
+    } catch (err) {
+      console.error("[ai-chat-file] Claude error:", err);
+      res.write(`data: ${JSON.stringify({ error: "AI service error. Please try again." })}\n\n`);
+      res.end();
+    }
+  }
+);
 
 export default router;
