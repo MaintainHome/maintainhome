@@ -9,6 +9,7 @@ export const usersTable = pgTable("users", {
   zipCode: text("zip_code"),
   fullAccess: boolean("full_access").default(false).notNull(),
   subscriptionStatus: text("subscription_status").$type<SubscriptionStatus>().default("free").notNull(),
+  referralSubdomain: text("referral_subdomain"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

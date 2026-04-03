@@ -1,10 +1,11 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  CheckCircle2, ClipboardList, ArrowLeft, Loader2, LogOut, Calendar,
+  CheckCircle2, ClipboardList, Loader2, LogOut, Calendar,
   Pencil, Paperclip, FileText, Plus, Upload, CalendarDays, Check, X,
   AlertTriangle, Lock, FileDown, Zap, Trash2,
 } from "lucide-react";
+import { BrandedPageHeader } from "@/components/BrandedPageHeader";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
@@ -207,44 +208,20 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Navbar */}
-      <nav className="w-full border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <img
-              src={`${import.meta.env.BASE_URL}images/logo-icon.png`}
-              alt="MaintainHome.ai"
-              className="w-8 h-8 object-contain"
-            />
-            <span className="text-lg font-display font-bold text-foreground">
-              MaintainHome<span className="text-primary">.ai</span>
-            </span>
-          </a>
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-slate-500 hidden sm:block truncate max-w-[160px]">
-              {user?.email}
-            </span>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
-          </div>
-        </div>
-      </nav>
+      <BrandedPageHeader title="Maintenance History" icon={<ClipboardList className="w-5 h-5 text-primary shrink-0" />}>
+        <span className="text-xs text-slate-500 hidden sm:block truncate max-w-[160px]">
+          {user?.email}
+        </span>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
+      </BrandedPageHeader>
 
       <div className="max-w-3xl mx-auto px-4 py-10">
-        {/* Back link */}
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-primary transition-colors mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Home
-        </button>
-
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}

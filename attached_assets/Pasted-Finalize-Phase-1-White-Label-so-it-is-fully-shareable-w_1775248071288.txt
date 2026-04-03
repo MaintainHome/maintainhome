@@ -1,0 +1,34 @@
+Finalize Phase 1 White-Label so it is fully shareable with a broker or team leader.
+
+Make the following improvements so a broker can be given the system and use it immediately:
+
+1. Broker Onboarding Experience (/broker-onboard)
+   - Make this the main entry point for new brokers/team leaders.
+   - Improve the form: clear instructions, logo upload (already exists), color pickers with live preview, tagline field, welcome message field, and a checkbox "This is for a Team Leader (multiple agents)".
+   - After submission, show a clear success message with next steps.
+
+2. Broker / Team Dashboard
+   - Create or improve /broker or /my-team page (accessible after login with the broker's subdomain).
+   - Show:
+     - Their current branding settings (logo, colors, tagline)
+     - List of their clients who have signed up under this branding
+     - Basic stats (number of active clients, average Home Health Score)
+     - Button to "Invite New Client" that generates a shareable link with their branding pre-applied
+
+3. Client Invitation Flow
+   - When a broker uses "Invite New Client", generate a unique link that takes the client to the Sign Up flow with the broker's branding already applied.
+   - After the client signs up, they should see the broker's full branded experience from the first login.
+
+4. Final Branding Polish
+   - Ensure every page (dashboard, My Home Profile, Maintenance History, Full Calendar, Maintly chat) fully respects the white-label branding (logo, colors, tagline).
+   - Keep the small "Powered by MaintainHome.ai" footer badge on branded instances.
+
+5. Team Leader Support
+   - If the broker selected "This is for a Team Leader", allow multiple agents to use the same branded instance under the team leader's credentials.
+
+After implementing, give clear instructions on:
+- How I (as the platform owner) can create and share a white-label instance with a broker/team leader
+- How the broker experiences the onboarding and their dashboard
+- How a client invited by that broker experiences the branded app
+
+This should make the white-label ready to share with real Pioneer Agents.

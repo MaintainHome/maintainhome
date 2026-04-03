@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import {
-  Home, ArrowLeft, Save, CheckCircle2, AlertCircle, Edit2,
+  Home, Save, CheckCircle2, AlertCircle, Edit2,
   MapPin, Bed, Bath, Layers, Waves, Calendar, Percent,
   TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2, Shield,
   ExternalLink,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { PricingSection } from "@/components/PricingSection";
+import { BrandedPageHeader } from "@/components/BrandedPageHeader";
 
 // ── Label maps (mirrors quiz + ai-chat server) ─────────────────────────────
 const HOME_AGE_LABELS: Record<string, string> = {
@@ -197,19 +198,10 @@ export default function HomeProfilePage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* ── Header ─────────────────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
-          <button
-            onClick={() => navigate("/")}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <Home className="w-5 h-5 text-primary shrink-0" />
-            <h1 className="text-base font-bold text-slate-900 truncate">My Home Profile</h1>
-          </div>
+      <BrandedPageHeader
+        title="My Home Profile"
+        icon={<Home className="w-5 h-5 text-primary shrink-0" />}
+      >
           <button
             onClick={handleSave}
             disabled={saving}
@@ -224,8 +216,7 @@ export default function HomeProfilePage() {
             )}
             {saved ? "Saved!" : saving ? "Saving…" : "Save"}
           </button>
-        </div>
-      </div>
+      </BrandedPageHeader>
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         {error && (

@@ -21,6 +21,7 @@ interface BrandingContextType {
 const BrandingContext = createContext<BrandingContextType | null>(null);
 
 const PREVIEW_KEY = "mh_preview_subdomain";
+const REFERRAL_KEY = "mh_referral_sub";
 
 function detectSubdomain(): string | null {
   const hostname = window.location.hostname;
@@ -29,6 +30,27 @@ function detectSubdomain(): string | null {
   const sub = parts[0].toLowerCase();
   if (sub === "www") return null;
   return sub;
+}
+
+function detectReferralParam(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get("_ref");
+  if (ref) {
+    localStorage.setItem(REFERRAL_KEY, ref.toLowerCase());
+    const url = new URL(window.location.href);
+    url.searchParams.delete("_ref");
+    window.history.replaceState({}, "", url.toString());
+    return ref.toLowerCase();
+  }
+  return localStorage.getItem(REFERRAL_KEY);
+}
+
+export function getReferralSubdomain(): string | null {
+  return localStorage.getItem(REFERRAL_KEY);
+}
+
+export function clearReferralSubdomain() {
+  localStorage.removeItem(REFERRAL_KEY);
 }
 
 function hexToHsl(hex: string): string | null {
@@ -83,7 +105,8 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const subdomain = previewSubdomain || detectSubdomain();
+    const referral = detectReferralParam();
+    const subdomain = previewSubdomain || detectSubdomain() || referral;
 
     if (!subdomain) {
       setBranding(null);

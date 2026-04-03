@@ -95,9 +95,9 @@ router.post("/auth/check-email", async (req: Request, res: Response) => {
 
 const VALID_PROMO_CODE = "BETA2026";
 
-// Request magic link — accepts optional name, zipCode, promoCode, staySignedIn
+// Request magic link — accepts optional name, zipCode, promoCode, staySignedIn, referralSubdomain
 router.post("/auth/request-link", async (req: Request, res: Response) => {
-  const { email, name, zipCode, promoCode, staySignedIn } = req.body;
+  const { email, name, zipCode, promoCode, staySignedIn, referralSubdomain } = req.body;
   const stay = staySignedIn !== false;
   if (!email || typeof email !== "string" || !email.includes("@")) {
     res.status(400).json({ error: "Valid email address required" });
@@ -120,6 +120,8 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
 
   const isNewUser = !user;
 
+  const trimmedReferral = typeof referralSubdomain === "string" ? referralSubdomain.trim().toLowerCase() : null;
+
   if (!user) {
     // New user — create account with email (name/zip collected later via quiz)
     [user] = await db
@@ -130,9 +132,10 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
         zipCode: trimmedZip ?? null,
         fullAccess: promoGrantsAccess,
         subscriptionStatus: promoGrantsAccess ? "promo_pro" : "free",
+        referralSubdomain: trimmedReferral || null,
       })
       .returning();
-    console.log(`[auth] New user created: ${normalizedEmail} subscriptionStatus=${promoGrantsAccess ? "promo_pro" : "free"}`);
+    console.log(`[auth] New user created: ${normalizedEmail} subscriptionStatus=${promoGrantsAccess ? "promo_pro" : "free"} referral=${trimmedReferral || "none"}`);
   } else {
     // Returning user — update fields as needed
     const updates: Record<string, unknown> = {};

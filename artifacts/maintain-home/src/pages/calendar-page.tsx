@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useLocation } from "wouter";
-import { ArrowLeft, CalendarDays, RefreshCw, Sparkles } from "lucide-react";
+import { CalendarDays, RefreshCw, Sparkles } from "lucide-react";
 import { DemoQuiz } from "@/components/DemoQuiz";
 import { useAuth } from "@/contexts/AuthContext";
+import { BrandedPageHeader } from "@/components/BrandedPageHeader";
 
 export default function CalendarPage() {
   const { user, loading: authLoading } = useAuth();
@@ -33,30 +34,21 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* ── Sticky header ─────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 bg-white/90 backdrop-blur border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-3">
+      <BrandedPageHeader
+        title="My Full Year Calendar"
+        icon={<CalendarDays className="w-5 h-5 text-primary shrink-0" />}
+        maxWidth="max-w-5xl"
+      >
+        {savedCalendar && (
           <button
-            onClick={() => navigate("/")}
-            className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+            onClick={() => navigate("/quiz")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <RefreshCw className="w-3.5 h-3.5" />
+            Retake Quiz
           </button>
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <CalendarDays className="w-5 h-5 text-primary shrink-0" />
-            <h1 className="text-base font-bold text-slate-900 truncate">My Full Year Calendar</h1>
-          </div>
-          {savedCalendar && (
-            <button
-              onClick={() => navigate("/quiz")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Retake Quiz
-            </button>
-          )}
-        </div>
-      </div>
+        )}
+      </BrandedPageHeader>
 
       {/* ── Content ───────────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">

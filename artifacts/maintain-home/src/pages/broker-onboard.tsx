@@ -115,20 +115,68 @@ export default function BrokerOnboard() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="max-w-md w-full bg-white rounded-3xl shadow-2xl p-10 text-center"
+          className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden"
         >
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-8 h-8 text-green-600" />
+          {/* Success banner */}
+          <div className="bg-gradient-to-br from-green-500 to-emerald-600 p-8 text-white text-center">
+            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-2xl font-black mb-2">Application Submitted!</h1>
+            <p className="text-green-100 text-sm">
+              We received your request for <strong>{form.subdomain}.maintainhome.ai</strong>
+            </p>
           </div>
-          <h1 className="text-2xl font-black text-slate-900 mb-3">Application Submitted!</h1>
-          <p className="text-slate-600 leading-relaxed mb-2">
-            We'll review your white-label request and get back to you at{" "}
-            <strong>{form.contactEmail}</strong> within 1–2 business days.
-          </p>
-          <p className="text-slate-500 text-sm">
-            Once approved, your branded instance will be live at{" "}
-            <strong>{form.subdomain}.maintainhome.ai</strong>.
-          </p>
+
+          {/* Next steps */}
+          <div className="p-8 space-y-5">
+            <h2 className="font-bold text-slate-900 text-base">What happens next:</h2>
+            <div className="space-y-4">
+              {[
+                {
+                  step: "1",
+                  title: "Application review (1–2 business days)",
+                  desc: `We'll review your submission and send an approval email to ${form.contactEmail}.`,
+                },
+                {
+                  step: "2",
+                  title: "Your branded instance goes live",
+                  desc: `Your clients can visit ${form.subdomain}.maintainhome.ai and see your logo, colors, and branding immediately.`,
+                },
+                {
+                  step: "3",
+                  title: "Access your Broker Dashboard",
+                  desc: "Sign in with your contact email to access your broker dashboard, view clients, and share your invite link.",
+                },
+              ].map((item) => (
+                <div key={item.step} className="flex gap-3">
+                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-primary font-black text-xs">{item.step}</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-800 text-sm">{item.title}</p>
+                    <p className="text-slate-500 text-xs mt-0.5 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-slate-100 pt-5">
+              <a
+                href="/"
+                className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors shadow-sm shadow-primary/20"
+              >
+                Go to MaintainHome.ai
+                <ChevronRight className="w-4 h-4" />
+              </a>
+              <p className="text-center text-xs text-slate-400 mt-3">
+                Questions? Email us at{" "}
+                <a href="mailto:support@maintainhome.ai" className="text-primary hover:underline">
+                  support@maintainhome.ai
+                </a>
+              </p>
+            </div>
+          </div>
         </motion.div>
       </div>
     );

@@ -99,6 +99,8 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       if (mode === "signup") {
         body.name = name.trim();
         if (promoCode.trim()) body.promoCode = promoCode.trim();
+        const referral = localStorage.getItem("mh_referral_sub");
+        if (referral) body.referralSubdomain = referral;
       }
 
       const res = await fetch("/api/auth/request-link", {
