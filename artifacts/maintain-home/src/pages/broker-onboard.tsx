@@ -113,11 +113,17 @@ export default function BrokerOnboard() {
   }
 
   if (success) {
+    const monetizationDisplay =
+      form.monetizationModel === "closing_gift"
+        ? `Closing Gift · ${form.giftDuration === "3years" ? "3 Years" : "1 Year"}`
+        : "Private Label";
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, scale: 0.92, y: 12 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: "easeOut" }}
           className="max-w-lg w-full bg-white rounded-3xl shadow-2xl overflow-hidden"
         >
           {/* Success banner */}
@@ -125,36 +131,57 @@ export default function BrokerOnboard() {
             <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-black mb-2">Application Submitted!</h1>
-            <p className="text-green-100 text-sm">
+            <h1 className="text-2xl font-black mb-1">Application Submitted!</h1>
+            <p className="text-green-100 text-sm mb-3">
               We received your request for <strong>{form.subdomain}.maintainhome.ai</strong>
             </p>
+            {/* Submission summary chips */}
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">
+                {form.type === "team_leader" ? "🏢 Team Leader" : "👤 Individual Agent"}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">
+                {form.monetizationModel === "closing_gift" ? "🎁" : "💳"} {monetizationDisplay}
+              </span>
+            </div>
           </div>
 
           {/* Next steps */}
           <div className="p-8 space-y-5">
+            {/* Live timing callout */}
+            <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-primary/8 border border-primary/20">
+              <span className="text-lg shrink-0">⚡</span>
+              <p className="text-sm text-slate-700 leading-relaxed">
+                <strong className="text-slate-900">Your branded instance will be live within 24 hours after approval.</strong>{" "}
+                We'll email you the moment it's ready.
+              </p>
+            </div>
+
             <h2 className="font-bold text-slate-900 text-base">What happens next:</h2>
             <div className="space-y-4">
               {[
                 {
                   step: "1",
-                  title: "Application review (1–2 business days)",
-                  desc: `We'll review your submission and send an approval email to ${form.contactEmail}.`,
+                  emoji: "📋",
+                  title: "Review (typically same business day)",
+                  desc: `We review your submission and send an approval email to ${form.contactEmail}.`,
                 },
                 {
                   step: "2",
+                  emoji: "🚀",
                   title: "Your branded instance goes live",
-                  desc: `Your clients can visit ${form.subdomain}.maintainhome.ai and see your logo, colors, and branding immediately.`,
+                  desc: `Within 24 hours of approval, clients can visit ${form.subdomain}.maintainhome.ai and see your logo, colors, and branding instantly.`,
                 },
                 {
                   step: "3",
-                  title: "Access your Broker Dashboard",
-                  desc: "Sign in with your contact email to access your broker dashboard, view clients, and share your invite link.",
+                  emoji: "📊",
+                  title: "Access your Partner Dashboard",
+                  desc: "Sign in with your contact email at maintainhome.ai/broker-dashboard to view clients, copy your invite link, and track engagement.",
                 },
               ].map((item) => (
                 <div key={item.step} className="flex gap-3">
-                  <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-primary font-black text-xs">{item.step}</span>
+                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5 text-base">
+                    {item.emoji}
                   </div>
                   <div>
                     <p className="font-semibold text-slate-800 text-sm">{item.title}</p>
@@ -164,16 +191,22 @@ export default function BrokerOnboard() {
               ))}
             </div>
 
-            <div className="border-t border-slate-100 pt-5">
+            <div className="border-t border-slate-100 pt-5 space-y-2">
               <a
-                href="/"
+                href="/broker-dashboard"
                 className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors shadow-sm shadow-primary/20"
               >
-                Go to MaintainHome.ai
+                Go to My Broker Dashboard
                 <ChevronRight className="w-4 h-4" />
               </a>
-              <p className="text-center text-xs text-slate-400 mt-3">
-                Questions? Email us at{" "}
+              <a
+                href="/"
+                className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
+              >
+                Go to MaintainHome.ai
+              </a>
+              <p className="text-center text-xs text-slate-400 mt-2">
+                Questions?{" "}
                 <a href="mailto:support@maintainhome.ai" className="text-primary hover:underline">
                   support@maintainhome.ai
                 </a>

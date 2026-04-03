@@ -71,7 +71,10 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
 
     const [calendarRows, logRows] = await Promise.all([
       db
-        .select({ userId: savedCalendarsTable.userId })
+        .select({
+          userId: savedCalendarsTable.userId,
+          calendarData: savedCalendarsTable.calendarData,
+        })
         .from(savedCalendarsTable)
         .where(inArray(savedCalendarsTable.userId, userIds)),
       db
@@ -84,11 +87,18 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         .groupBy(maintenanceLogTable.userId),
     ]);
 
-    const calendarSet = new Set(calendarRows.map((r) => r.userId));
+    const calendarMap = new Map(calendarRows.map((r) => [r.userId, r.calendarData]));
     const logCountMap = new Map(logRows.map((r) => [r.userId, r.count]));
 
     const clients = rawClients.map((c) => {
-      const hasCalendar = calendarSet.has(c.id);
+      const calData = calendarMap.get(c.id) as Record<string, unknown> | undefined;
+      const hasCalendar = !!calData;
+      const bigTicketAlertCount = Array.isArray((calData as any)?.big_ticket_alerts)
+        ? (calData as any).big_ticket_alerts.length
+        : 0;
+      const bigTicketAlerts: string[] = Array.isArray((calData as any)?.big_ticket_alerts)
+        ? (calData as any).big_ticket_alerts.slice(0, 3)
+        : [];
       const logCount = logCountMap.get(c.id) ?? 0;
       const activityScore = Math.min(
         (hasCalendar ? 60 : 0) + Math.min(logCount * 8, 40),
@@ -99,6 +109,8 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         hasCalendar,
         logCount,
         activityScore,
+        bigTicketAlertCount,
+        bigTicketAlerts,
       };
     });
 
