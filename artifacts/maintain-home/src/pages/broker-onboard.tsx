@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Building2, User, CheckCircle2, AlertCircle, Loader2, ChevronRight, Palette } from "lucide-react";
+import {
+  Building2, User, CheckCircle2, AlertCircle, Loader2,
+  ChevronRight, Palette, Upload, X, ImageIcon, Users,
+} from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
@@ -19,17 +22,72 @@ export default function BrokerOnboard() {
     contactEmail: "",
     type: "individual_agent" as "individual_agent" | "team_leader",
   });
+
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function handle(field: keyof typeof form, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
     setError(null);
   }
 
+  const handleLogoSelect = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setLogoError("Please select an image file (PNG, JPG, SVG, WebP).");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setLogoError("Logo must be under 2MB.");
+      return;
+    }
+    setLogoError(null);
+    setLogoFile(file);
+    const preview = URL.createObjectURL(file);
+    setLogoPreview(preview);
+
+    setLogoUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+      const res = await fetch(`${API_BASE}/api/logo-upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setLogoError(data.error ?? "Upload failed. You can paste a URL instead.");
+        setForm((f) => ({ ...f, logoUrl: "" }));
+      } else {
+        setForm((f) => ({ ...f, logoUrl: data.logoUrl }));
+      }
+    } catch {
+      setLogoError("Upload failed. You can paste a URL instead.");
+    } finally {
+      setLogoUploading(false);
+    }
+  }, []);
+
+  function clearLogo() {
+    setLogoFile(null);
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    setLogoPreview(null);
+    setLogoError(null);
+    setForm((f) => ({ ...f, logoUrl: "" }));
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (logoUploading) {
+      setError("Please wait for the logo to finish uploading.");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -98,13 +156,14 @@ export default function BrokerOnboard() {
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            {/* Type selector */}
             <div className="grid grid-cols-2 divide-x divide-slate-100 border-b border-slate-100">
               <button
                 type="button"
                 onClick={() => handle("type", "individual_agent")}
                 className={`flex items-center gap-3 px-6 py-5 text-left transition-all ${form.type === "individual_agent" ? "bg-primary/5 text-primary" : "text-slate-500 hover:bg-slate-50"}`}
               >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.type === "individual_agent" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${form.type === "individual_agent" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
                   <User className="w-4 h-4" />
                 </div>
                 <div>
@@ -117,8 +176,8 @@ export default function BrokerOnboard() {
                 onClick={() => handle("type", "team_leader")}
                 className={`flex items-center gap-3 px-6 py-5 text-left transition-all ${form.type === "team_leader" ? "bg-primary/5 text-primary" : "text-slate-500 hover:bg-slate-50"}`}
               >
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${form.type === "team_leader" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
-                  <Building2 className="w-4 h-4" />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${form.type === "team_leader" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
+                  <Users className="w-4 h-4" />
                 </div>
                 <div>
                   <p className="font-bold text-sm">Team Leader</p>
@@ -127,22 +186,33 @@ export default function BrokerOnboard() {
               </button>
             </div>
 
+            {form.type === "team_leader" && (
+              <div className="px-6 py-3 bg-blue-50 border-b border-blue-100 flex items-start gap-2.5">
+                <Users className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-blue-700 leading-relaxed">
+                  <strong>Team Leader mode:</strong> All team members log in under your branded instance and see your logo and colors. Each member has their own private home data, but everyone benefits from your shared branding.
+                </p>
+              </div>
+            )}
+
             <form onSubmit={submit} className="p-8 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {/* Broker/Team Name */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Broker / Team Name <span className="text-red-500">*</span>
+                    {form.type === "team_leader" ? "Team Name" : "Broker / Agent Name"} <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
                     value={form.brokerName}
                     onChange={(e) => handle("brokerName", e.target.value)}
-                    placeholder="Smith Realty Group"
+                    placeholder={form.type === "team_leader" ? "Smith Realty Group" : "Jane Smith Real Estate"}
                     required
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900"
                   />
                 </div>
 
+                {/* Subdomain */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Desired Subdomain <span className="text-red-500">*</span>
@@ -162,6 +232,7 @@ export default function BrokerOnboard() {
                   </div>
                 </div>
 
+                {/* Contact Email */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Contact Email <span className="text-red-500">*</span>
@@ -176,20 +247,90 @@ export default function BrokerOnboard() {
                   />
                 </div>
 
+                {/* Logo Upload */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Logo URL <span className="text-slate-400 font-normal">(optional)</span>
+                    Logo <span className="text-slate-400 font-normal">(PNG, SVG, WebP — max 2MB)</span>
                   </label>
+
+                  {!logoFile ? (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full border-2 border-dashed border-slate-200 rounded-xl px-6 py-8 flex flex-col items-center gap-3 cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
+                        <Upload className="w-5 h-5 text-slate-400" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm font-semibold text-slate-700">Click to upload your logo</p>
+                        <p className="text-xs text-slate-400 mt-1">Recommended: transparent PNG or SVG, min 200×60px</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full border border-slate-200 rounded-xl px-5 py-4 flex items-center gap-4">
+                      {logoPreview && (
+                        <div className="w-20 h-12 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                          <img src={logoPreview} alt="Logo preview" className="max-w-full max-h-full object-contain" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 truncate">{logoFile.name}</p>
+                        <p className="text-xs text-slate-400">{(logoFile.size / 1024).toFixed(0)} KB</p>
+                        {logoUploading && (
+                          <p className="text-xs text-primary flex items-center gap-1 mt-1">
+                            <Loader2 className="w-3 h-3 animate-spin" /> Uploading…
+                          </p>
+                        )}
+                        {!logoUploading && form.logoUrl && (
+                          <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                            <CheckCircle2 className="w-3 h-3" /> Uploaded successfully
+                          </p>
+                        )}
+                        {logoError && (
+                          <p className="text-xs text-red-500 mt-1">{logoError}</p>
+                        )}
+                      </div>
+                      <button type="button" onClick={clearLogo} className="shrink-0 text-slate-400 hover:text-slate-600">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+
                   <input
-                    type="url"
-                    value={form.logoUrl}
-                    onChange={(e) => handle("logoUrl", e.target.value)}
-                    placeholder="https://yoursite.com/logo.png"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900"
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleLogoSelect(file);
+                    }}
                   />
-                  <p className="text-xs text-slate-400 mt-1">Paste a public URL to your logo image. We recommend SVG or PNG with transparent background.</p>
+
+                  {logoError && !logoFile && (
+                    <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" /> {logoError}
+                    </p>
+                  )}
+
+                  <div className="mt-2.5">
+                    <label className="block text-xs text-slate-400 mb-1.5">
+                      Or paste a public logo URL:
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <ImageIcon className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+                      <input
+                        type="url"
+                        value={logoFile ? "" : form.logoUrl}
+                        onChange={(e) => { clearLogo(); handle("logoUrl", e.target.value); }}
+                        placeholder="https://yoursite.com/logo.png"
+                        className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm text-slate-900"
+                      />
+                    </div>
+                  </div>
                 </div>
 
+                {/* Color pickers */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-3">
                     <Palette className="w-4 h-4 inline mr-1.5 text-slate-400" />
@@ -231,12 +372,13 @@ export default function BrokerOnboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 h-8 rounded-xl overflow-hidden flex">
+                  <div className="mt-3 h-6 rounded-lg overflow-hidden flex">
                     <div className="flex-1" style={{ backgroundColor: form.primaryColor }} />
                     <div className="flex-1" style={{ backgroundColor: form.secondaryColor }} />
                   </div>
                 </div>
 
+                {/* Tagline */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     Custom Tagline <span className="text-slate-400 font-normal">(optional)</span>
@@ -249,11 +391,13 @@ export default function BrokerOnboard() {
                     maxLength={120}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900"
                   />
+                  <p className="text-xs text-slate-400 mt-1">Shown below the headline on your branded homepage.</p>
                 </div>
 
+                {/* Welcome Message */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Welcome Message for Clients <span className="text-slate-400 font-normal">(optional)</span>
+                    Client Welcome Message <span className="text-slate-400 font-normal">(optional)</span>
                   </label>
                   <textarea
                     value={form.welcomeMessage}
@@ -263,6 +407,7 @@ export default function BrokerOnboard() {
                     maxLength={400}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900 resize-none"
                   />
+                  <p className="text-xs text-slate-400 mt-1">Shown as a banner the first time a client signs in under your brand.</p>
                 </div>
               </div>
 
@@ -275,7 +420,7 @@ export default function BrokerOnboard() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || logoUploading}
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-base transition-all disabled:opacity-60 shadow-lg shadow-primary/25"
               >
                 {loading ? (

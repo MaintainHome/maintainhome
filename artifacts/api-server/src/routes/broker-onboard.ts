@@ -1,8 +1,42 @@
 import { Router, type Request, type Response } from "express";
 import { db, whiteLabelConfigsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
+import multer from "multer";
+import { ObjectStorageService } from "../lib/objectStorage";
 
 const router = Router();
+const objectStorage = new ObjectStorageService();
+
+const logoUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"));
+    }
+  },
+});
+
+router.post("/logo-upload", logoUpload.single("logo"), async (req: Request, res: Response) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({ error: "No image file provided" });
+      return;
+    }
+    const logoUrl = await objectStorage.uploadFile(file.buffer, file.mimetype, "broker-logos");
+    res.json({ logoUrl });
+  } catch (err: any) {
+    console.error("[logo-upload] error:", err);
+    if (err.message === "Only image files are allowed") {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    res.status(500).json({ error: "Failed to upload logo. Please try a URL instead." });
+  }
+});
 
 const SUBDOMAIN_RE = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
 const RESERVED = new Set(["www", "app", "api", "admin", "mail", "support", "help", "broker"]);

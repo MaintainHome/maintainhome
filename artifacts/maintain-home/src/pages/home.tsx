@@ -1,20 +1,23 @@
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
-import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle, Home as HomeIcon, CalendarDays } from "lucide-react";
+import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle, Home as HomeIcon, CalendarDays, X } from "lucide-react";
 import { Features } from "@/components/Features";
 import { PricingSection } from "@/components/PricingSection";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AuthModal } from "@/components/AuthModal";
 import { Dashboard } from "@/components/Dashboard";
 import { useAuth, isPro } from "@/contexts/AuthContext";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useLocation } from "wouter";
 
 export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [welcomeBanner, setWelcomeBanner] = useState(false);
+  const [brokerWelcomeBanner, setBrokerWelcomeBanner] = useState(false);
   const [savedCalendar, setSavedCalendar] = useState<{ quizAnswers: any; calendarData: any } | null>(null);
   const [showAIChat, setShowAIChat] = useState(false);
   const { user, loading: authLoading, logout } = useAuth();
+  const { branding } = useBranding();
   const userIsPro = isPro(user);
   const [, navigate] = useLocation();
 
@@ -27,6 +30,17 @@ export default function Home() {
       setTimeout(() => setWelcomeBanner(false), 6000);
     }
   }, []);
+
+  // Show broker welcome message on first login under a branded subdomain
+  useEffect(() => {
+    if (!user || !branding?.welcomeMessage) return;
+    const seenKey = `mh_broker_welcome_${user.id}_${branding.subdomain}`;
+    if (localStorage.getItem(seenKey)) return;
+    localStorage.setItem(seenKey, "1");
+    setBrokerWelcomeBanner(true);
+    const t = setTimeout(() => setBrokerWelcomeBanner(false), 10000);
+    return () => clearTimeout(t);
+  }, [user?.id, branding?.subdomain, branding?.welcomeMessage]);
 
   // When a user is signed in, load their saved calendar for the dashboard
   useEffect(() => {
@@ -52,26 +66,66 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/20">
-      {/* Top Trust Banner */}
-      <div className="w-full bg-slate-950 text-white py-3 px-4 text-center text-sm font-medium flex items-center justify-center gap-2 relative z-50">
-        <Sparkles className="w-4 h-4 text-yellow-300" />
-        <span>Beta testing — testers get first year FREE!</span>
-        <Sparkles className="w-4 h-4 text-yellow-300 hidden sm:block" />
-      </div>
+      {/* Top Trust Banner — hidden when a broker subdomain is active */}
+      {!branding && (
+        <div className="w-full bg-slate-950 text-white py-3 px-4 text-center text-sm font-medium flex items-center justify-center gap-2 relative z-50">
+          <Sparkles className="w-4 h-4 text-yellow-300" />
+          <span>Beta testing — testers get first year FREE!</span>
+          <Sparkles className="w-4 h-4 text-yellow-300 hidden sm:block" />
+        </div>
+      )}
+
+      {/* Broker welcome message banner — shown once per user per subdomain */}
+      <AnimatePresence>
+        {brokerWelcomeBanner && branding?.welcomeMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: -16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -16 }}
+            className="w-full bg-primary text-white py-3 px-5 flex items-center justify-between gap-3 relative z-50"
+          >
+            <div className="flex items-center gap-2 text-sm font-medium flex-1 justify-center">
+              <Sparkles className="w-4 h-4 shrink-0" />
+              <span>{branding.welcomeMessage}</span>
+            </div>
+            <button
+              onClick={() => setBrokerWelcomeBanner(false)}
+              className="shrink-0 hover:opacity-70 transition-opacity"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Navigation */}
       <nav className="w-full border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-32 flex items-center justify-between">
           <a href="/" className="flex items-center gap-1.5 sm:gap-3 hover:opacity-80 transition-opacity min-w-0 shrink">
-            <img 
-              src={`${import.meta.env.BASE_URL}images/logo-icon.png`} 
-              alt="MaintainHome.ai Logo" 
-              className="w-8 h-8 sm:w-28 sm:h-28 object-contain shrink-0"
-            />
-            {/* Brand name — mobile + desktop */}
-            <span className="text-sm sm:text-4xl font-display font-bold text-foreground tracking-tight leading-tight">
-              MaintainHome<span className="text-primary">.ai</span>
-            </span>
+            {branding ? (
+              branding.logoUrl ? (
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.brokerName}
+                  className="h-8 sm:h-20 w-auto max-w-[160px] sm:max-w-[240px] object-contain shrink-0"
+                />
+              ) : (
+                <span className="text-sm sm:text-3xl font-display font-black text-primary tracking-tight leading-tight">
+                  {branding.brokerName}
+                </span>
+              )
+            ) : (
+              <>
+                <img
+                  src={`${import.meta.env.BASE_URL}images/logo-icon.png`}
+                  alt="MaintainHome.ai Logo"
+                  className="w-8 h-8 sm:w-28 sm:h-28 object-contain shrink-0"
+                />
+                <span className="text-sm sm:text-4xl font-display font-bold text-foreground tracking-tight leading-tight">
+                  MaintainHome<span className="text-primary">.ai</span>
+                </span>
+              </>
+            )}
           </a>
 
           <div className="flex items-center gap-2">
@@ -257,13 +311,19 @@ export default function Home() {
                   </span>
                 </h1>
 
-                <p className="text-xl sm:text-2xl font-bold text-foreground mb-5 max-w-lg leading-snug">
-                  Simplify Your Life With Our Personalized{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500 whitespace-nowrap">
-                    Ai-Powered
-                  </span>
-                  {" "}Plan To Own Your Home With Confidence:
-                </p>
+                {branding?.tagline ? (
+                  <p className="text-xl sm:text-2xl font-bold text-primary mb-5 max-w-lg leading-snug">
+                    {branding.tagline}
+                  </p>
+                ) : (
+                  <p className="text-xl sm:text-2xl font-bold text-foreground mb-5 max-w-lg leading-snug">
+                    Simplify Your Life With Our Personalized{" "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500 whitespace-nowrap">
+                      Ai-Powered
+                    </span>
+                    {" "}Plan To Own Your Home With Confidence:
+                  </p>
+                )}
                 
                 <div className="mb-8 bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4">
                   <ul className="space-y-3">
