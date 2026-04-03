@@ -4,7 +4,7 @@ import {
   Building2, Users, Link2, Copy, Check, Palette, Loader2,
   ExternalLink, BarChart2, Zap, RefreshCw, LogOut,
   ShieldCheck, Gift, CreditCard, Calendar, TrendingUp,
-  AlertTriangle, ArrowUpRight,
+  AlertTriangle, ArrowUpRight, Star,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -89,8 +89,7 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
         <circle cx="26" cy="26" r={r} fill="none" stroke="#e2e8f0" strokeWidth="5" />
         <circle cx="26" cy="26" r={r} fill="none" stroke={color} strokeWidth="5"
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-          style={{ transition: "stroke-dasharray 0.6s ease" }}
-        />
+          style={{ transition: "stroke-dasharray 0.6s ease" }} />
       </svg>
       <span className="absolute inset-0 flex items-center justify-center text-[11px] font-black" style={{ color }}>
         {score}
@@ -104,10 +103,33 @@ function ScoreBar({ score }: { score: number }) {
   const c = scoreColor(score);
   return (
     <div className="flex items-center gap-2">
-      <div className="w-14 h-1.5 rounded-full bg-slate-100 overflow-hidden">
-        <div className="h-full rounded-full" style={{ width: `${score}%`, backgroundColor: c }} />
+      <div className="w-16 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${score}%`, backgroundColor: c }} />
       </div>
       <span className="text-xs font-bold tabular-nums w-5" style={{ color: c }}>{score}</span>
+    </div>
+  );
+}
+
+/* ─── Stat card ──────────────────────────────────────────────────── */
+function StatCard({ icon, label, value, iconBg, iconColor, children }: {
+  icon: React.ReactNode; label: string; value?: string | number;
+  iconBg: string; iconColor?: string; children?: React.ReactNode;
+}) {
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow duration-200">
+      <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+        style={{ backgroundColor: iconBg }}>
+        <span style={{ color: iconColor }}>{icon}</span>
+      </div>
+      <div className="min-w-0">
+        {value !== undefined && (
+          <p className="text-2xl font-black text-slate-900 leading-none">{value}</p>
+        )}
+        {children}
+        <p className="text-xs text-slate-400 font-medium mt-1">{label}</p>
+      </div>
     </div>
   );
 }
@@ -184,7 +206,7 @@ export default function BrokerDashboard() {
   const inviteLink = config
     ? `${window.location.origin}${import.meta.env.BASE_URL}?_ref=${config.subdomain}` : "";
 
-  /* ── Guards ─────────────────────────────────────────────────────── */
+  /* ── Loading ─────────────────────────────────────────────────────── */
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -196,6 +218,7 @@ export default function BrokerDashboard() {
     );
   }
 
+  /* ── Error ────────────────────────────────────────────────────────── */
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-6">
@@ -249,7 +272,7 @@ export default function BrokerDashboard() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={copyInviteLink}
-              className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
+              className="flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-xl text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
               style={{ backgroundColor: accent }}>
               {linkCopied ? <><Check className="w-3.5 h-3.5" />Copied!</> : <><Link2 className="w-3.5 h-3.5" />Invite Client</>}
             </button>
@@ -267,92 +290,192 @@ export default function BrokerDashboard() {
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6 flex-1">
 
-        {/* ── Hero ────────────────────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          className="rounded-2xl p-6 sm:p-8 text-white relative overflow-hidden"
-          style={{ background: `linear-gradient(135deg, ${config.secondaryColor} 0%, ${config.primaryColor}18 100%)` }}>
-          <div className="absolute inset-0 pointer-events-none"
-            style={{ background: `radial-gradient(ellipse at top right, ${accent}28 0%, transparent 65%)` }} />
-          <div className="relative flex flex-col sm:flex-row items-start gap-5">
-            {config.logoUrl
-              ? <img src={config.logoUrl} alt={config.brokerName} className="h-12 max-w-[160px] object-contain bg-white/10 rounded-xl px-3 py-2 shrink-0" />
-              : <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: accent + "33" }}>
-                  <Building2 className="w-7 h-7" style={{ color: accent }} />
+        {/* ════════════════════════════════════════════════════════
+            HERO — Premium, cinematic, centered
+        ════════════════════════════════════════════════════════ */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="rounded-3xl text-white relative overflow-hidden"
+          style={{ background: `linear-gradient(145deg, ${config.secondaryColor} 0%, ${config.secondaryColor}e0 100%)` }}
+        >
+          {/* Animated radial glow — top right */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            animate={{ opacity: [0.5, 0.85, 0.5] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            style={{ background: `radial-gradient(ellipse at 85% 10%, ${accent}55 0%, transparent 55%)` }}
+          />
+          {/* Animated radial glow — bottom left */}
+          <motion.div
+            className="absolute inset-0 pointer-events-none"
+            animate={{ opacity: [0.25, 0.5, 0.25] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 3 }}
+            style={{ background: `radial-gradient(ellipse at 15% 90%, ${accent}35 0%, transparent 50%)` }}
+          />
+          {/* Noise texture overlay for depth */}
+          <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E\")" }} />
+
+          <div className="relative px-6 sm:px-10 py-10 sm:py-14 text-center">
+
+            {/* Pioneer badge */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.15, duration: 0.4 }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full mb-6"
+              style={{ backgroundColor: accent + "30", border: `1px solid ${accent}50` }}
+            >
+              <Star className="w-3 h-3" style={{ color: accent }} />
+              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: accent }}>
+                Pioneer Partner · Approved
+              </span>
+            </motion.div>
+
+            {/* Logo — large and centered */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+              className="flex justify-center mb-5"
+            >
+              {config.logoUrl ? (
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/15">
+                  <img src={config.logoUrl} alt={config.brokerName}
+                    className="h-16 sm:h-20 max-w-[280px] object-contain" />
                 </div>
-            }
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <ShieldCheck className="w-4 h-4 shrink-0" style={{ color: accent }} />
-                <span className="text-xs font-bold uppercase tracking-wider" style={{ color: accent }}>Approved Partner</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-black mb-1 truncate">{config.brokerName}</h1>
-              {config.tagline && <p className="text-white/65 text-sm mb-1">{config.tagline}</p>}
-              <p className="text-white/35 text-xs font-mono">{config.subdomain}.maintainhome.ai</p>
-            </div>
-            <div className="flex flex-row sm:flex-col items-start gap-2 shrink-0">
-              <span className="text-xs font-bold px-3 py-1.5 rounded-full"
+              ) : (
+                <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
+                  style={{ backgroundColor: accent + "33", border: `2px solid ${accent}40` }}>
+                  <Building2 className="w-10 h-10" style={{ color: accent }} />
+                </div>
+              )}
+            </motion.div>
+
+            {/* Broker name */}
+            <motion.h1
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25, duration: 0.4 }}
+              className="text-3xl sm:text-4xl font-black mb-2 leading-tight"
+            >
+              {config.brokerName}
+            </motion.h1>
+
+            {/* Tagline in accent color — big and bold */}
+            {config.tagline && (
+              <motion.p
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+                className="text-lg sm:text-xl font-bold mb-4"
+                style={{ color: accent }}
+              >
+                {config.tagline}
+              </motion.p>
+            )}
+
+            {/* Welcome line */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.38, duration: 0.5 }}
+              className="text-white/55 text-sm sm:text-base max-w-lg mx-auto mb-7 leading-relaxed"
+            >
+              Welcome to your branded client retention platform. Help your clients own their homes better — and keep them for life.
+            </motion.p>
+
+            {/* Subdomain + type + model chips */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.45, duration: 0.4 }}
+              className="flex items-center justify-center gap-3 flex-wrap"
+            >
+              <span className="text-white/30 text-xs font-mono">{config.subdomain}.maintainhome.ai</span>
+              <span className="text-white/15">·</span>
+              <span className="text-xs font-bold px-3 py-1 rounded-full"
                 style={{ backgroundColor: accent + "28", color: accent }}>
                 {config.type === "team_leader" ? "Team Leader" : "Individual Agent"}
               </span>
-              <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full bg-white/12 text-white/75">
+              <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white/65">
                 <MIcon className="w-3 h-3 shrink-0" />{monetizationLabel}
               </span>
-            </div>
+            </motion.div>
+
+            {/* Quick-action buttons inside hero */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.52, duration: 0.4 }}
+              className="flex items-center justify-center gap-3 mt-8 flex-wrap"
+            >
+              <button
+                onClick={copyInviteLink}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl font-extrabold text-sm transition-all hover:scale-[1.04] active:scale-[0.98]"
+                style={{
+                  backgroundColor: accent,
+                  boxShadow: `0 0 32px ${accent}70, 0 4px 16px ${accent}55`,
+                  color: "#fff",
+                }}
+              >
+                {linkCopied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Invite Link</>}
+              </button>
+              <button
+                onClick={() => { setPreviewSubdomain(config.subdomain); navigate("/"); }}
+                className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-white/10 hover:bg-white/20 transition-all border border-white/20 text-white/80 hover:text-white"
+              >
+                <ExternalLink className="w-4 h-4" />Preview Your Brand
+              </button>
+            </motion.div>
           </div>
         </motion.div>
 
         {/* ── 4 Stats ───────────────────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.07 }}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
           className="grid grid-cols-2 sm:grid-cols-4 gap-4">
 
-          {/* Total clients */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: accent + "18" }}>
-              <Users className="w-5 h-5" style={{ color: accent }} />
-            </div>
-            <div>
-              <p className="text-2xl font-black text-slate-900 leading-none">{clients.length}</p>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">Total Clients</p>
-            </div>
-          </div>
+          <StatCard
+            icon={<Users className="w-6 h-6" />}
+            label="Total Clients"
+            value={clients.length}
+            iconBg={accent + "18"}
+            iconColor={accent}
+          />
 
-          {/* Active Pro */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-amber-50">
-              <Zap className="w-5 h-5 text-amber-500" />
-            </div>
-            <div>
-              <p className="text-2xl font-black text-slate-900 leading-none">{proClients.length}</p>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">Active Pro</p>
-            </div>
-          </div>
+          <StatCard
+            icon={<Zap className="w-6 h-6" />}
+            label="Active Pro"
+            value={proClients.length}
+            iconBg="#fef3c7"
+            iconColor="#f59e0b"
+          />
 
-          {/* Avg health score ring */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-3">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow duration-200">
             {avgScore !== null ? (
               <ScoreRing score={avgScore} color={scoreColor(avgScore)} />
             ) : (
-              <div className="w-[52px] h-[52px] rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-5 h-5 text-slate-300" />
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0">
+                <TrendingUp className="w-6 h-6 text-slate-300" />
               </div>
             )}
             <div>
               <p className="text-sm font-black text-slate-900 leading-tight">
-                {avgScore !== null ? "Avg. Score" : "No Data"}
+                {avgScore !== null ? avgScore : "—"}
               </p>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">Health Score</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">Avg. Health Score</p>
             </div>
           </div>
 
-          {/* Big-ticket alerts */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${bigTicketClients.length > 0 ? "bg-orange-50" : "bg-slate-50"}`}>
-              <AlertTriangle className={`w-5 h-5 ${bigTicketClients.length > 0 ? "text-orange-500" : "text-slate-300"}`} />
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow duration-200">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${bigTicketClients.length > 0 ? "bg-orange-50" : "bg-slate-50"}`}>
+              <AlertTriangle className={`w-6 h-6 ${bigTicketClients.length > 0 ? "text-orange-500" : "text-slate-300"}`} />
             </div>
             <div>
               <p className="text-2xl font-black text-slate-900 leading-none">{bigTicketClients.length}</p>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">Big-Ticket Alerts</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">Big-Ticket Alerts</p>
             </div>
           </div>
         </motion.div>
@@ -361,8 +484,8 @@ export default function BrokerDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Invite card */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.12 }}
-            className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-6 flex flex-col">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.14 }}
+            className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-3">
               <Link2 className="w-5 h-5" style={{ color: accent }} />
               <h2 className="font-bold text-slate-900">Invite New Client</h2>
@@ -374,12 +497,21 @@ export default function BrokerDashboard() {
               <span className="text-sm text-slate-700 font-mono flex-1 truncate min-w-0">{inviteLink}</span>
               <CopyBtn text={inviteLink} label="invite link" />
             </div>
-            <button onClick={copyInviteLink}
-              className="w-full flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl text-white font-bold text-sm transition-all hover:opacity-90 active:scale-[0.99] mt-auto"
-              style={{ backgroundColor: accent, boxShadow: `0 4px 16px ${accent}35` }}>
+
+            {/* Primary CTA — large, glowing */}
+            <button
+              onClick={copyInviteLink}
+              className="w-full flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl text-white font-extrabold text-base transition-all hover:scale-[1.02] active:scale-[0.99] mt-auto"
+              style={{
+                backgroundColor: accent,
+                boxShadow: linkCopied
+                  ? `0 4px 20px ${accent}30`
+                  : `0 6px 28px ${accent}55, 0 2px 8px ${accent}30`,
+              }}
+            >
               {linkCopied
-                ? <><Check className="w-4 h-4" />Copied to clipboard!</>
-                : <><Copy className="w-4 h-4" />Copy Invite Link</>}
+                ? <><Check className="w-5 h-5" />Copied to clipboard!</>
+                : <><Copy className="w-5 h-5" />Copy Invite Link</>}
             </button>
             <p className="text-xs text-slate-400 mt-3 text-center">
               Or direct clients to <strong className="text-slate-600">{config.subdomain}.maintainhome.ai</strong>
@@ -387,8 +519,8 @@ export default function BrokerDashboard() {
           </motion.div>
 
           {/* Branding card */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }}
-            className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col gap-4">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.17 }}
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col gap-4">
             <div className="flex items-center gap-2">
               <Palette className="w-5 h-5" style={{ color: accent }} />
               <h2 className="font-bold text-slate-900">Your Branding</h2>
@@ -403,7 +535,7 @@ export default function BrokerDashboard() {
             </div>
             {config.logoUrl && (
               <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center justify-center border border-slate-100">
-                <img src={config.logoUrl} alt="logo" className="max-h-9 max-w-full object-contain" />
+                <img src={config.logoUrl} alt="logo" className="max-h-10 max-w-full object-contain" />
               </div>
             )}
             {config.tagline && (
@@ -432,10 +564,9 @@ export default function BrokerDashboard() {
         </div>
 
         {/* ── Client table ─────────────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.18 }}
-          className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
-          {/* Table title bar */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <div className="flex items-center gap-2 flex-wrap">
               <Users className="w-5 h-5" style={{ color: accent }} />
@@ -465,8 +596,8 @@ export default function BrokerDashboard() {
                 Share your invite link to start bringing clients in under your branded experience.
               </p>
               <button onClick={copyInviteLink}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-bold mt-2 hover:opacity-90"
-                style={{ backgroundColor: accent }}>
+                className="flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-extrabold mt-2 hover:scale-[1.03] active:scale-[0.98] transition-all"
+                style={{ backgroundColor: accent, boxShadow: `0 6px 24px ${accent}50` }}>
                 <Copy className="w-4 h-4" />Copy Invite Link
               </button>
             </div>
@@ -484,16 +615,22 @@ export default function BrokerDashboard() {
               </div>
 
               <div className="divide-y divide-slate-100">
-                {clients.map((client) => {
+                {clients.map((client, idx) => {
                   const expiry = isGift && config.giftDuration
                     ? giftExpiry(client.createdAt, config.giftDuration)
                     : null;
 
                   return (
-                    <div key={client.id} className="group">
+                    <motion.div
+                      key={client.id}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.05 * idx, duration: 0.3 }}
+                      className="group"
+                    >
                       {/* ─ Mobile row ─ */}
-                      <div className="md:hidden flex items-center gap-3 px-6 py-3.5 hover:bg-slate-50/60 transition-colors">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
+                      <div className="md:hidden flex items-center gap-3 px-6 py-4 hover:bg-slate-50/80 transition-colors">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
                           style={{ backgroundColor: accent + "20", color: accent }}>
                           {(client.name ?? client.email)[0].toUpperCase()}
                         </div>
@@ -502,8 +639,8 @@ export default function BrokerDashboard() {
                           <p className="text-xs text-slate-400 truncate">{client.email}</p>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
-                          {client.hasCalendar && <Calendar className="w-3 h-3 text-blue-400" />}
-                          {client.bigTicketAlertCount > 0 && <AlertTriangle className="w-3 h-3 text-orange-400" />}
+                          {client.hasCalendar && <Calendar className="w-3.5 h-3.5 text-blue-400" />}
+                          {client.bigTicketAlertCount > 0 && <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />}
                           {isPro(client.subscriptionStatus)
                             ? <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#f59e0b18", color: "#d97706" }}>Pro</span>
                             : expiry
@@ -514,12 +651,12 @@ export default function BrokerDashboard() {
                       </div>
 
                       {/* ─ Desktop row ─ */}
-                      <div className="hidden md:grid gap-3 px-6 py-3.5 hover:bg-slate-50/60 transition-colors items-center"
+                      <div className="hidden md:grid gap-3 px-6 py-4 hover:bg-slate-50/80 transition-colors items-center"
                         style={{ gridTemplateColumns: "2fr 90px 95px 120px 90px 44px" }}>
 
                         {/* Client */}
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold"
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
                             style={{ backgroundColor: accent + "20", color: accent }}>
                             {(client.name ?? client.email)[0].toUpperCase()}
                           </div>
@@ -527,11 +664,11 @@ export default function BrokerDashboard() {
                             <div className="flex items-center gap-1.5">
                               <p className="text-sm font-semibold text-slate-900 truncate">{client.name ?? "—"}</p>
                               {client.bigTicketAlertCount > 0 && (
-                                <AlertTriangle className="w-3 h-3 text-orange-400 shrink-0"
+                                <AlertTriangle className="w-3.5 h-3.5 text-orange-400 shrink-0"
                                   title={`${client.bigTicketAlertCount} big-ticket alert${client.bigTicketAlertCount > 1 ? "s" : ""}`} />
                               )}
                               {client.hasCalendar && (
-                                <Calendar className="w-3 h-3 text-blue-400 shrink-0" title="AI calendar built" />
+                                <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0" title="AI calendar built" />
                               )}
                             </div>
                             <p className="text-xs text-slate-400 truncate">{client.email}</p>
@@ -564,7 +701,7 @@ export default function BrokerDashboard() {
                           )}
                         </div>
 
-                        {/* Health Score bar */}
+                        {/* Health Score */}
                         <ScoreBar score={client.activityScore} />
 
                         {/* Last Active */}
@@ -577,7 +714,7 @@ export default function BrokerDashboard() {
                           <ArrowUpRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 })}
               </div>
@@ -587,8 +724,15 @@ export default function BrokerDashboard() {
 
         {/* ── Big-ticket spotlight ──────────────────────────────────── */}
         {bigTicketClients.length > 0 && (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.22 }}
-            className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.24 }}
+            className="rounded-2xl p-6 border"
+            style={{
+              backgroundColor: "#fff7ed",
+              borderColor: "#fed7aa",
+              borderLeftWidth: "4px",
+              borderLeftColor: "#f97316",
+            }}
+          >
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="w-5 h-5 text-orange-500" />
               <h2 className="font-bold text-orange-900">Big-Ticket Alerts Across Your Clients</h2>
@@ -596,8 +740,8 @@ export default function BrokerDashboard() {
             </div>
             <div className="space-y-3">
               {bigTicketClients.slice(0, 5).map((client) => (
-                <div key={client.id} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-orange-100">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-bold bg-orange-100 text-orange-600 mt-0.5">
+                <div key={client.id} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-black bg-orange-100 text-orange-600 mt-0.5">
                     {(client.name ?? client.email)[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
@@ -621,7 +765,7 @@ export default function BrokerDashboard() {
         )}
 
         {/* ── How-to guide ──────────────────────────────────────────── */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.24 }}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.26 }}
           className="rounded-2xl p-6 sm:p-8 text-white"
           style={{ backgroundColor: config.secondaryColor }}>
           <div className="flex items-center gap-2 mb-5">
@@ -651,7 +795,7 @@ export default function BrokerDashboard() {
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────────── */}
-      <div className="border-t border-slate-200 py-4">
+      <div className="border-t border-slate-200 py-4 mt-2">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 flex items-center justify-center gap-2">
           <img src={`${BASE}images/logo-icon.png`} alt="MaintainHome.ai" className="w-4 h-4 object-contain opacity-40" />
           <span className="text-xs text-slate-400">
