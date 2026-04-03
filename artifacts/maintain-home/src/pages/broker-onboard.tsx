@@ -237,7 +237,7 @@ export default function BrokerOnboard() {
             </h1>
             <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
               <strong className="text-white">Join the Pioneer 300</strong> — Be one of the first top agents to have your own fully custom, branded client retention tool.
-              Give every client a powerful AI home maintenance app with your branding at closing —
+              Give every client a powerful AI home ownership app with your branding at closing —
               turning one-time transactions into lifelong relationships.
             </p>
           </div>
