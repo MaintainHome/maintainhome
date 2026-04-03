@@ -272,7 +272,7 @@ export default function Home() {
                       <><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Smart Reminders</span> to Change Air Filters &amp; Smoke Detector Batteries and more</>,
                       <>Interactive Home Ownership <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Ai Chatbot</span> (Maintly)</>,
                       <>Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Maintenance History</span> Log for Your Property</>,
-                      <>Custom <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Monthly Home Care Schedule...</span></>,
+                      <>Custom <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Monthly Home Care Schedule</span> Specific to Your Home, State, &amp; Region</>,
                     ] as React.ReactNode[]).map((item, i) => (
                       <li key={i} className="flex items-start gap-3">
                         <span className="mt-0.5 w-5 h-5 rounded-full bg-emerald-200 flex items-center justify-center shrink-0">
@@ -295,7 +295,7 @@ export default function Home() {
                   />
                   <div>
                     <p className="text-lg font-bold text-slate-900">Chat with me, <span className="text-primary">"Maintly"</span></p>
-                    <p className="text-sm text-slate-500 leading-snug mt-1">Your custom Ai Home Maintenance Chatbot.</p>
+                    <p className="text-sm text-slate-500 leading-snug mt-1">Your Custom Ai Home Ownership Chatbot.</p>
                   </div>
                 </button>
 
@@ -374,7 +374,7 @@ export default function Home() {
                              "Maintly"
                            </p>
                            <p className="text-xs text-slate-500 leading-snug">
-                             Your custom Ai Home<br />Maintenance Chatbot.
+                             Your Custom Ai Home<br />Ownership Chatbot.
                            </p>
                          </div>
                        </div>
@@ -430,7 +430,7 @@ export default function Home() {
                 Free to start — no credit card needed
               </div>
               <h2 className="text-4xl sm:text-5xl font-display font-black text-white mb-4">
-                Ready to protect your home?
+                Ready to Own Home Ownership?
               </h2>
               <p className="text-lg text-slate-300 max-w-xl mx-auto mb-10">
                 Get your personalized AI-generated home maintenance calendar in minutes. Start with a free account — no password, no hassle.
