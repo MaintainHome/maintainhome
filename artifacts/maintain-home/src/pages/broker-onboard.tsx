@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   Building2, User, CheckCircle2, AlertCircle, Loader2,
   ChevronRight, Palette, Upload, X, ImageIcon, Users,
+  Gift, CreditCard,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -21,6 +22,8 @@ export default function BrokerOnboard() {
     welcomeMessage: "",
     contactEmail: "",
     type: "individual_agent" as "individual_agent" | "team_leader",
+    monetizationModel: "private_label" as "private_label" | "closing_gift",
+    giftDuration: "1year" as "1year" | "3years",
   });
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -456,6 +459,80 @@ export default function BrokerOnboard() {
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900 resize-none"
                   />
                   <p className="text-xs text-slate-400 mt-1">Shown as a banner the first time a client signs in under your brand.</p>
+                </div>
+
+                {/* Monetization Model */}
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    How do you want to offer MaintainHome to your clients?
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, monetizationModel: "private_label" }))}
+                      className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                        form.monetizationModel === "private_label"
+                          ? "border-primary bg-primary/5"
+                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${form.monetizationModel === "private_label" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
+                        <CreditCard className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-slate-900">Private Label</p>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">Clients pay the monthly subscription themselves under your brand</p>
+                      </div>
+                      <div className={`ml-auto shrink-0 w-4 h-4 rounded-full border-2 mt-1 ${form.monetizationModel === "private_label" ? "border-primary bg-primary" : "border-slate-300"}`} />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setForm((f) => ({ ...f, monetizationModel: "closing_gift" }))}
+                      className={`flex items-start gap-3 p-4 rounded-xl border-2 text-left transition-all ${
+                        form.monetizationModel === "closing_gift"
+                          ? "border-primary bg-primary/5"
+                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${form.monetizationModel === "closing_gift" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
+                        <Gift className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm text-slate-900">Closing Gift</p>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">Prepay for 1 or 3 years and gift it to clients at closing</p>
+                      </div>
+                      <div className={`ml-auto shrink-0 w-4 h-4 rounded-full border-2 mt-1 ${form.monetizationModel === "closing_gift" ? "border-primary bg-primary" : "border-slate-300"}`} />
+                    </button>
+                  </div>
+
+                  {form.monetizationModel === "closing_gift" && (
+                    <div className="mt-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
+                      <label className="block text-sm font-semibold text-amber-900 mb-2">
+                        <Gift className="w-3.5 h-3.5 inline mr-1.5" />
+                        Gift Duration
+                      </label>
+                      <div className="flex gap-3">
+                        {(["1year", "3years"] as const).map((dur) => (
+                          <button
+                            key={dur}
+                            type="button"
+                            onClick={() => setForm((f) => ({ ...f, giftDuration: dur }))}
+                            className={`flex-1 py-2.5 rounded-lg border-2 text-sm font-bold transition-all ${
+                              form.giftDuration === dur
+                                ? "border-amber-500 bg-amber-500 text-white"
+                                : "border-amber-300 text-amber-700 hover:border-amber-400"
+                            }`}
+                          >
+                            {dur === "1year" ? "1 Year" : "3 Years"}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-amber-700 mt-2">
+                        Our team will contact you with bulk pricing details after your application is approved.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

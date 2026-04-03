@@ -53,6 +53,8 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       welcomeMessage,
       contactEmail,
       type,
+      monetizationModel,
+      giftDuration,
     } = req.body as Record<string, string>;
 
     if (!subdomain || !brokerName || !contactEmail || !type) {
@@ -97,6 +99,15 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       return;
     }
 
+    const validMonetization = ["private_label", "closing_gift"].includes(monetizationModel)
+      ? (monetizationModel as "private_label" | "closing_gift")
+      : "private_label";
+
+    const validGiftDuration =
+      validMonetization === "closing_gift" && ["1year", "3years"].includes(giftDuration)
+        ? (giftDuration as "1year" | "3years")
+        : null;
+
     await db.insert(whiteLabelConfigsTable).values({
       subdomain: cleanSub,
       brokerName: brokerName.trim(),
@@ -107,6 +118,8 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       welcomeMessage: welcomeMessage?.trim() || null,
       contactEmail: contactEmail.trim().toLowerCase(),
       type: type as "individual_agent" | "team_leader",
+      monetizationModel: validMonetization,
+      giftDuration: validGiftDuration,
       status: "pending",
     });
 

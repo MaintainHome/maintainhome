@@ -11,6 +11,8 @@ export const whiteLabelConfigsTable = pgTable("white_label_configs", {
   welcomeMessage: text("welcome_message"),
   contactEmail: text("contact_email").notNull(),
   type: text("type").$type<"individual_agent" | "team_leader">().default("individual_agent").notNull(),
+  monetizationModel: text("monetization_model").$type<"private_label" | "closing_gift">().default("private_label").notNull(),
+  giftDuration: text("gift_duration").$type<"1year" | "3years" | null>(),
   status: text("status").$type<"pending" | "approved" | "rejected">().default("pending").notNull(),
   rejectionReason: text("rejection_reason"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
