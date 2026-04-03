@@ -11,6 +11,7 @@ import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { isPro } from "@/contexts/AuthContext";
 import type { AuthUser } from "@/contexts/AuthContext";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useLocation } from "wouter";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -315,6 +316,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
     }
   }
 
+  const { branding } = useBranding();
   const userIsPro = isPro(user);
   const firstName = user.name ? user.name.split(" ")[0] : user.email.split("@")[0];
   const state = savedCalendar?.calendarData?.state ?? null;
@@ -668,9 +670,15 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   ? <>Your plan for <span className="text-primary font-bold">{state}</span>.</>
                   : "Your personalized maintenance plan."}
               </p>
-              <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-snug hidden sm:block">
-                Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's Ai guidance</span>.
-              </p>
+              {branding?.tagline ? (
+                <p className="text-primary text-xs sm:text-sm mt-1 leading-snug font-semibold">
+                  {branding.tagline}
+                </p>
+              ) : (
+                <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-snug hidden sm:block">
+                  Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's Ai guidance</span>.
+                </p>
+              )}
             </div>
             <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 pl-3 sm:pl-6 border-l border-white/10 self-stretch">
               {userIsPro ? (
@@ -1830,6 +1838,25 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </div>
           )}
         </motion.div>
+
+        {/* "Powered by MaintainHome.ai" badge — only shown on white-labeled subdomains */}
+        {branding && (
+          <div className="flex justify-center pt-2 pb-4">
+            <a
+              href="https://maintainhome.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-600 text-xs font-medium"
+            >
+              <img
+                src="/images/logo-icon.png"
+                alt="MaintainHome.ai"
+                className="w-3.5 h-3.5 object-contain opacity-60"
+              />
+              Powered by MaintainHome.ai
+            </a>
+          </div>
+        )}
 
       </div>
 

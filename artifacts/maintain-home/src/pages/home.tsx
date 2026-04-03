@@ -533,6 +533,23 @@ export default function Home() {
             <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" /> 
             Powered by real estate expertise
           </div>
+          {branding && (
+            <div className="mt-4 flex justify-center">
+              <a
+                href="https://maintainhome.ai"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-slate-500 hover:text-slate-400 text-xs font-medium"
+              >
+                <img
+                  src="/images/logo-icon.png"
+                  alt="MaintainHome.ai"
+                  className="w-3.5 h-3.5 object-contain opacity-50"
+                />
+                Powered by MaintainHome.ai
+              </a>
+            </div>
+          )}
         </div>
       </footer>
       {/* Auth Modal */}
