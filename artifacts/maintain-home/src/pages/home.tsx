@@ -251,7 +251,7 @@ export default function Home() {
                 className="max-w-2xl"
               >
                 <h1 className="text-[2rem] sm:text-4xl lg:text-5xl font-display font-black text-foreground leading-[1.15] mb-4 tracking-tight">
-                  Overwhelmed by<br/>Home Maintenance?<br/>
+                  Overwhelmed by<br/>Home Ownership?<br/>
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">
                     Not Anymore.
                   </span>
@@ -262,17 +262,17 @@ export default function Home() {
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500 whitespace-nowrap">
                     Ai-Powered
                   </span>
-                  {" "}Home Plan:
+                  {" "}Plan To Own Your Home With Confidence:
                 </p>
                 
                 <div className="mb-8 bg-emerald-50 border border-emerald-200 rounded-2xl px-5 py-4">
                   <ul className="space-y-3">
                     {([
                       <>Help <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Prevent</span> Costly Future Repairs</>,
-                      <><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Smart Reminders</span> to Change Air Filters &amp; Smoke Detector Batteries</>,
-                      <>Interactive Home Maintenance <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Ai Chatbot</span> (Maintly)</>,
+                      <><span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Smart Reminders</span> to Change Air Filters &amp; Smoke Detector Batteries and more</>,
+                      <>Interactive Home Ownership <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Ai Chatbot</span> (Maintly)</>,
                       <>Printable <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Maintenance History</span> Log for Your Property</>,
-                      <>Custom <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Monthly Calendar</span> Specific to Your Home, State, &amp; Region</>,
+                      <>Custom <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500">Monthly Home Care Schedule...</span></>,
                     ] as React.ReactNode[]).map((item, i) => (
                       <li key={i} className="flex items-start gap-3">
                         <span className="mt-0.5 w-5 h-5 rounded-full bg-emerald-200 flex items-center justify-center shrink-0">
