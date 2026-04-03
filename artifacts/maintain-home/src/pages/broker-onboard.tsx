@@ -231,11 +231,14 @@ export default function BrokerOnboard() {
               <Building2 className="w-4 h-4" />
               Broker &amp; Team White-Label Program
             </div>
-            <h1 className="text-4xl font-black text-white mb-3">
-              Launch Your Branded<br />Home Ownership Platform
+            <h1 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight">
+              The Ultimate<br />
+              <span className="text-primary">Client Retention Tool</span>
             </h1>
-            <p className="text-slate-400 text-lg max-w-xl mx-auto">
-              Give your clients a fully branded AI-powered home ownership experience — your logo, your colors, your name.
+            <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
+              <strong className="text-white">Join the Pioneer 300</strong> — Be one of the first top agents to have your own fully custom, branded client retention tool.
+              Give every client a powerful AI home maintenance app with your branding at closing —
+              turning one-time transactions into lifelong relationships.
             </p>
           </div>
 
