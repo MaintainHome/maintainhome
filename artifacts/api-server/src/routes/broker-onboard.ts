@@ -1,0 +1,88 @@
+import { Router, type Request, type Response } from "express";
+import { db, whiteLabelConfigsTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+
+const router = Router();
+
+const SUBDOMAIN_RE = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
+const RESERVED = new Set(["www", "app", "api", "admin", "mail", "support", "help", "broker"]);
+
+router.post("/broker-onboard", async (req: Request, res: Response) => {
+  try {
+    const {
+      subdomain,
+      brokerName,
+      logoUrl,
+      primaryColor,
+      secondaryColor,
+      tagline,
+      welcomeMessage,
+      contactEmail,
+      type,
+    } = req.body as Record<string, string>;
+
+    if (!subdomain || !brokerName || !contactEmail || !type) {
+      res.status(400).json({ error: "subdomain, brokerName, contactEmail, and type are required" });
+      return;
+    }
+
+    const cleanSub = subdomain.toLowerCase().trim();
+
+    if (!SUBDOMAIN_RE.test(cleanSub)) {
+      res.status(400).json({
+        error: "Subdomain must be 3–32 lowercase letters, numbers, or hyphens and cannot start/end with a hyphen",
+      });
+      return;
+    }
+
+    if (RESERVED.has(cleanSub)) {
+      res.status(400).json({ error: "That subdomain is reserved. Please choose another." });
+      return;
+    }
+
+    if (!["individual_agent", "team_leader"].includes(type)) {
+      res.status(400).json({ error: "type must be individual_agent or team_leader" });
+      return;
+    }
+
+    const existing = await db
+      .select({ id: whiteLabelConfigsTable.id, status: whiteLabelConfigsTable.status })
+      .from(whiteLabelConfigsTable)
+      .where(eq(whiteLabelConfigsTable.subdomain, cleanSub))
+      .limit(1);
+
+    if (existing.length > 0) {
+      const e = existing[0];
+      if (e.status === "pending") {
+        res.status(409).json({ error: "This subdomain already has a pending application. We'll review it shortly." });
+      } else if (e.status === "approved") {
+        res.status(409).json({ error: "This subdomain is already in use." });
+      } else {
+        res.status(409).json({ error: "This subdomain was previously rejected. Please contact support." });
+      }
+      return;
+    }
+
+    await db.insert(whiteLabelConfigsTable).values({
+      subdomain: cleanSub,
+      brokerName: brokerName.trim(),
+      logoUrl: logoUrl?.trim() || null,
+      primaryColor: primaryColor?.trim() || "#1f9e6e",
+      secondaryColor: secondaryColor?.trim() || "#1e293b",
+      tagline: tagline?.trim() || null,
+      welcomeMessage: welcomeMessage?.trim() || null,
+      contactEmail: contactEmail.trim().toLowerCase(),
+      type: type as "individual_agent" | "team_leader",
+      status: "pending",
+    });
+
+    res.status(201).json({
+      message: "Application submitted! We'll review it and get back to you within 1-2 business days.",
+    });
+  } catch (err) {
+    console.error("[broker-onboard] POST error:", err);
+    res.status(500).json({ error: "Failed to submit application" });
+  }
+});
+
+export default router;

@@ -6,6 +6,9 @@ import authRouter from "./auth";
 import userDataRouter from "./user-data";
 import aiChatRouter from "./ai-chat";
 import storageRouter from "./storage";
+import brandingRouter from "./branding";
+import brokerOnboardRouter from "./broker-onboard";
+import adminRouter from "./admin";
 
 const router: IRouter = Router();
 
@@ -16,5 +19,8 @@ router.use(authRouter);
 router.use(userDataRouter);
 router.use(aiChatRouter);
 router.use(storageRouter);
+router.use(brandingRouter);
+router.use(brokerOnboardRouter);
+router.use(adminRouter);
 
 export default router;

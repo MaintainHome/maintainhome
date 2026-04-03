@@ -20,3 +20,4 @@
 export * from "./waitlist";
 export * from "./auth";
 export * from "./user_data";
+export * from "./white-label";
