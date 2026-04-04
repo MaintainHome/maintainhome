@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   Building2, Users, Link2, Copy, Check, User, Loader2,
   ExternalLink, BarChart2, Zap, RefreshCw, LogOut,
   ShieldCheck, Gift, CreditCard, Calendar, TrendingUp,
   AlertTriangle, ArrowUpRight, Star, Phone, Camera,
+  Pencil, X, Upload, CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -165,6 +166,17 @@ export default function BrokerDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
 
+  /* ── Edit Branding modal state ────────────────────────────────── */
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({ logoUrl: "", agentPhotoUrl: "", phoneNumber: "", tagline: "", welcomeMessage: "" });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editSuccess, setEditSuccess] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/"); return; }
@@ -194,6 +206,90 @@ export default function BrokerDashboard() {
     navigator.clipboard.writeText(`${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}`);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2500);
+  }
+
+  function openEditModal() {
+    if (!config) return;
+    setEditForm({
+      logoUrl: config.logoUrl ?? "",
+      agentPhotoUrl: config.agentPhotoUrl ?? "",
+      phoneNumber: config.phoneNumber ?? "",
+      tagline: config.tagline ?? "",
+      welcomeMessage: config.welcomeMessage ?? "",
+    });
+    setEditSuccess(null);
+    setEditError(null);
+    setEditOpen(true);
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoUploading(true);
+    setEditError(null);
+    try {
+      const fd = new FormData();
+      fd.append("logo", file);
+      const res = await fetch(`${API_BASE}/api/broker-onboard/logo-upload`, { method: "POST", body: fd, credentials: "include" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      setEditForm((f) => ({ ...f, logoUrl: data.logoUrl }));
+    } catch (err: any) {
+      setEditError(err.message ?? "Logo upload failed");
+    } finally {
+      setLogoUploading(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
+  }
+
+  async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    setEditError(null);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      const res = await fetch(`${API_BASE}/api/broker-onboard/photo-upload`, { method: "POST", body: fd, credentials: "include" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      setEditForm((f) => ({ ...f, agentPhotoUrl: data.photoUrl }));
+    } catch (err: any) {
+      setEditError(err.message ?? "Photo upload failed");
+    } finally {
+      setPhotoUploading(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  }
+
+  async function handleEditSave() {
+    if (!config) return;
+    setEditSaving(true);
+    setEditSuccess(null);
+    setEditError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/broker/branding`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(editForm),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to save");
+      setConfig((prev) => prev ? {
+        ...prev,
+        logoUrl: editForm.logoUrl || null,
+        agentPhotoUrl: editForm.agentPhotoUrl || null,
+        phoneNumber: editForm.phoneNumber || null,
+        tagline: editForm.tagline || null,
+        welcomeMessage: editForm.welcomeMessage || null,
+      } : prev);
+      setEditSuccess("Branding updated successfully. Changes are live.");
+    } catch (err: any) {
+      setEditError(err.message ?? "Failed to save branding");
+    } finally {
+      setEditSaving(false);
+    }
   }
 
   /* ── Derived stats ─────────────────────────────────────────────── */
@@ -285,6 +381,10 @@ export default function BrokerDashboard() {
               className="flex items-center gap-1.5 text-xs font-bold px-4 py-2.5 rounded-xl text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
               style={{ backgroundColor: accent }}>
               {linkCopied ? <><Check className="w-3.5 h-3.5" />Copied!</> : <><Link2 className="w-3.5 h-3.5" />Invite Client</>}
+            </button>
+            <button onClick={openEditModal}
+              className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
+              <Pencil className="w-3.5 h-3.5" />Edit Branding
             </button>
             <button onClick={() => { setPreviewSubdomain(config.subdomain); navigate("/"); }}
               className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
@@ -860,6 +960,158 @@ export default function BrokerDashboard() {
           <a href="mailto:support@maintainhome.ai" className="text-xs text-slate-400 hover:text-slate-600 transition-colors">Support</a>
         </div>
       </div>
+
+      {/* ── Edit Branding Modal ─────────────────────────────────────── */}
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+          onClick={(e) => { if (e.target === e.currentTarget) setEditOpen(false); }}>
+          <div className="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] overflow-y-auto">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-slate-100 sticky top-0 bg-white z-10 rounded-t-3xl">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${MH_PRIMARY}18` }}>
+                  <Pencil className="w-4 h-4" style={{ color: MH_PRIMARY }} />
+                </div>
+                <h2 className="text-base font-black text-slate-900">Edit My Branding</h2>
+              </div>
+              <button onClick={() => setEditOpen(false)}
+                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="px-6 py-5 flex flex-col gap-5">
+
+              {/* Success banner */}
+              {editSuccess && (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-50 border border-green-200">
+                  <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />
+                  <p className="text-sm text-green-700 font-medium">{editSuccess}</p>
+                </div>
+              )}
+
+              {/* Error banner */}
+              {editError && (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
+                  <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                  <p className="text-sm text-red-600">{editError}</p>
+                </div>
+              )}
+
+              {/* ── Logo ───────────────────────────────────────────────── */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Company Logo</label>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-16 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden">
+                    {editForm.logoUrl
+                      ? <img src={editForm.logoUrl} alt="Logo" className="max-h-12 max-w-[72px] object-contain" />
+                      : <Building2 className="w-6 h-6 text-slate-300" />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                    <button
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={logoUploading}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50">
+                      {logoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {logoUploading ? "Uploading…" : "Upload New Logo"}
+                    </button>
+                    <p className="text-xs text-slate-400 mt-1.5">JPG, PNG, SVG · Max 2MB</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Agent Photo ────────────────────────────────────────── */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-2">Agent / Team Photo <span className="font-normal normal-case text-slate-400">(optional)</span></label>
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 overflow-hidden">
+                    {editForm.agentPhotoUrl
+                      ? <img src={editForm.agentPhotoUrl} alt="Agent" className="w-full h-full object-cover" />
+                      : <User className="w-6 h-6 text-slate-300" />
+                    }
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                    <button
+                      onClick={() => photoInputRef.current?.click()}
+                      disabled={photoUploading}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50">
+                      {photoUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                      {photoUploading ? "Uploading…" : "Upload New Photo"}
+                    </button>
+                    <p className="text-xs text-slate-400 mt-1.5">JPG, PNG · Max 2MB</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Phone Number ───────────────────────────────────────── */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Phone Number</label>
+                <input
+                  type="tel"
+                  value={editForm.phoneNumber}
+                  onChange={(e) => setEditForm((f) => ({ ...f, phoneNumber: e.target.value }))}
+                  placeholder="e.g. 336.380.1851"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": MH_PRIMARY } as React.CSSProperties}
+                />
+              </div>
+
+              {/* ── Tagline ─────────────────────────────────────────────── */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Tagline</label>
+                <input
+                  type="text"
+                  value={editForm.tagline}
+                  onChange={(e) => setEditForm((f) => ({ ...f, tagline: e.target.value }))}
+                  placeholder="e.g. Your trusted real estate partner"
+                  maxLength={120}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                  style={{ "--tw-ring-color": MH_PRIMARY } as React.CSSProperties}
+                />
+                <p className="text-xs text-slate-400 mt-1">{editForm.tagline.length}/120</p>
+              </div>
+
+              {/* ── Welcome Message ─────────────────────────────────────── */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Welcome Message</label>
+                <textarea
+                  rows={3}
+                  value={editForm.welcomeMessage}
+                  onChange={(e) => setEditForm((f) => ({ ...f, welcomeMessage: e.target.value }))}
+                  placeholder="A personal note shown to new clients on your invite page…"
+                  maxLength={400}
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent resize-none"
+                  style={{ "--tw-ring-color": MH_PRIMARY } as React.CSSProperties}
+                />
+                <p className="text-xs text-slate-400 mt-1">{editForm.welcomeMessage.length}/400</p>
+              </div>
+
+              {/* ── Save / Cancel ───────────────────────────────────────── */}
+              <div className="flex gap-3 pt-1 pb-2">
+                <button
+                  onClick={handleEditSave}
+                  disabled={editSaving || logoUploading || photoUploading}
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-sm"
+                  style={{ backgroundColor: MH_PRIMARY }}>
+                  {editSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  {editSaving ? "Saving…" : "Save Changes"}
+                </button>
+                <button
+                  onClick={() => setEditOpen(false)}
+                  className="px-5 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                  Cancel
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

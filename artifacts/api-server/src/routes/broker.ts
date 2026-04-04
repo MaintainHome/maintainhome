@@ -121,4 +121,50 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
   }
 });
 
+router.patch("/broker/branding", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const userEmail = req.user!.email;
+
+    const [config] = await db
+      .select({ id: whiteLabelConfigsTable.id })
+      .from(whiteLabelConfigsTable)
+      .where(
+        and(
+          eq(whiteLabelConfigsTable.contactEmail, userEmail),
+          eq(whiteLabelConfigsTable.status, "approved"),
+        ),
+      )
+      .limit(1);
+
+    if (!config) {
+      res.status(403).json({ error: "Not authorized as an approved broker" });
+      return;
+    }
+
+    const { logoUrl, agentPhotoUrl, phoneNumber, tagline, welcomeMessage } = req.body as Record<string, string | undefined>;
+
+    const updates: Record<string, string | null> = {};
+    if (logoUrl !== undefined)       updates.logoUrl       = logoUrl?.trim()       || null;
+    if (agentPhotoUrl !== undefined) updates.agentPhotoUrl = agentPhotoUrl?.trim() || null;
+    if (phoneNumber !== undefined)   updates.phoneNumber   = phoneNumber?.trim()   || null;
+    if (tagline !== undefined)       updates.tagline       = tagline?.trim()       || null;
+    if (welcomeMessage !== undefined) updates.welcomeMessage = welcomeMessage?.trim() || null;
+
+    if (Object.keys(updates).length === 0) {
+      res.status(400).json({ error: "No fields to update" });
+      return;
+    }
+
+    await db
+      .update(whiteLabelConfigsTable)
+      .set(updates)
+      .where(eq(whiteLabelConfigsTable.id, config.id));
+
+    res.json({ message: "Branding updated successfully. Changes are live." });
+  } catch (err) {
+    console.error("[broker] PATCH /broker/branding error:", err);
+    res.status(500).json({ error: "Failed to update branding" });
+  }
+});
+
 export default router;
