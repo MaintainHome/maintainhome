@@ -1479,7 +1479,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                       <img
                         src={branding.logoUrl}
                         alt={branding.brokerName}
-                        className="h-20 max-w-[180px] object-contain"
+                        className="h-28 max-w-[200px] object-contain"
                       />
                     </div>
                   ) : (
@@ -1507,10 +1507,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                     {branding.phoneNumber && (
                       <a
                         href={`tel:${branding.phoneNumber}`}
-                        className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold hover:underline transition-colors"
+                        className="inline-flex items-center gap-2 mt-2 text-sm font-semibold hover:underline transition-colors"
                         style={{ color: "#1f9e6e" }}
                       >
-                        <Phone className="w-3 h-3" />{branding.phoneNumber}
+                        <Phone className="w-4 h-4" />{branding.phoneNumber}
                       </a>
                     )}
                   </div>
