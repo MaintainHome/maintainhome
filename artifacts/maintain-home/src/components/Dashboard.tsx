@@ -972,14 +972,14 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             className="bg-white rounded-2xl border border-primary/20 shadow-sm overflow-hidden"
           >
             {/* Section header */}
-            <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-primary/8 to-emerald-50 border-b border-primary/15">
+            <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
               <div className="flex items-center gap-2.5">
                 <span className="text-2xl leading-none">{MONTH_EMOJIS[currentMonthName] ?? "📅"}</span>
                 <div>
-                  <h2 className="text-lg font-display font-black text-slate-900 leading-tight">
+                  <h2 className="text-lg font-display font-black text-white leading-tight">
                     This Month — {currentMonthName}
                   </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
+                  <p className="text-xs text-white/55 mt-0.5">
                     {visibleThisMonthTasks.length} task{visibleThisMonthTasks.length !== 1 ? "s" : ""} · {Object.keys(thisMonthCompleted).length} completed
                   </p>
                 </div>
@@ -1475,11 +1475,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 {/* Logo half */}
                 <div className="flex-1 flex items-center justify-center px-6 py-6 border-b sm:border-b-0 sm:border-r border-slate-100">
                   {branding.logoUrl ? (
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full flex items-center justify-center">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 w-full flex items-center justify-center">
                       <img
                         src={branding.logoUrl}
                         alt={branding.brokerName}
-                        className="h-28 max-w-[200px] object-contain"
+                        className="h-32 max-w-[210px] w-full object-contain"
                       />
                     </div>
                   ) : (
