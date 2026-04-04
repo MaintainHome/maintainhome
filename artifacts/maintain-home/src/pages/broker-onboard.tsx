@@ -385,9 +385,7 @@ export default function BrokerOnboard() {
                   style={{ color: ACCENT, backgroundColor: ACCENT + "22" }}>
                   waived
                 </span>
-                {" "}for our first 300 qualified agents. You only pay for the{" "}
-                <span className="font-bold text-white">$29 gift codes</span>
-                {" "}when you want to give MaintainHome as a closing gift to your clients.
+                {" "}for our first 300 qualified agents.
               </p>
             </div>
           </div>
