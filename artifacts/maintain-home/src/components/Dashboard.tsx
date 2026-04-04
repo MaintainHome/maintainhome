@@ -19,6 +19,15 @@ const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const BASE = import.meta.env.BASE_URL;
 const CURRENT_AVG_RATE = 6.79;
 
+const SMS_CRITICAL_KEYWORDS = [
+  "smoke detector", "air filter", "hvac filter", "drip faucet",
+  "winterize", "insulate pipe", "fire alarm", "batteries", "gutter",
+];
+function isCriticalSmsTask(taskName: string): boolean {
+  const lower = taskName.toLowerCase();
+  return SMS_CRITICAL_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
 const MONTHS = [
   "January","February","March","April","May","June",
   "July","August","September","October","November","December",
@@ -352,6 +361,15 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       })
       .catch(() => { setMortgageRate(null); setHomeProfile(null); });
   }, [user.id]);
+
+  // Silently trigger SMS check on dashboard load (only when SMS is enabled)
+  useEffect(() => {
+    if (!user?.smsEnabled || !user?.smsPhone) return;
+    fetch(`${API_BASE}/api/sms/trigger-check`, {
+      method: "POST",
+      credentials: "include",
+    }).catch(() => {});
+  }, [user.id, user?.smsEnabled, user?.smsPhone]);
 
   useEffect(() => {
     if (chatScrollRef.current) {
@@ -1071,6 +1089,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">
                                 <Check className="w-3.5 h-3.5" />
                                 Done
+                              </span>
+                            )}
+                            {!isCompleted && user?.smsEnabled && user?.smsPhone && isCriticalSmsTask(task.task) && (
+                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-violet-100 text-violet-700" title="SMS reminder enabled for this task">
+                                <Phone className="w-3.5 h-3.5" />
+                                SMS Alert
                               </span>
                             )}
                           </div>

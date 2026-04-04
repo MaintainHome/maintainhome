@@ -59,8 +59,19 @@ export const homeProfilesTable = pgTable("home_profiles", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const smsLogTable = pgTable("sms_log", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => usersTable.id),
+  phone: text("phone").notNull(),
+  taskNames: text("task_names").notNull(),
+  month: text("month").notNull(),
+  status: text("status").notNull(),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+});
+
 export type SavedCalendar = typeof savedCalendarsTable.$inferSelect;
 export type MaintenanceLogEntry = typeof maintenanceLogTable.$inferSelect;
 export type MaintenanceNote = typeof maintenanceNotesTable.$inferSelect;
 export type MaintenanceDocument = typeof maintenanceDocumentsTable.$inferSelect;
 export type HomeProfile = typeof homeProfilesTable.$inferSelect;
+export type SmsLog = typeof smsLogTable.$inferSelect;

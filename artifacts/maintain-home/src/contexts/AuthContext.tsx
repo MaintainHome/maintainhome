@@ -10,6 +10,8 @@ export interface AuthUser {
   fullAccess: boolean;
   subscriptionStatus: SubscriptionStatus;
   isBroker: boolean;
+  smsEnabled: boolean;
+  smsPhone: string | null;
 }
 
 export function isPro(user: AuthUser | null): boolean {

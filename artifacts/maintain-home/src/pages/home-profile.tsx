@@ -5,7 +5,7 @@ import {
   Home, Save, CheckCircle2, AlertCircle, Edit2,
   MapPin, Bed, Bath, Layers, Waves, Calendar, Percent,
   TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2, Shield,
-  ExternalLink,
+  ExternalLink, MessageSquare, Phone, Bell, BellOff, ToggleLeft, ToggleRight,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { PricingSection } from "@/components/PricingSection";
@@ -101,6 +101,45 @@ export default function HomeProfilePage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const userIsPro = isPro(user);
+
+  // ── SMS settings state ────────────────────────────────────────────────────
+  const [smsEnabled, setSmsEnabled] = useState(false);
+  const [smsPhone, setSmsPhone] = useState("");
+  const [smsSaving, setSmsSaving] = useState(false);
+  const [smsSaved, setSmsSaved] = useState(false);
+  const [smsError, setSmsError] = useState<string | null>(null);
+  const [smsLog, setSmsLog] = useState<{ id: number; taskNames: string; month: string; status: string; sentAt: string }[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    setSmsEnabled(user.smsEnabled ?? false);
+    setSmsPhone(user.smsPhone ?? "");
+    fetch("/api/sms/log", { credentials: "include" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setSmsLog(data))
+      .catch(() => {});
+  }, [user?.id]);
+
+  async function handleSaveSms() {
+    setSmsSaving(true);
+    setSmsError(null);
+    try {
+      const r = await fetch("/api/user/sms-settings", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ smsEnabled, smsPhone }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error ?? "Save failed");
+      setSmsSaved(true);
+      setTimeout(() => setSmsSaved(false), 3500);
+    } catch (err: any) {
+      setSmsError(err.message ?? "Could not save SMS settings.");
+    } finally {
+      setSmsSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -809,6 +848,115 @@ export default function HomeProfilePage() {
             {saved ? "Profile Saved!" : saving ? "Saving…" : "Save Home Profile"}
           </button>
         </div>
+
+        {/* ── SMS Reminders ──────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+        >
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-primary" />
+              <h2 className="text-base font-bold text-slate-900">SMS Reminders</h2>
+            </div>
+            {smsEnabled && smsPhone ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                <Bell className="w-3 h-3" />SMS Active
+              </span>
+            ) : smsEnabled && !smsPhone ? (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                <Phone className="w-3 h-3" />Phone Required
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+                <BellOff className="w-3 h-3" />Off
+              </span>
+            )}
+          </div>
+
+          <div className="px-5 py-5 space-y-4">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Get a text message at the start of each month for critical tasks like smoke detector checks, air filter replacements, and winter prep. Fully opt-in — you can cancel any time.
+            </p>
+
+            {/* Enable toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-slate-800">Enable SMS Reminders</p>
+                <p className="text-xs text-slate-400 mt-0.5">Send critical task reminders via text</p>
+              </div>
+              <button
+                onClick={() => setSmsEnabled((v) => !v)}
+                className="shrink-0 transition-colors"
+                title={smsEnabled ? "Disable SMS" : "Enable SMS"}
+              >
+                {smsEnabled
+                  ? <ToggleRight className="w-10 h-10 text-primary" />
+                  : <ToggleLeft className="w-10 h-10 text-slate-300" />
+                }
+              </button>
+            </div>
+
+            {/* Phone input */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5" />
+                US Phone Number
+              </label>
+              <input
+                type="tel"
+                value={smsPhone}
+                onChange={(e) => setSmsPhone(e.target.value)}
+                placeholder="+1 (555) 867-5309"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary bg-slate-50"
+              />
+              <p className="text-xs text-slate-400 mt-1">US numbers only. Format: +1XXXXXXXXXX or (555) 867-5309</p>
+            </div>
+
+            {/* Reminders sent */}
+            {smsLog.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Recent Reminders Sent</p>
+                <ul className="space-y-1.5">
+                  {smsLog.slice(0, 3).map((entry) => (
+                    <li key={entry.id} className="flex items-start gap-2 text-xs text-slate-500">
+                      <CheckCircle2 className={`w-3.5 h-3.5 mt-0.5 shrink-0 ${entry.status === "sent" ? "text-emerald-500" : "text-red-400"}`} />
+                      <span>
+                        <span className="font-medium text-slate-700">{entry.month}</span>
+                        {" — "}{entry.taskNames}
+                        <span className="text-slate-400 ml-1">
+                          ({new Date(entry.sentAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })})
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {smsError && (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-3 py-2 text-xs">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                {smsError}
+              </div>
+            )}
+
+            <button
+              onClick={handleSaveSms}
+              disabled={smsSaving}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors disabled:opacity-60"
+            >
+              {smsSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : smsSaved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+              {smsSaved ? "Saved!" : smsSaving ? "Saving…" : "Save SMS Settings"}
+            </button>
+
+            <p className="text-[11px] text-slate-400 text-center leading-relaxed">
+              Message and data rates may apply. Reply STOP to any message to opt out. Max 2 messages per month.
+            </p>
+          </div>
+        </motion.div>
 
         {/* ── Danger Zone ────────────────────────────────────────────── */}
         <motion.div

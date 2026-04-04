@@ -10,6 +10,8 @@ export const usersTable = pgTable("users", {
   fullAccess: boolean("full_access").default(false).notNull(),
   subscriptionStatus: text("subscription_status").$type<SubscriptionStatus>().default("free").notNull(),
   referralSubdomain: text("referral_subdomain"),
+  smsEnabled: boolean("sms_enabled").default(false).notNull(),
+  smsPhone: text("sms_phone"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

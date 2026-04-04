@@ -245,6 +245,8 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
       zipCode: usersTable.zipCode,
       fullAccess: usersTable.fullAccess,
       subscriptionStatus: usersTable.subscriptionStatus,
+      smsEnabled: usersTable.smsEnabled,
+      smsPhone: usersTable.smsPhone,
     })
     .from(usersTable)
     .where(eq(usersTable.id, req.userId!))
