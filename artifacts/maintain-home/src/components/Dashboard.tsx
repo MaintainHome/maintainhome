@@ -1470,12 +1470,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           {branding ? (
             /* ── White-label version ── */
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-0">
-              {/* Left dark panel — 3/4 width, split internally into logo | headshot+info */}
-              <div className="sm:flex-[3] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-row items-stretch">
+              {/* 3/4 — white background: logo | headshot+info */}
+              <div className="sm:flex-[3] bg-white flex flex-row items-stretch">
                 {/* Logo half */}
-                <div className="flex-1 flex items-center justify-center px-6 py-7 border-r border-white/10">
+                <div className="flex-1 flex items-center justify-center px-6 py-7 border-r border-slate-100">
                   {branding.logoUrl ? (
-                    <div className="bg-white/10 rounded-xl px-3 py-2 w-full flex items-center justify-center">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full flex items-center justify-center">
                       <img
                         src={branding.logoUrl}
                         alt={branding.brokerName}
@@ -1484,8 +1484,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                     </div>
                   ) : (
                     <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                      style={{ backgroundColor: "rgba(31,158,110,0.3)", border: "2px solid rgba(31,158,110,0.5)" }}>
-                      <span className="text-2xl font-black text-white">{branding.brokerName[0]}</span>
+                      style={{ backgroundColor: "#1f9e6e22", border: "2px solid #1f9e6e55" }}>
+                      <span className="text-2xl font-black" style={{ color: "#1f9e6e" }}>{branding.brokerName[0]}</span>
                     </div>
                   )}
                 </div>
@@ -1494,21 +1494,21 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-7">
                   {branding.agentPhotoUrl && (
                     <div className="relative">
-                      <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] shadow-2xl shadow-black/40"
-                        style={{ borderColor: "rgba(31,158,110,0.7)" }}>
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] shadow-lg shadow-black/10"
+                        style={{ borderColor: "#1f9e6e99" }}>
                         <img src={branding.agentPhotoUrl} alt={branding.brokerName} className="w-full h-full object-cover" />
                       </div>
                       <div className="absolute inset-0 rounded-full pointer-events-none"
-                        style={{ boxShadow: "0 0 0 5px rgba(31,158,110,0.18), 0 0 20px rgba(31,158,110,0.25)" }} />
+                        style={{ boxShadow: "0 0 0 4px rgba(31,158,110,0.12)" }} />
                     </div>
                   )}
                   <div className="text-center">
-                    <p className="text-white text-sm font-bold leading-snug">{branding.brokerName}</p>
+                    <p className="text-slate-900 text-sm font-bold leading-snug">{branding.brokerName}</p>
                     {branding.phoneNumber && (
                       <a
                         href={`tel:${branding.phoneNumber}`}
-                        className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold transition-colors"
-                        style={{ color: "rgba(31,158,110,0.85)" }}
+                        className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold hover:underline transition-colors"
+                        style={{ color: "#1f9e6e" }}
                       >
                         <Phone className="w-3 h-3" />{branding.phoneNumber}
                       </a>
@@ -1517,16 +1517,16 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 </div>
               </div>
 
-              {/* Right content — 1/4 width */}
-              <div className="sm:flex-[1] min-w-0 flex flex-col items-center justify-center px-5 py-6 border-l border-slate-100">
-                <h2 className="text-sm font-bold text-slate-900 text-center mb-2 leading-snug">Preparing For What's Next</h2>
-                <p className="text-xs text-slate-500 leading-relaxed text-center mb-4">
+              {/* 1/4 — dark background: headline + CTA */}
+              <div className="sm:flex-[1] min-w-0 flex flex-col items-center justify-center px-5 py-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+                <h2 className="text-sm font-bold text-white text-center mb-2 leading-snug">Preparing For What's Next</h2>
+                <p className="text-xs text-white/55 leading-relaxed text-center mb-4">
                   We can export your full maintenance history to streamline the listing process.
                 </p>
                 <button
                   onClick={() => navigate("/history")}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20"
-                  style={{ backgroundColor: "#1f9e6e" }}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
+                  style={{ backgroundColor: "#1f9e6e", boxShadow: "0 0 16px rgba(31,158,110,0.4)" }}
                 >
                   <ClipboardList className="w-3.5 h-3.5 shrink-0" />
                   View History
