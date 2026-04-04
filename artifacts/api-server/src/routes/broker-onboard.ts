@@ -81,6 +81,16 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       return;
     }
 
+    if (!tagline?.trim()) {
+      res.status(400).json({ error: "A custom tagline is required." });
+      return;
+    }
+
+    if (!welcomeMessage?.trim()) {
+      res.status(400).json({ error: "A welcome message is required." });
+      return;
+    }
+
     const cleanSub = subdomain.toLowerCase().trim();
 
     if (!SUBDOMAIN_RE.test(cleanSub)) {

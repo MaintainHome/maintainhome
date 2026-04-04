@@ -1,9 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
-  Building2, User, CheckCircle2, AlertCircle, Loader2,
-  ChevronRight, Upload, X, ImageIcon, Users,
-  Gift, CreditCard, Phone, Camera,
+  Building2, CheckCircle2, AlertCircle, Loader2,
+  ChevronRight, Upload, X, ImageIcon, Phone, Camera,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -18,9 +17,7 @@ export default function BrokerOnboard() {
     tagline: "",
     welcomeMessage: "",
     contactEmail: "",
-    type: "individual_agent" as "individual_agent" | "team_leader",
-    monetizationModel: "private_label" as "private_label" | "closing_gift",
-    giftDuration: "1year" as "1year" | "3years",
+    isTeamLeader: false,
   });
 
   /* Logo upload state */
@@ -41,7 +38,7 @@ export default function BrokerOnboard() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function handle(field: keyof typeof form, value: string) {
+  function handle<K extends keyof typeof form>(field: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [field]: value }));
     setError(null);
   }
@@ -106,12 +103,26 @@ export default function BrokerOnboard() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (logoUploading || photoUploading) { setError("Please wait for uploads to finish."); return; }
+    if (!form.logoUrl) { setError("Please upload your logo or paste a logo URL."); return; }
+    if (!form.tagline.trim()) { setError("Please enter your custom tagline."); return; }
+    if (!form.welcomeMessage.trim()) { setError("Please enter a welcome message for your clients."); return; }
     setLoading(true); setError(null);
     try {
       const res = await fetch(`${API_BASE}/api/broker-onboard`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          subdomain: form.subdomain,
+          brokerName: form.brokerName,
+          logoUrl: form.logoUrl,
+          agentPhotoUrl: form.agentPhotoUrl,
+          phoneNumber: form.phoneNumber,
+          tagline: form.tagline,
+          welcomeMessage: form.welcomeMessage,
+          contactEmail: form.contactEmail,
+          type: form.isTeamLeader ? "team_leader" : "individual_agent",
+          monetizationModel: "private_label",
+        }),
       });
       const data = await res.json();
       if (!res.ok) setError(data.error ?? "Something went wrong. Please try again.");
@@ -122,11 +133,6 @@ export default function BrokerOnboard() {
 
   /* ── Success page ────────────────────────────────────────────── */
   if (success) {
-    const monetizationDisplay =
-      form.monetizationModel === "closing_gift"
-        ? `Closing Gift · ${form.giftDuration === "3years" ? "3 Years" : "1 Year"}`
-        : "Private Label";
-
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-6">
         <motion.div
@@ -141,23 +147,19 @@ export default function BrokerOnboard() {
             </div>
             <h1 className="text-2xl font-black mb-1">Application Submitted!</h1>
             <p className="text-green-100 text-sm mb-3">
-              We received your request for <strong>{form.subdomain}.maintainhome.ai</strong>
+              We received your Pioneer Agent request for{" "}
+              <strong>maintainhome.ai/{form.subdomain}</strong>
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">
-                {form.type === "team_leader" ? "🏢 Team Leader" : "👤 Individual Agent"}
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">
-                {form.monetizationModel === "closing_gift" ? "🎁" : "💳"} {monetizationDisplay}
-              </span>
-            </div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-semibold">
+              {form.isTeamLeader ? "🏢 Team Leader" : "👤 Individual Agent"}
+            </span>
           </div>
 
           <div className="p-8 space-y-5">
             <div className="flex items-start gap-3 px-4 py-3 rounded-xl bg-primary/8 border border-primary/20">
               <span className="text-lg shrink-0">⚡</span>
               <p className="text-sm text-slate-700 leading-relaxed">
-                <strong className="text-slate-900">Your branded instance will be live within 24 hours after approval.</strong>{" "}
+                <strong className="text-slate-900">Your branded page will be live within 24 hours after approval.</strong>{" "}
                 We'll email you the moment it's ready.
               </p>
             </div>
@@ -165,11 +167,11 @@ export default function BrokerOnboard() {
             <h2 className="font-bold text-slate-900 text-base">What happens next:</h2>
             <div className="space-y-4">
               {[
-                { step: "1", emoji: "📋", title: "Review (typically same business day)", desc: `We review your submission and send an approval email to ${form.contactEmail}.` },
-                { step: "2", emoji: "🚀", title: "Your branded instance goes live", desc: `Within 24 hours of approval, clients can visit maintainhome.ai/${form.subdomain} and see your logo instantly.` },
-                { step: "3", emoji: "📊", title: "Access your Partner Dashboard", desc: "Sign in at maintainhome.ai/broker-dashboard to view clients, copy your invite link, and track engagement." },
+                { emoji: "📋", title: "Review (typically same business day)", desc: `We review your submission and send an approval email to ${form.contactEmail}.` },
+                { emoji: "🚀", title: "Your branded page goes live", desc: `Within 24 hours, clients can visit maintainhome.ai/${form.subdomain} and see your logo and welcome message instantly.` },
+                { emoji: "📊", title: "Access your Partner Dashboard", desc: "Sign in at maintainhome.ai/broker-dashboard to copy your invite link, view client activity, and track engagement." },
               ].map((item) => (
-                <div key={item.step} className="flex gap-3">
+                <div key={item.emoji} className="flex gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5 text-base">
                     {item.emoji}
                   </div>
@@ -184,7 +186,7 @@ export default function BrokerOnboard() {
             <div className="border-t border-slate-100 pt-5 space-y-2">
               <a href="/broker-dashboard"
                 className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors shadow-sm shadow-primary/20">
-                Go to My Broker Dashboard <ChevronRight className="w-4 h-4" />
+                Go to My Partner Dashboard <ChevronRight className="w-4 h-4" />
               </a>
               <a href="/"
                 className="flex items-center justify-center gap-2 w-full px-6 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors">
@@ -209,80 +211,49 @@ export default function BrokerOnboard() {
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 text-primary rounded-full text-sm font-semibold mb-5">
               <Building2 className="w-4 h-4" />
-              Broker &amp; Team White-Label Program
+              Pioneer Agent Program
             </div>
             <h1 className="text-4xl sm:text-5xl font-black text-white mb-4 leading-tight">
               The Ultimate<br />
               <span className="text-primary">Client Retention Tool</span>
             </h1>
             <p className="text-slate-300 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
-              <strong className="text-white">Join the Pioneer 300</strong> — Be one of the first top agents to have your own fully branded client retention tool.
-              Give every client a powerful AI home ownership app with your logo at closing — turning one-time transactions into lifelong relationships.
+              <strong className="text-white">Join the Pioneer 300</strong> — Get your own branded home maintenance app at
+              <strong className="text-white"> maintainhome.ai/[yourname]</strong> that you can send to every client at closing.
+              Turn one-time transactions into lifelong relationships.
             </p>
           </div>
 
           <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-            {/* Type selector */}
-            <div className="grid grid-cols-2 divide-x divide-slate-100 border-b border-slate-100">
-              <button type="button" onClick={() => handle("type", "individual_agent")}
-                className={`flex items-center gap-3 px-6 py-5 text-left transition-all ${form.type === "individual_agent" ? "bg-primary/5 text-primary" : "text-slate-500 hover:bg-slate-50"}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${form.type === "individual_agent" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
-                  <User className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-sm">Individual Agent</p>
-                  <p className="text-xs opacity-70">Solo broker branding</p>
-                </div>
-              </button>
-              <button type="button" onClick={() => handle("type", "team_leader")}
-                className={`flex items-center gap-3 px-6 py-5 text-left transition-all ${form.type === "team_leader" ? "bg-primary/5 text-primary" : "text-slate-500 hover:bg-slate-50"}`}>
-                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${form.type === "team_leader" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
-                  <Users className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="font-bold text-sm">Team Leader</p>
-                  <p className="text-xs opacity-70">Shared team branding</p>
-                </div>
-              </button>
-            </div>
-
-            {form.type === "team_leader" && (
-              <div className="px-6 py-3 bg-blue-50 border-b border-blue-100 flex items-start gap-2.5">
-                <Users className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
-                <p className="text-xs text-blue-700 leading-relaxed">
-                  <strong>Team Leader mode:</strong> All team members log in under your branded instance and see your logo. Each member has their own private home data, but everyone benefits from your shared branding.
-                </p>
-              </div>
-            )}
-
             <form onSubmit={submit} className="p-8 space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-                {/* Broker/Team Name */}
+                {/* Broker / Agent Name */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    {form.type === "team_leader" ? "Team Name" : "Broker / Agent Name"} <span className="text-red-500">*</span>
+                    Broker / Agent Name <span className="text-red-500">*</span>
                   </label>
                   <input type="text" value={form.brokerName} onChange={(e) => handle("brokerName", e.target.value)}
-                    placeholder={form.type === "team_leader" ? "Smith Realty Group" : "Jane Smith Real Estate"}
+                    placeholder="Jane Smith Real Estate"
                     required
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900" />
                 </div>
 
-                {/* Subdomain */}
+                {/* Handle / subdomain */}
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Desired Subdomain <span className="text-red-500">*</span>
+                    Your Short Handle <span className="text-red-500">*</span>
                   </label>
                   <div className="flex items-center">
+                    <span className="px-3 py-3 bg-slate-50 border border-r-0 border-slate-200 rounded-l-xl text-slate-400 text-sm whitespace-nowrap">
+                      maintainhome.ai/
+                    </span>
                     <input type="text" value={form.subdomain}
                       onChange={(e) => handle("subdomain", e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                      placeholder="smith" required
-                      className="flex-1 px-4 py-3 rounded-l-xl border border-r-0 border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900" />
-                    <span className="px-3 py-3 bg-slate-50 border border-slate-200 rounded-r-xl text-slate-500 text-sm whitespace-nowrap">
-                      .maintainhome.ai
-                    </span>
+                      placeholder="walkerrealty" required
+                      className="flex-1 px-4 py-3 rounded-r-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900" />
                   </div>
+                  <p className="text-xs text-slate-400 mt-1">Letters, numbers, and hyphens only. Min 3 characters.</p>
                 </div>
 
                 {/* Contact Email */}
@@ -291,14 +262,15 @@ export default function BrokerOnboard() {
                     Contact Email <span className="text-red-500">*</span>
                   </label>
                   <input type="email" value={form.contactEmail} onChange={(e) => handle("contactEmail", e.target.value)}
-                    placeholder="you@smithrealty.com" required
+                    placeholder="jane@smithrealty.com" required
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900" />
+                  <p className="text-xs text-slate-400 mt-1">We'll send your approval notification here.</p>
                 </div>
 
                 {/* Logo Upload */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Company / Team Logo <span className="text-red-500">*</span>{" "}
+                    Logo <span className="text-red-500">*</span>{" "}
                     <span className="text-slate-400 font-normal">(PNG, SVG, WebP — max 2MB)</span>
                   </label>
 
@@ -358,9 +330,9 @@ export default function BrokerOnboard() {
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     <Camera className="w-4 h-4 inline mr-1.5 text-slate-400" />
-                    Agent Headshot <span className="text-slate-400 font-normal">(optional, max 2MB)</span>
+                    Agent Headshot <span className="text-slate-400 font-normal">(optional — max 2MB)</span>
                   </label>
-                  <p className="text-xs text-slate-400 mb-2.5">Shown alongside your logo on the invite page and in the app header — adds a personal touch.</p>
+                  <p className="text-xs text-slate-400 mb-2.5">Shown next to your logo on your invite page — gives clients a personal, trusted face to connect with.</p>
 
                   {!photoFile ? (
                     <div onClick={() => photoInputRef.current?.click()}
@@ -401,70 +373,61 @@ export default function BrokerOnboard() {
                   <input type="tel" value={form.phoneNumber} onChange={(e) => handle("phoneNumber", e.target.value)}
                     placeholder="(555) 867-5309"
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900" />
-                  <p className="text-xs text-slate-400 mt-1">Displayed next to your logo on invite pages.</p>
+                  <p className="text-xs text-slate-400 mt-1">Shown next to your logo so clients can reach you directly.</p>
                 </div>
 
                 {/* Tagline */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Custom Tagline <span className="text-slate-400 font-normal">(optional)</span>
+                    Custom Tagline <span className="text-red-500">*</span>
                   </label>
                   <input type="text" value={form.tagline} onChange={(e) => handle("tagline", e.target.value)}
                     placeholder="Own Your Home With Confidence – Smith Realty Group"
                     maxLength={120}
+                    required
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900" />
-                  <p className="text-xs text-slate-400 mt-1">Shown below your logo on the invite page.</p>
+                  <p className="text-xs text-slate-400 mt-1">Shown prominently below your logo on your branded page.</p>
                 </div>
 
                 {/* Welcome Message */}
                 <div className="sm:col-span-2">
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Client Welcome Message <span className="text-slate-400 font-normal">(optional)</span>
+                    Welcome Message <span className="text-red-500">*</span>
                   </label>
                   <textarea value={form.welcomeMessage} onChange={(e) => handle("welcomeMessage", e.target.value)}
-                    placeholder="Welcome! I'm here to help you navigate home ownership with confidence. Let's build your personalized home care plan."
-                    rows={3} maxLength={400}
+                    placeholder="Welcome! I set up this home care tool to help you protect your investment and stay ahead of maintenance. Let's build your personalized plan together."
+                    rows={4} maxLength={400}
+                    required
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900 resize-none" />
-                  <p className="text-xs text-slate-400 mt-1">Shown on the invite page your clients land on.</p>
+                  <p className="text-xs text-slate-400 mt-1">Shown on your branded invite page — make it personal and warm.</p>
                 </div>
 
-                {/* Monetization Model */}
+                {/* Team Leader checkbox */}
                 <div className="sm:col-span-2">
-                  <label className="block text-sm font-semibold text-slate-700 mb-3">Offer Model</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button type="button" onClick={() => handle("monetizationModel", "private_label")}
-                      className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all text-left ${form.monetizationModel === "private_label" ? "border-primary bg-primary/5" : "border-slate-200 hover:border-slate-300"}`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${form.monetizationModel === "private_label" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
-                        <CreditCard className="w-4 h-4" />
+                  <label className="flex items-start gap-3 cursor-pointer group">
+                    <div className="relative mt-0.5 shrink-0">
+                      <input type="checkbox" checked={form.isTeamLeader}
+                        onChange={(e) => handle("isTeamLeader", e.target.checked)}
+                        className="sr-only peer" />
+                      <div className="w-5 h-5 rounded border-2 border-slate-300 peer-checked:bg-primary peer-checked:border-primary transition-all flex items-center justify-center">
+                        {form.isTeamLeader && (
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
                       </div>
-                      <div>
-                        <p className={`font-bold text-sm ${form.monetizationModel === "private_label" ? "text-primary" : "text-slate-700"}`}>Private Label</p>
-                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">Clients see your brand. They manage their own subscription.</p>
-                      </div>
-                    </button>
-                    <button type="button" onClick={() => handle("monetizationModel", "closing_gift")}
-                      className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all text-left ${form.monetizationModel === "closing_gift" ? "border-primary bg-primary/5" : "border-slate-200 hover:border-slate-300"}`}>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${form.monetizationModel === "closing_gift" ? "bg-primary text-white" : "bg-slate-100 text-slate-400"}`}>
-                        <Gift className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className={`font-bold text-sm ${form.monetizationModel === "closing_gift" ? "text-primary" : "text-slate-700"}`}>Closing Gift</p>
-                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">You gift clients complimentary access. A memorable, lasting gesture.</p>
-                      </div>
-                    </button>
-                  </div>
-
-                  {form.monetizationModel === "closing_gift" && (
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      {(["1year", "3years"] as const).map((d) => (
-                        <button key={d} type="button" onClick={() => handle("giftDuration", d)}
-                          className={`py-3 px-4 rounded-xl border-2 text-sm font-semibold transition-all ${form.giftDuration === d ? "border-primary bg-primary/5 text-primary" : "border-slate-200 text-slate-600 hover:border-slate-300"}`}>
-                          {d === "1year" ? "1 Year Gift" : "3 Year Gift"}
-                        </button>
-                      ))}
                     </div>
-                  )}
+                    <div>
+                      <p className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
+                        This is for a Team Leader
+                      </p>
+                      <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
+                        Multiple agents share this branding. Each member has private home data, but everyone benefits from the shared logo and experience.
+                      </p>
+                    </div>
+                  </label>
                 </div>
+
               </div>
 
               {error && (
@@ -478,6 +441,11 @@ export default function BrokerOnboard() {
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-primary hover:bg-primary/90 text-white font-extrabold text-base transition-all disabled:opacity-60 shadow-lg shadow-primary/25">
                 {loading ? <><Loader2 className="w-5 h-5 animate-spin" />Submitting…</> : <>Submit Application<ChevronRight className="w-5 h-5" /></>}
               </button>
+
+              <p className="text-center text-xs text-slate-400">
+                We review every application and respond within one business day. Questions?{" "}
+                <a href="mailto:support@maintainhome.ai" className="text-primary hover:underline">support@maintainhome.ai</a>
+              </p>
             </form>
           </div>
         </motion.div>
