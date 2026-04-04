@@ -1470,38 +1470,50 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           {branding ? (
             /* ── White-label version ── */
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-0">
-              {/* Left dark panel — 3/4 width */}
-              <div className="sm:flex-[3] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center gap-4 px-8 py-7">
-                {branding.logoUrl && (
-                  <div className="bg-white/10 rounded-2xl px-5 py-3 w-full max-w-[220px] flex justify-center">
-                    <img
-                      src={branding.logoUrl}
-                      alt={branding.brokerName}
-                      className="h-12 max-w-[180px] object-contain"
-                    />
-                  </div>
-                )}
-                {branding.agentPhotoUrl && (
-                  <div className="relative">
-                    <div className="w-24 h-24 rounded-full overflow-hidden border-[3px] shadow-2xl shadow-black/40"
-                      style={{ borderColor: "rgba(31,158,110,0.7)" }}>
-                      <img src={branding.agentPhotoUrl} alt={branding.brokerName} className="w-full h-full object-cover" />
+              {/* Left dark panel — 3/4 width, split internally into logo | headshot+info */}
+              <div className="sm:flex-[3] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-row items-stretch">
+                {/* Logo half */}
+                <div className="flex-1 flex items-center justify-center px-6 py-7 border-r border-white/10">
+                  {branding.logoUrl ? (
+                    <div className="bg-white/10 rounded-2xl px-5 py-4 w-full flex items-center justify-center">
+                      <img
+                        src={branding.logoUrl}
+                        alt={branding.brokerName}
+                        className="h-14 max-w-[160px] object-contain"
+                      />
                     </div>
-                    <div className="absolute inset-0 rounded-full pointer-events-none"
-                      style={{ boxShadow: "0 0 0 6px rgba(31,158,110,0.18), 0 0 24px rgba(31,158,110,0.25)" }} />
-                  </div>
-                )}
-                <div className="text-center">
-                  <p className="text-white text-base font-bold leading-snug">{branding.brokerName}</p>
-                  {branding.phoneNumber && (
-                    <a
-                      href={`tel:${branding.phoneNumber}`}
-                      className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold transition-colors"
-                      style={{ color: "rgba(31,158,110,0.85)" }}
-                    >
-                      <Phone className="w-3 h-3" />{branding.phoneNumber}
-                    </a>
+                  ) : (
+                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                      style={{ backgroundColor: "rgba(31,158,110,0.3)", border: "2px solid rgba(31,158,110,0.5)" }}>
+                      <span className="text-2xl font-black text-white">{branding.brokerName[0]}</span>
+                    </div>
                   )}
+                </div>
+
+                {/* Headshot + name + phone half */}
+                <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-7">
+                  {branding.agentPhotoUrl && (
+                    <div className="relative">
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] shadow-2xl shadow-black/40"
+                        style={{ borderColor: "rgba(31,158,110,0.7)" }}>
+                        <img src={branding.agentPhotoUrl} alt={branding.brokerName} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="absolute inset-0 rounded-full pointer-events-none"
+                        style={{ boxShadow: "0 0 0 5px rgba(31,158,110,0.18), 0 0 20px rgba(31,158,110,0.25)" }} />
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <p className="text-white text-sm font-bold leading-snug">{branding.brokerName}</p>
+                    {branding.phoneNumber && (
+                      <a
+                        href={`tel:${branding.phoneNumber}`}
+                        className="inline-flex items-center gap-1.5 mt-1.5 text-xs font-semibold transition-colors"
+                        style={{ color: "rgba(31,158,110,0.85)" }}
+                      >
+                        <Phone className="w-3 h-3" />{branding.phoneNumber}
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
 
