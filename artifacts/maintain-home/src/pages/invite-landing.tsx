@@ -134,7 +134,7 @@ export default function InviteLanding() {
           OUTER WRAPPER — single col mobile / two col desktop
       ══════════════════════════════════════════════════════════ */}
       <div className="relative z-10 max-w-5xl mx-auto px-5 sm:px-8 pt-8 pb-14">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:gap-12 xl:gap-16">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:gap-12 xl:gap-16">
 
           {/* ══════════════════════════════════════════════════════
               LEFT COLUMN — broker identity (logo + headshot)
