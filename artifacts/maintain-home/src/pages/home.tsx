@@ -161,7 +161,7 @@ export default function Home() {
                 </button>
                 <button
                   onClick={() => navigate("/home-profile")}
-                  title="My Home Profile"
+                  title="My Property Facts"
                   className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors"
                 >
                   <HomeIcon className="w-4 h-4" />
@@ -239,7 +239,7 @@ export default function Home() {
                   className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary hover:bg-slate-50 px-3 py-2 rounded-lg transition-colors"
                 >
                   <HomeIcon className="w-4 h-4" />
-                  My Home Profile
+                  My Property Facts
                 </button>
                 <button
                   onClick={() => navigate("/history")}

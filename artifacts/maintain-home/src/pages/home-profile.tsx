@@ -199,7 +199,7 @@ export default function HomeProfilePage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <BrandedPageHeader
-        title="My Home Profile"
+        title="My Property Facts"
         icon={<Home className="w-5 h-5 text-primary shrink-0" />}
       >
           <button

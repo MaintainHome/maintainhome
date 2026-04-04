@@ -729,7 +729,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <div>
                 <p className="text-base font-bold text-slate-900 group-hover:text-white transition-colors">Talk to Maintly</p>
                 <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">
-                  Your Personal AI Home<br />Maintenance Chatbot
+                  Your Personal Ai Home<br />Ownership Chatbot
                 </p>
               </div>
             </button>
@@ -764,7 +764,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <ClipboardList className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">Home Maintenance Log</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">Historical Home Maintenance Log</p>
               <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Completed Tasks<br />&amp; Notes</p>
             </div>
           </button>
@@ -778,12 +778,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">This Month To Do List</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">To-Do List This Month</p>
               <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Custom Suggestions<br />For Your Home</p>
             </div>
           </button>
 
-          {/* Tile 4: My Home Profile */}
+          {/* Tile 4: My Property Facts */}
           <button
             onClick={() => navigate("/home-profile")}
             className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
@@ -792,7 +792,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <HomeIcon className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Home Profile</p>
+              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Property Facts</p>
               <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Detailed Facts About<br />Your Property</p>
             </div>
           </button>
