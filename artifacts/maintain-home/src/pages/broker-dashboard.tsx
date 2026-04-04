@@ -13,6 +13,17 @@ import { useLocation } from "wouter";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const BASE = import.meta.env.BASE_URL;
+
+async function safeJson(res: Response): Promise<any> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error("[broker-dashboard] Non-JSON response:", res.status, text.slice(0, 200));
+    throw new Error(`Server error (${res.status}). Please try again.`);
+  }
+}
+
 const MH_PRIMARY = "#1f9e6e";
 
 /* ─── Types ───────────────────────────────────────────────────────── */
@@ -192,12 +203,12 @@ export default function BrokerDashboard() {
         fetch(`${API_BASE}/api/broker/clients`, { credentials: "include" }),
       ]);
       if (!meRes.ok) {
-        const d = await meRes.json();
+        const d = await safeJson(meRes);
         setError(d.error ?? "Could not load broker profile.");
         return;
       }
-      setConfig((await meRes.json()).config);
-      if (clientsRes.ok) setClients((await clientsRes.json()).clients ?? []);
+      setConfig((await safeJson(meRes)).config);
+      if (clientsRes.ok) setClients((await safeJson(clientsRes)).clients ?? []);
     } catch { setError("Network error. Please refresh."); }
     finally { setLoading(false); }
   }, []);
@@ -231,8 +242,8 @@ export default function BrokerDashboard() {
     try {
       const fd = new FormData();
       fd.append("logo", file);
-      const res = await fetch(`${API_BASE}/api/broker-onboard/logo-upload`, { method: "POST", body: fd, credentials: "include" });
-      const data = await res.json();
+      const res = await fetch(`${API_BASE}/api/logo-upload`, { method: "POST", body: fd, credentials: "include" });
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error ?? "Upload failed");
       setEditForm((f) => ({ ...f, logoUrl: data.logoUrl }));
     } catch (err: any) {
@@ -251,8 +262,8 @@ export default function BrokerDashboard() {
     try {
       const fd = new FormData();
       fd.append("photo", file);
-      const res = await fetch(`${API_BASE}/api/broker-onboard/photo-upload`, { method: "POST", body: fd, credentials: "include" });
-      const data = await res.json();
+      const res = await fetch(`${API_BASE}/api/photo-upload`, { method: "POST", body: fd, credentials: "include" });
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error ?? "Upload failed");
       setEditForm((f) => ({ ...f, agentPhotoUrl: data.photoUrl }));
     } catch (err: any) {
@@ -275,7 +286,7 @@ export default function BrokerDashboard() {
         credentials: "include",
         body: JSON.stringify(editForm),
       });
-      const data = await res.json();
+      const data = await safeJson(res);
       if (!res.ok) throw new Error(data.error ?? "Failed to save");
       setConfig((prev) => prev ? {
         ...prev,
