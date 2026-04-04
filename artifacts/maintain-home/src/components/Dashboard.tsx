@@ -5,7 +5,7 @@ import {
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
   Send, Loader2, User, TrendingDown, TrendingUp, Shield, ChevronDown, ChevronUp,
-  Clock, TriangleAlert, Paperclip, FileText,
+  Clock, TriangleAlert, Paperclip, FileText, Phone,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -1460,6 +1460,94 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           )}
         </motion.div>
 
+        {/* ── Your Home Support ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.16 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+        >
+          {branding ? (
+            /* ── White-label version ── */
+            <div className="flex flex-col sm:flex-row sm:items-center gap-0">
+              {/* Left accent strip with logo + headshot */}
+              <div className="sm:w-48 shrink-0 bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col items-center justify-center gap-3 px-5 py-6">
+                {branding.logoUrl && (
+                  <div className="bg-white/10 rounded-xl px-3 py-2 w-full flex justify-center">
+                    <img
+                      src={branding.logoUrl}
+                      alt={branding.brokerName}
+                      className="h-8 max-w-[120px] object-contain"
+                    />
+                  </div>
+                )}
+                {branding.agentPhotoUrl && (
+                  <div className="relative">
+                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/60 shadow-lg">
+                      <img src={branding.agentPhotoUrl} alt={branding.brokerName} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="absolute inset-0 rounded-full pointer-events-none"
+                      style={{ boxShadow: "0 0 0 4px rgba(31,158,110,0.2)" }} />
+                  </div>
+                )}
+                <div className="text-center">
+                  <p className="text-white text-xs font-bold leading-tight">{branding.brokerName}</p>
+                  {branding.phoneNumber && (
+                    <a
+                      href={`tel:${branding.phoneNumber}`}
+                      className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-primary/80 hover:text-primary transition-colors"
+                    >
+                      <Phone className="w-2.5 h-2.5" />{branding.phoneNumber}
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Right content */}
+              <div className="flex-1 min-w-0 px-5 py-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <ClipboardList className="w-4 h-4 text-primary shrink-0" />
+                  <h2 className="text-sm font-bold text-slate-900">Your Home Support</h2>
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                  When you're ready to move, we can export your maintenance history — streamlining the listing process.
+                </p>
+                <button
+                  onClick={() => navigate("/history")}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20"
+                  style={{ backgroundColor: "#1f9e6e" }}
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  View Full Maintenance History
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── Regular (non-white-label) version ── */
+            <div className="flex items-start gap-4 px-5 py-5">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
+                <ClipboardList className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h2 className="text-sm font-bold text-slate-900 mb-1">Your Home Support</h2>
+                <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                  Your complete maintenance history is saved here. Keep track of everything you've done for your home.
+                </p>
+                <button
+                  onClick={() => navigate("/history")}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20"
+                  style={{ backgroundColor: "#1f9e6e" }}
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  View Full Maintenance History
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
         {/* ── Future Big-Ticket Items (Pro) ── */}
         {userIsPro && (
           <motion.div
@@ -1761,83 +1849,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </AnimatePresence>
           </motion.div>
         )}
-
-        {/* ── Recent Activity ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.22 }}
-          className="bg-white rounded-2xl border border-slate-200 shadow-sm"
-        >
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <ClipboardList className="w-5 h-5 text-emerald-600" />
-              <h2 className="text-lg font-display font-bold text-foreground">Recent Activity</h2>
-            </div>
-            <button
-              onClick={() => navigate("/history")}
-              className="flex items-center gap-1 text-sm text-primary font-semibold hover:underline"
-            >
-              View all <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="divide-y divide-slate-50">
-            {logLoading ? (
-              <div className="flex items-center justify-center py-10 gap-2 text-slate-400">
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span className="text-sm">Loading history…</span>
-              </div>
-            ) : recentLog.length === 0 ? (
-              <div className="py-10 text-center">
-                <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                  <ClipboardList className="w-6 h-6 text-slate-400" />
-                </div>
-                <p className="text-slate-500 text-sm font-medium">No completed tasks yet</p>
-                <p className="text-slate-400 text-xs mt-1">
-                  Start maintaining your home today — completed tasks will appear here.
-                </p>
-              </div>
-            ) : (
-              recentLog.map((entry) => (
-                <div key={entry.id} className="flex items-start gap-3 px-6 py-4 group">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{entry.taskName}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      {entry.month} · Completed {new Date(entry.completedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    </p>
-                    {entry.notes && (
-                      <p className="text-xs text-slate-500 mt-1 italic truncate">"{entry.notes}"</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleDeleteLogEntry(entry.id)}
-                    disabled={deletingLogId === entry.id}
-                    className="shrink-0 p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 disabled:opacity-50"
-                    title="Delete entry"
-                  >
-                    {deletingLogId === entry.id
-                      ? <RefreshCw className="w-4 h-4 animate-spin" />
-                      : <Trash2 className="w-4 h-4" />
-                    }
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-          {recentLog.length > 0 && (
-            <div className="px-6 py-3 border-t border-slate-50">
-              <button
-                onClick={() => navigate("/history")}
-                className="flex items-center gap-1.5 text-sm text-primary font-semibold hover:underline"
-              >
-                View full maintenance log <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </motion.div>
 
         {/* "Powered by MaintainHome.ai" badge — only shown on white-labeled subdomains */}
         {branding && (
