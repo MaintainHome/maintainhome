@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2, CheckCircle2, AlertCircle, Loader2,
   ChevronRight, Upload, X, ImageIcon, Phone, Camera,
-  Sparkles, Star, Users, ArrowRight, Eye,
+  Sparkles, Star, Users, ArrowRight, Eye, Gift,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -349,6 +349,48 @@ export default function BrokerOnboard() {
             <span className="font-bold" style={{ color: ACCENT }}>maintainhome.ai/[yourname]</span>{" "}
             that turns one-time transactions into lifelong client relationships.
           </p>
+        </motion.div>
+      </div>
+
+      {/* ══ Pioneer Offer Banner ════════════════════════════════════ */}
+      <div className="relative z-10 px-5 sm:px-8 pb-2">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.15 }}
+          className="max-w-3xl mx-auto"
+        >
+          <div className="rounded-2xl px-6 py-5 flex flex-col sm:flex-row sm:items-center gap-4"
+            style={{
+              background: `linear-gradient(135deg, ${ACCENT}18 0%, ${ACCENT}08 100%)`,
+              border: `1.5px solid ${ACCENT}50`,
+            }}>
+            {/* Icon */}
+            <div className="w-11 h-11 rounded-xl shrink-0 flex items-center justify-center"
+              style={{ backgroundColor: ACCENT + "25", border: `1px solid ${ACCENT}40` }}>
+              <Gift className="w-5 h-5" style={{ color: ACCENT }} />
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-black text-white mb-1 tracking-wide uppercase"
+                style={{ letterSpacing: "0.04em" }}>
+                Pioneer Agent Program — Special Offer
+              </p>
+              <p className="text-sm sm:text-base text-white/80 leading-relaxed">
+                The{" "}
+                <span className="font-black text-white">$1,993</span>
+                {" "}White-Label Setup Fee is{" "}
+                <span className="font-black px-1.5 py-0.5 rounded-md"
+                  style={{ color: ACCENT, backgroundColor: ACCENT + "22" }}>
+                  waived
+                </span>
+                {" "}for our first 300 qualified agents. You only pay for the{" "}
+                <span className="font-bold text-white">$29 gift codes</span>
+                {" "}when you want to give MaintainHome as a closing gift to your clients.
+              </p>
+            </div>
+          </div>
         </motion.div>
       </div>
 
