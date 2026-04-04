@@ -11,11 +11,11 @@ const BASE = import.meta.env.BASE_URL ?? "/";
 const ACCENT = "#1f9e6e";
 
 /* ── Stat badge ─────────────────────────────────────────────────── */
-function StatBadge({ label, value }: { label: string; value: string }) {
+function StatBadge({ label, value, valueClassName }: { label: string; value: string; valueClassName?: string }) {
   return (
     <div className="flex flex-col items-center px-4 py-3 rounded-2xl"
       style={{ backgroundColor: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}>
-      <span className="text-xl font-black text-white leading-none">{value}</span>
+      <span className={`font-black text-white leading-none ${valueClassName ?? "text-xl"}`}>{value}</span>
       <span className="text-xs text-white/50 mt-0.5 whitespace-nowrap">{label}</span>
     </div>
   );
@@ -443,7 +443,7 @@ export default function BrokerOnboard() {
             <div className="grid grid-cols-3 gap-2 mt-4 w-full">
               <StatBadge value="300" label="Pioneer spots" />
               <StatBadge value="12-mo" label="AI calendar" />
-              <StatBadge value="∞" label="Client relationships" />
+              <StatBadge value="∞" label="Client relationships" valueClassName="text-4xl" />
             </div>
 
             {/* Social proof */}
