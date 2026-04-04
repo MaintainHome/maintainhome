@@ -49,7 +49,9 @@ function Router() {
       <Route path="/broker-onboard" component={BrokerOnboard} />
       <Route path="/admin/brokers" component={AdminBrokers} />
       <Route path="/broker-dashboard" component={BrokerDashboard} />
+      <Route path="/invite/:subdomain" component={InviteLanding} />
       <Route path="/invite" component={InviteLanding} />
+      <Route path="/:subdomain" component={InviteLanding} />
       <Route component={NotFound} />
     </Switch>
   );

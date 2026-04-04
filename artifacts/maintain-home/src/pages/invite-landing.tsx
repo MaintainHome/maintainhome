@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle2, Gift, ArrowRight, Loader2, Home, AlertTriangle,
@@ -6,9 +6,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
 import { AuthModal } from "@/components/AuthModal";
-import { useLocation } from "wouter";
+import { useLocation, useParams } from "wouter";
 
-const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const BASE = import.meta.env.BASE_URL;
 
 const FEATURES = [
@@ -20,14 +19,23 @@ const FEATURES = [
 
 /* ════════════════════════════════════════════════════════════════════
    Invite Landing Page
-   Route: /invite?broker=[subdomain]
+   Supported routes:
+     /invite/:subdomain      → cleanest explicit form
+     /:subdomain             → ultra-short alias
+     /invite?broker=...      → legacy query-param form
+     /?_ref=...              → legacy referral param (still works)
 ════════════════════════════════════════════════════════════════════ */
 export default function InviteLanding() {
-  /* Read ?broker= synchronously before BrandingContext effect strips it */
-  const [subdomain] = useState<string | null>(() => {
+  /* useParams() reads from the matched Wouter route context directly */
+  const params = useParams<{ subdomain?: string }>();
+
+  /* Resolve subdomain: route param > ?broker= > ?_ref= (legacy) */
+  const subdomain = useMemo(() => {
+    const fromRoute = params?.subdomain?.toLowerCase().trim();
+    if (fromRoute) return fromRoute;
     const p = new URLSearchParams(window.location.search);
-    return p.get("broker")?.toLowerCase().trim() ?? null;
-  });
+    return (p.get("broker") ?? p.get("_ref"))?.toLowerCase().trim() ?? null;
+  }, [params?.subdomain]);
 
   const { setPreviewSubdomain, branding, loading: brandingLoading } = useBranding();
   const { user, loading: authLoading } = useAuth();
@@ -36,7 +44,7 @@ export default function InviteLanding() {
   const [showAuth, setShowAuth] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "signin">("signup");
 
-  /* Activate branding + save referral */
+  /* Activate branding + persist referral for signup attribution */
   useEffect(() => {
     if (subdomain) {
       setPreviewSubdomain(subdomain);
@@ -44,7 +52,7 @@ export default function InviteLanding() {
     }
   }, [subdomain, setPreviewSubdomain]);
 
-  /* Redirect already-logged-in users */
+  /* Redirect already-logged-in users to home */
   useEffect(() => {
     if (!authLoading && user) navigate("/");
   }, [user, authLoading, navigate]);
@@ -59,8 +67,8 @@ export default function InviteLanding() {
     setShowAuth(true);
   }
 
-  /* ── Loading state ─────────────────────────────────────────────── */
-  if (!subdomain || brandingLoading || authLoading) {
+  /* ── Loading ────────────────────────────────────────────────────── */
+  if (brandingLoading || authLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -71,7 +79,28 @@ export default function InviteLanding() {
     );
   }
 
-  /* ── Invalid / not found ───────────────────────────────────────── */
+  /* ── No subdomain at all (bare /invite with no param) ───────────── */
+  if (!subdomain) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center">
+          <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mx-auto mb-5">
+            <Home className="w-8 h-8 text-slate-500" />
+          </div>
+          <h1 className="text-2xl font-black text-white mb-3">Welcome to MaintainHome.ai</h1>
+          <p className="text-slate-400 text-sm leading-relaxed mb-6">
+            Your AI-powered home ownership companion. Sign up to get your personalized 12-month maintenance plan.
+          </p>
+          <button onClick={() => navigate("/")}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold text-sm mx-auto hover:bg-primary/90 transition-colors">
+            <ArrowRight className="w-4 h-4" />Get Started
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Branding not found (invalid or inactive subdomain) ─────────── */
   if (!branding) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
@@ -113,7 +142,7 @@ export default function InviteLanding() {
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay: 6 }}
         style={{ background: `radial-gradient(ellipse at 50% 50%, ${accent}20 0%, transparent 60%)` }} />
 
-      {/* ── Top badge ───────────────────────────────────────────── */}
+      {/* ── Top bar ─────────────────────────────────────────────── */}
       <div className="relative z-10 pt-6 flex justify-center">
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/8 border border-white/15">
           <img src={`${BASE}images/logo-icon.png`} alt="MaintainHome.ai" className="w-4 h-4 object-contain opacity-60" />
@@ -147,14 +176,17 @@ export default function InviteLanding() {
             className="flex justify-center mb-7"
           >
             {branding.logoUrl ? (
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-7 py-4 border border-white/15">
-                <img src={branding.logoUrl} alt={branding.brokerName}
-                  className="h-14 sm:h-18 max-w-[260px] object-contain" />
+              <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-7 py-5 border border-white/15 shadow-xl">
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.brokerName}
+                  className="h-14 sm:h-20 max-w-[280px] object-contain"
+                />
               </div>
             ) : (
-              <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
-                style={{ backgroundColor: accent + "35", border: `2px solid ${accent}45` }}>
-                <span className="text-3xl font-black" style={{ color: accent }}>
+              <div className="w-24 h-24 rounded-3xl flex items-center justify-center shadow-xl"
+                style={{ backgroundColor: accent + "35", border: `2px solid ${accent}55` }}>
+                <span className="text-4xl font-black" style={{ color: accent }}>
                   {branding.brokerName[0]}
                 </span>
               </div>
@@ -168,28 +200,31 @@ export default function InviteLanding() {
             transition={{ delay: 0.18, duration: 0.45 }}
             className="text-4xl sm:text-5xl font-black text-white text-center mb-3 leading-tight"
           >
-            A Gift from<br />{branding.brokerName}
+            Welcome to Your<br />
+            <span style={{ color: accent }}>MaintainHome</span> Experience
           </motion.h1>
 
-          {/* Sub-headline in accent color */}
+          {/* Sub-headline */}
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.4 }}
-            className="text-center font-bold text-base sm:text-lg mb-4 leading-snug"
-            style={{ color: accent }}
+            className="text-center text-white/60 text-base sm:text-lg mb-3 leading-snug"
           >
-            Your personal AI home ownership tool,<br className="hidden sm:block" /> custom-branded for you by {branding.brokerName}.
+            Powered by{" "}
+            <span className="font-bold" style={{ color: accent }}>{branding.brokerName}</span>
           </motion.p>
 
-          {/* Description */}
+          {/* Welcome message or default description */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.32, duration: 0.4 }}
-            className="text-white/55 text-sm sm:text-base text-center mb-7 leading-relaxed"
+            className="text-white/50 text-sm sm:text-base text-center mb-7 leading-relaxed"
           >
-            MaintainHome helps you stay on top of maintenance, protect your biggest investment, and own your home with confidence.
+            {branding.welcomeMessage
+              ? branding.welcomeMessage
+              : `Get started with your personalized AI home maintenance plan — a gift from ${branding.brokerName}.`}
           </motion.p>
 
           {/* Feature list */}
@@ -197,7 +232,7 @@ export default function InviteLanding() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.38, duration: 0.4 }}
-            className="space-y-2.5 mb-8"
+            className="space-y-3 mb-8"
           >
             {FEATURES.map((feature, i) => (
               <li key={i} className="flex items-center gap-3">
@@ -205,12 +240,12 @@ export default function InviteLanding() {
                   style={{ backgroundColor: accent + "30" }}>
                   <CheckCircle2 className="w-3.5 h-3.5" style={{ color: accent }} />
                 </div>
-                <span className="text-white/75 text-sm">{feature}</span>
+                <span className="text-white/70 text-sm">{feature}</span>
               </li>
             ))}
           </motion.ul>
 
-          {/* CTA — Get Started */}
+          {/* Primary CTA */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -230,15 +265,17 @@ export default function InviteLanding() {
 
             <p className="text-center text-white/40 text-sm mt-4">
               Already have an account?{" "}
-              <button onClick={openSignin}
+              <button
+                onClick={openSignin}
                 className="font-semibold hover:underline transition-colors"
-                style={{ color: accent }}>
+                style={{ color: accent }}
+              >
                 Sign In →
               </button>
             </p>
           </motion.div>
 
-          {/* Tagline if present */}
+          {/* Tagline */}
           {branding.tagline && (
             <motion.p
               initial={{ opacity: 0 }}
@@ -259,7 +296,7 @@ export default function InviteLanding() {
         </p>
       </div>
 
-      {/* ── Auth Modal ──────────────────────────────────────────── */}
+      {/* ── Auth modal ──────────────────────────────────────────── */}
       <AuthModal
         open={showAuth}
         onClose={() => setShowAuth(false)}
