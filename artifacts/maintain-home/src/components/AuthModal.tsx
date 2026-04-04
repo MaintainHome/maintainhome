@@ -9,14 +9,19 @@ import { useAuth } from "@/contexts/AuthContext";
 interface AuthModalProps {
   open: boolean;
   onClose: () => void;
+  initialMode?: "signup" | "signin";
 }
 
 type Mode = "signup" | "signin";
 type Stage = "form" | "sent" | "error";
 
-export function AuthModal({ open, onClose }: AuthModalProps) {
+export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
   const { refreshUser } = useAuth();
-  const [mode, setMode] = useState<Mode>("signup");
+  const [mode, setMode] = useState<Mode>(initialMode ?? "signup");
+
+  useEffect(() => {
+    if (open) setMode(initialMode ?? "signup");
+  }, [open, initialMode]);
   const [stage, setStage] = useState<Stage>("form");
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");

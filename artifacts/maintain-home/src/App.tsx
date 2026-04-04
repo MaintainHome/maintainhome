@@ -13,6 +13,7 @@ import CalendarPage from "@/pages/calendar-page";
 import BrokerOnboard from "@/pages/broker-onboard";
 import AdminBrokers from "@/pages/admin-brokers";
 import BrokerDashboard from "@/pages/broker-dashboard";
+import InviteLanding from "@/pages/invite-landing";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient({
@@ -48,6 +49,7 @@ function Router() {
       <Route path="/broker-onboard" component={BrokerOnboard} />
       <Route path="/admin/brokers" component={AdminBrokers} />
       <Route path="/broker-dashboard" component={BrokerDashboard} />
+      <Route path="/invite" component={InviteLanding} />
       <Route component={NotFound} />
     </Switch>
   );

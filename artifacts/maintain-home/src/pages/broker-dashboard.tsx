@@ -190,7 +190,7 @@ export default function BrokerDashboard() {
 
   function copyInviteLink() {
     if (!config) return;
-    navigator.clipboard.writeText(`${window.location.origin}${import.meta.env.BASE_URL}?_ref=${config.subdomain}`);
+    navigator.clipboard.writeText(`${window.location.origin}${import.meta.env.BASE_URL}invite?broker=${config.subdomain}`);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2500);
   }
@@ -204,7 +204,7 @@ export default function BrokerDashboard() {
   const accent = brandPrimary ?? config?.primaryColor ?? "#1f9e6e";
   const isGift = config?.monetizationModel === "closing_gift";
   const inviteLink = config
-    ? `${window.location.origin}${import.meta.env.BASE_URL}?_ref=${config.subdomain}` : "";
+    ? `${window.location.origin}${import.meta.env.BASE_URL}invite?broker=${config.subdomain}` : "";
 
   /* ── Loading ─────────────────────────────────────────────────────── */
   if (loading || authLoading) {
@@ -514,7 +514,7 @@ export default function BrokerDashboard() {
                 : <><Copy className="w-5 h-5" />Copy Invite Link</>}
             </button>
             <p className="text-xs text-slate-400 mt-3 text-center">
-              Or direct clients to <strong className="text-slate-600">{config.subdomain}.maintainhome.ai</strong>
+              Or share: <strong className="text-slate-600 font-mono">maintainhome.ai/invite?broker={config.subdomain}</strong>
             </p>
           </motion.div>
 

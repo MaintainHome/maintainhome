@@ -34,13 +34,17 @@ function detectSubdomain(): string | null {
 
 function detectReferralParam(): string | null {
   const params = new URLSearchParams(window.location.search);
+  const broker = params.get("broker");
   const ref = params.get("_ref");
-  if (ref) {
-    localStorage.setItem(REFERRAL_KEY, ref.toLowerCase());
+  const value = broker || ref;
+  if (value) {
+    const subdomain = value.toLowerCase().trim();
+    localStorage.setItem(REFERRAL_KEY, subdomain);
     const url = new URL(window.location.href);
     url.searchParams.delete("_ref");
+    url.searchParams.delete("broker");
     window.history.replaceState({}, "", url.toString());
-    return ref.toLowerCase();
+    return subdomain;
   }
   return localStorage.getItem(REFERRAL_KEY);
 }
