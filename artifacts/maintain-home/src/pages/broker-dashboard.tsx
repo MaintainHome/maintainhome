@@ -5,7 +5,7 @@ import {
   ExternalLink, BarChart2, Zap, RefreshCw, LogOut,
   ShieldCheck, Gift, CreditCard, Calendar, TrendingUp,
   AlertTriangle, ArrowUpRight, Star, Phone, Camera,
-  Pencil, X, Upload, CheckCircle2,
+  Pencil, X, Upload, CheckCircle2, HomeIcon,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -180,6 +180,7 @@ export default function BrokerDashboard() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/"); return; }
+    if (!user.isBroker) { navigate("/"); return; }
     load();
   }, [authLoading, user]);
 
@@ -389,6 +390,10 @@ export default function BrokerDashboard() {
             <button onClick={() => { setPreviewSubdomain(config.subdomain); navigate("/"); }}
               className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
               <ExternalLink className="w-3.5 h-3.5" />Preview
+            </button>
+            <button onClick={() => { sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
+              className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
+              <HomeIcon className="w-3.5 h-3.5" />My Home
             </button>
             <button onClick={async () => { await logout(); navigate("/"); }}
               className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors">

@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { db, usersTable, magicLinkTokensTable, sessionsTable } from "@workspace/db";
+import { db, usersTable, magicLinkTokensTable, sessionsTable, whiteLabelConfigsTable } from "@workspace/db";
 import { eq, and, gt } from "drizzle-orm";
 import crypto from "crypto";
 import { Resend } from "resend";
@@ -265,7 +265,19 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
     setSessionCookie(res, currentToken, true, isRequestHttps(req));
   }
 
-  res.json(user);
+  // Check if this user also has an approved broker account
+  const [brokerRecord] = await db
+    .select({ id: whiteLabelConfigsTable.id })
+    .from(whiteLabelConfigsTable)
+    .where(
+      and(
+        eq(whiteLabelConfigsTable.contactEmail, user.email),
+        eq(whiteLabelConfigsTable.status, "approved"),
+      ),
+    )
+    .limit(1);
+
+  res.json({ ...user, isBroker: !!brokerRecord });
 });
 
 router.post("/auth/redeem-promo", requireAuth as any, async (req: AuthRequest, res: Response) => {

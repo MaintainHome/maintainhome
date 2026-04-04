@@ -5,7 +5,7 @@ import {
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
   Send, Loader2, User, TrendingDown, TrendingUp, Shield, ChevronDown, ChevronUp,
-  Clock, TriangleAlert, Paperclip, FileText, Phone,
+  Clock, TriangleAlert, Paperclip, FileText, Phone, Building2,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -642,6 +642,25 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         <div className="sm:hidden flex justify-center">
           <AddToHomeScreen />
         </div>
+
+        {/* ── Broker role switcher ── only shown if user also has a broker account */}
+        {user.isBroker && (
+          <motion.button
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            onClick={() => { sessionStorage.setItem("mh_active_role", "broker"); navigate("/broker-dashboard"); }}
+            className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:opacity-90 active:scale-[0.99] transition-all"
+            style={{ background: "linear-gradient(90deg, #0f5939 0%, #1f9e6e 100%)" }}
+          >
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 shrink-0" />
+              <span>Partner Dashboard available</span>
+            </div>
+            <div className="flex items-center gap-1 text-white/80 text-xs font-bold">
+              Switch <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </motion.button>
+        )}
 
         {/* ── Hero Welcome ── */}
         <motion.div

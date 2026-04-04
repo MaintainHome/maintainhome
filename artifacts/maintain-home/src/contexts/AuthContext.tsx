@@ -9,6 +9,7 @@ export interface AuthUser {
   zipCode: string | null;
   fullAccess: boolean;
   subscriptionStatus: SubscriptionStatus;
+  isBroker: boolean;
 }
 
 export function isPro(user: AuthUser | null): boolean {
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     } catch {
     }
+    sessionStorage.removeItem("mh_active_role");
     setUser(null);
   }, []);
 

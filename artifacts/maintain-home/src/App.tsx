@@ -13,6 +13,7 @@ import CalendarPage from "@/pages/calendar-page";
 import BrokerOnboard from "@/pages/broker-onboard";
 import AdminBrokers from "@/pages/admin-brokers";
 import BrokerDashboard from "@/pages/broker-dashboard";
+import ChooseRole from "@/pages/choose-role";
 import InviteLanding from "@/pages/invite-landing";
 import { useEffect } from "react";
 
@@ -49,6 +50,7 @@ function Router() {
       <Route path="/broker-onboard" component={BrokerOnboard} />
       <Route path="/admin/brokers" component={AdminBrokers} />
       <Route path="/broker-dashboard" component={BrokerDashboard} />
+      <Route path="/choose-role" component={ChooseRole} />
       <Route path="/invite/:subdomain" component={InviteLanding} />
       <Route path="/invite" component={InviteLanding} />
       <Route path="/:subdomain" component={InviteLanding} />

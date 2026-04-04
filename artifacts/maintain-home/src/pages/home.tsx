@@ -31,6 +31,17 @@ export default function Home() {
     }
   }, []);
 
+  // Dual-role routing: if this user is also an approved broker and hasn't chosen
+  // the homeowner role for this session, send them to the role selection screen.
+  useEffect(() => {
+    if (authLoading) return;
+    if (!user) return;
+    if (!user.isBroker) return;
+    const chosenRole = sessionStorage.getItem("mh_active_role");
+    if (chosenRole === "homeowner") return; // explicitly chose homeowner this session
+    navigate("/choose-role");
+  }, [authLoading, user?.id, user?.isBroker]);
+
   // Show broker welcome message on first login under a branded subdomain
   useEffect(() => {
     if (!user || !branding?.welcomeMessage) return;
