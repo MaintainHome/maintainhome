@@ -1471,9 +1471,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             /* ── White-label version ── */
             <div className="flex flex-col sm:flex-row sm:items-stretch gap-0">
               {/* 3/4 — white background: logo | headshot+info */}
-              <div className="sm:flex-[3] bg-white flex flex-row items-stretch">
+              <div className="sm:flex-[3] bg-white flex flex-col sm:flex-row items-stretch">
                 {/* Logo half */}
-                <div className="flex-1 flex items-center justify-center px-6 py-7 border-r border-slate-100">
+                <div className="flex-1 flex items-center justify-center px-6 py-6 border-b sm:border-b-0 sm:border-r border-slate-100">
                   {branding.logoUrl ? (
                     <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 w-full flex items-center justify-center">
                       <img
