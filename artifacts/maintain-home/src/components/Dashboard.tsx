@@ -1692,20 +1692,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.16 }}
-            className={`rounded-2xl border shadow-sm overflow-hidden ${
-              mortgageRate === null
-                ? "bg-white border-slate-200"
-                : rateIsBetter
-                ? "bg-emerald-50 border-emerald-200"
-                : rateIsHigher
-                ? "bg-red-50 border-red-200"
-                : "bg-slate-50 border-slate-200"
-            }`}
+            className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden"
           >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-black/5">
-              <h2 className="text-base font-bold text-slate-900">My Mortgage Rate</h2>
+            <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
+              <h2 className="text-base font-bold text-white">My Mortgage Rate</h2>
               {mortgageRate !== null && (
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">30-yr Fixed</span>
+                <span className="text-[11px] font-semibold text-white/55 uppercase tracking-wider">30-yr Fixed</span>
               )}
             </div>
 
