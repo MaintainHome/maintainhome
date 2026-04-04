@@ -372,7 +372,7 @@ export default function BrokerOnboard() {
               <motion.img
                 src={`${BASE}images/maintly_point.png`}
                 alt="Maintly"
-                className="relative w-64 xl:w-72 drop-shadow-2xl"
+                className="relative w-44 sm:w-56 lg:w-64 xl:w-72 drop-shadow-2xl"
                 style={{ transform: "scaleX(-1)" }}   /* flip so pointing arm aims RIGHT */
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
