@@ -358,13 +358,13 @@ export default function BrokerOnboard() {
 
           {/* ── LEFT: Maintly + stats ─────────────────────────────── */}
           <motion.div
-            className="lg:w-80 xl:w-96 shrink-0 flex flex-col items-center lg:items-start"
+            className="lg:w-80 xl:w-96 shrink-0 flex flex-col items-start"
             initial={{ opacity: 0, x: -24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.55, ease: "easeOut" }}
           >
             {/* Maintly — mirrored so his pointing arm aims RIGHT toward the form */}
-            <div className="relative w-full flex justify-center lg:justify-start">
+            <div className="relative w-full flex justify-start">
               {/* glow behind Maintly */}
               <div className="absolute inset-x-0 bottom-0 h-48 pointer-events-none"
                 style={{ background: `radial-gradient(ellipse at 50% 100%, ${ACCENT}40 0%, transparent 60%)` }} />
@@ -398,7 +398,7 @@ export default function BrokerOnboard() {
             </div>
 
             {/* Stat badges */}
-            <div className="flex flex-wrap gap-2 justify-center lg:justify-start mt-4 w-full">
+            <div className="flex flex-wrap gap-2 justify-start mt-4 w-full">
               <StatBadge value="300" label="Pioneer spots" />
               <StatBadge value="12-mo" label="AI calendar" />
               <StatBadge value="∞" label="Client relationships" />
