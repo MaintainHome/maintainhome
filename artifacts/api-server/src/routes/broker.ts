@@ -7,7 +7,7 @@ const router = Router();
 
 router.get("/broker/me", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
-    const userEmail = req.user!.email;
+    const userEmail = req.userEmail!;
     const [config] = await db
       .select()
       .from(whiteLabelConfigsTable)
@@ -33,7 +33,7 @@ router.get("/broker/me", requireAuth as any, async (req: AuthRequest, res: Respo
 
 router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
-    const userEmail = req.user!.email;
+    const userEmail = req.userEmail!;
     const [config] = await db
       .select({ subdomain: whiteLabelConfigsTable.subdomain })
       .from(whiteLabelConfigsTable)
@@ -123,7 +123,7 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
 
 router.patch("/broker/branding", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
-    const userEmail = req.user!.email;
+    const userEmail = req.userEmail!;
 
     const [config] = await db
       .select({ id: whiteLabelConfigsTable.id })

@@ -180,7 +180,7 @@ export default function BrokerDashboard() {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate("/"); return; }
-    if (!user.isBroker) { navigate("/"); return; }
+    if (!user.isBroker) { navigate("/choose-role"); return; }
     load();
   }, [authLoading, user]);
 
