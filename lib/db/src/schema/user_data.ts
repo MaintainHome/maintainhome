@@ -37,6 +37,9 @@ export const maintenanceDocumentsTable = pgTable("maintenance_documents", {
   objectPath: text("object_path").notNull(),
   contentType: text("content_type").notNull(),
   fileSizeBytes: integer("file_size_bytes"),
+  docType: text("doc_type").default("document").notNull(),
+  displayName: text("display_name"),
+  warrantyData: jsonb("warranty_data"),
   uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

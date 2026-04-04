@@ -10,6 +10,7 @@ import brandingRouter from "./branding";
 import brokerOnboardRouter from "./broker-onboard";
 import adminRouter from "./admin";
 import brokerRouter from "./broker";
+import warrantiesRouter from "./warranties";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(brandingRouter);
 router.use(brokerOnboardRouter);
 router.use(adminRouter);
 router.use(brokerRouter);
+router.use(warrantiesRouter);
 
 export default router;
