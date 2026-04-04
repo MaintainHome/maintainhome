@@ -492,7 +492,7 @@ export default function BrokerOnboard() {
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <p className="text-white font-bold text-base leading-tight">Apply for Your Branded Page</p>
+                  <p className="text-white font-bold text-base leading-tight">Apply for Your Custom Branded App</p>
                   <p className="text-white/45 text-xs mt-0.5">Takes ~3 minutes · We review every application personally</p>
                 </div>
                 {/* Window control dots */}
