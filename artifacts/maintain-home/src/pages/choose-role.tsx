@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Building2, HomeIcon, ArrowRight, Loader2 } from "lucide-react";
+import { Building2, HomeIcon, ArrowRight, Loader2, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
@@ -8,8 +8,13 @@ const ACCENT = "#1f9e6e";
 const BASE = import.meta.env.BASE_URL;
 
 export default function ChooseRole() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [, navigate] = useLocation();
+
+  async function handleSwitchAccount() {
+    await logout();
+    navigate("/");
+  }
 
   useEffect(() => {
     if (loading) return;
@@ -45,6 +50,15 @@ export default function ChooseRole() {
         style={{ background: `radial-gradient(ellipse at 20% 30%, ${ACCENT}40 0%, transparent 50%)` }} />
       <div className="fixed inset-0 pointer-events-none"
         style={{ background: `radial-gradient(ellipse at 80% 70%, ${ACCENT}20 0%, transparent 50%)` }} />
+
+      {/* Switch Account — top right */}
+      <button
+        onClick={handleSwitchAccount}
+        className="fixed top-4 right-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white/40 hover:text-white/70 hover:bg-white/10 transition-all"
+      >
+        <LogOut className="w-3.5 h-3.5" />
+        Switch Account
+      </button>
 
       <motion.div
         className="relative z-10 w-full max-w-lg"
