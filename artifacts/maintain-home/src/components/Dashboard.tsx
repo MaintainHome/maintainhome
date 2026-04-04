@@ -316,7 +316,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
     }
   }
 
-  const { branding } = useBranding();
+  const { branding, setPreviewSubdomain } = useBranding();
   const userIsPro = isPro(user);
   const firstName = user.name ? user.name.split(" ")[0] : user.email.split("@")[0];
   const state = savedCalendar?.calendarData?.state ?? null;
@@ -648,7 +648,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           <motion.button
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            onClick={() => { sessionStorage.setItem("mh_active_role", "broker"); navigate("/broker-dashboard"); }}
+            onClick={() => { setPreviewSubdomain(null); sessionStorage.setItem("mh_active_role", "broker"); navigate("/broker-dashboard"); }}
             className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:opacity-90 active:scale-[0.99] transition-all"
             style={{ background: "linear-gradient(90deg, #0f5939 0%, #1f9e6e 100%)" }}
           >

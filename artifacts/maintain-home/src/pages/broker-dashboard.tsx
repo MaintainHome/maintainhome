@@ -398,7 +398,7 @@ export default function BrokerDashboard() {
               className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
               <Pencil className="w-3.5 h-3.5" />Edit Branding
             </button>
-            <button onClick={() => { setPreviewSubdomain(config.subdomain); navigate("/"); }}
+            <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
               className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
               <ExternalLink className="w-3.5 h-3.5" />Preview
             </button>
@@ -565,7 +565,7 @@ export default function BrokerDashboard() {
                 {linkCopied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Invite Link</>}
               </button>
               <button
-                onClick={() => { setPreviewSubdomain(config.subdomain); navigate("/"); }}
+                onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
                 className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm bg-white/10 hover:bg-white/20 transition-all border border-white/20 text-white/80 hover:text-white"
               >
                 <ExternalLink className="w-4 h-4" />Preview Your Brand
@@ -723,7 +723,7 @@ export default function BrokerDashboard() {
               </div>
             </div>
 
-            <button onClick={() => { setPreviewSubdomain(config.subdomain); navigate("/"); }}
+            <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border font-bold text-sm hover:opacity-80 transition-colors mt-auto"
               style={{ borderColor: accent, color: accent }}>
               <ExternalLink className="w-4 h-4" />Preview Your Brand
