@@ -1460,7 +1460,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           )}
         </motion.div>
 
-        {/* ── Your Home Support ── */}
+        {/* ── Preparing For What's Next ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1469,57 +1469,56 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         >
           {branding ? (
             /* ── White-label version ── */
-            <div className="flex flex-col sm:flex-row sm:items-center gap-0">
-              {/* Left accent strip with logo + headshot */}
-              <div className="sm:w-48 shrink-0 bg-gradient-to-b from-slate-900 to-slate-800 flex flex-col items-center justify-center gap-3 px-5 py-6">
+            <div className="flex flex-col sm:flex-row sm:items-stretch gap-0">
+              {/* Left dark panel — 3/4 width */}
+              <div className="sm:flex-[3] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex flex-col items-center justify-center gap-4 px-8 py-7">
                 {branding.logoUrl && (
-                  <div className="bg-white/10 rounded-xl px-3 py-2 w-full flex justify-center">
+                  <div className="bg-white/10 rounded-2xl px-5 py-3 w-full max-w-[220px] flex justify-center">
                     <img
                       src={branding.logoUrl}
                       alt={branding.brokerName}
-                      className="h-8 max-w-[120px] object-contain"
+                      className="h-12 max-w-[180px] object-contain"
                     />
                   </div>
                 )}
                 {branding.agentPhotoUrl && (
                   <div className="relative">
-                    <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-primary/60 shadow-lg">
+                    <div className="w-24 h-24 rounded-full overflow-hidden border-[3px] shadow-2xl shadow-black/40"
+                      style={{ borderColor: "rgba(31,158,110,0.7)" }}>
                       <img src={branding.agentPhotoUrl} alt={branding.brokerName} className="w-full h-full object-cover" />
                     </div>
                     <div className="absolute inset-0 rounded-full pointer-events-none"
-                      style={{ boxShadow: "0 0 0 4px rgba(31,158,110,0.2)" }} />
+                      style={{ boxShadow: "0 0 0 6px rgba(31,158,110,0.18), 0 0 24px rgba(31,158,110,0.25)" }} />
                   </div>
                 )}
                 <div className="text-center">
-                  <p className="text-white text-xs font-bold leading-tight">{branding.brokerName}</p>
+                  <p className="text-white text-base font-bold leading-snug">{branding.brokerName}</p>
                   {branding.phoneNumber && (
                     <a
                       href={`tel:${branding.phoneNumber}`}
-                      className="inline-flex items-center gap-1 mt-1 text-[10px] font-semibold text-primary/80 hover:text-primary transition-colors"
+                      className="inline-flex items-center gap-1.5 mt-2 text-xs font-semibold transition-colors"
+                      style={{ color: "rgba(31,158,110,0.85)" }}
                     >
-                      <Phone className="w-2.5 h-2.5" />{branding.phoneNumber}
+                      <Phone className="w-3 h-3" />{branding.phoneNumber}
                     </a>
                   )}
                 </div>
               </div>
 
-              {/* Right content */}
-              <div className="flex-1 min-w-0 px-5 py-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <ClipboardList className="w-4 h-4 text-primary shrink-0" />
-                  <h2 className="text-sm font-bold text-slate-900">Your Home Support</h2>
-                </div>
-                <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                  When you're ready to move, we can export your maintenance history — streamlining the listing process.
+              {/* Right content — 1/4 width */}
+              <div className="sm:flex-[1] min-w-0 flex flex-col items-center justify-center px-5 py-6 border-l border-slate-100">
+                <h2 className="text-sm font-bold text-slate-900 text-center mb-2 leading-snug">Preparing For What's Next</h2>
+                <p className="text-xs text-slate-500 leading-relaxed text-center mb-4">
+                  We can export your full maintenance history to streamline the listing process.
                 </p>
                 <button
                   onClick={() => navigate("/history")}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20"
                   style={{ backgroundColor: "#1f9e6e" }}
                 >
-                  <ClipboardList className="w-4 h-4" />
-                  View Full Maintenance History
-                  <ChevronRight className="w-4 h-4" />
+                  <ClipboardList className="w-3.5 h-3.5 shrink-0" />
+                  View History
+                  <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                 </button>
               </div>
             </div>
@@ -1530,7 +1529,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <ClipboardList className="w-5 h-5 text-emerald-600" />
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="text-sm font-bold text-slate-900 mb-1">Your Home Support</h2>
+                <h2 className="text-sm font-bold text-slate-900 mb-1">Preparing For What's Next</h2>
                 <p className="text-sm text-slate-500 leading-relaxed mb-4">
                   Your complete maintenance history is saved here. Keep track of everything you've done for your home.
                 </p>
