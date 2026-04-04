@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
-  CheckCircle2, Gift, ArrowRight, Loader2, Home, AlertTriangle,
+  CheckCircle2, Gift, ArrowRight, Loader2, Home, AlertTriangle, Phone,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -122,11 +122,10 @@ export default function InviteLanding() {
   }
 
   /* ── Branded invite page ───────────────────────────────────────── */
-  const accent = branding.primaryColor;
-  const bg = branding.secondaryColor;
+  const accent = "#1f9e6e";
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: bg }}>
+    <div className="min-h-screen relative overflow-hidden bg-slate-950">
 
       {/* ── Animated gradient blobs ─────────────────────────────── */}
       <motion.div className="absolute inset-0 pointer-events-none"
@@ -168,12 +167,12 @@ export default function InviteLanding() {
             </span>
           </motion.div>
 
-          {/* Broker logo */}
+          {/* Broker logo + agent photo */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.45 }}
-            className="flex justify-center mb-7"
+            className="flex flex-col items-center gap-4 mb-7"
           >
             {branding.logoUrl ? (
               <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-7 py-5 border border-white/15 shadow-xl">
@@ -189,6 +188,22 @@ export default function InviteLanding() {
                 <span className="text-4xl font-black" style={{ color: accent }}>
                   {branding.brokerName[0]}
                 </span>
+              </div>
+            )}
+
+            {/* Agent photo + phone */}
+            {(branding.agentPhotoUrl || branding.phoneNumber) && (
+              <div className="flex items-center gap-3">
+                {branding.agentPhotoUrl && (
+                  <img src={branding.agentPhotoUrl} alt={branding.brokerName}
+                    className="w-11 h-11 rounded-full object-cover border-2 border-white/25 shadow-md" />
+                )}
+                {branding.phoneNumber && (
+                  <a href={`tel:${branding.phoneNumber}`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white/65 text-sm border border-white/15 hover:bg-white/20 transition-colors">
+                    <Phone className="w-3.5 h-3.5" />{branding.phoneNumber}
+                  </a>
+                )}
               </div>
             )}
           </motion.div>

@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
-  Building2, Users, Link2, Copy, Check, Palette, Loader2,
+  Building2, Users, Link2, Copy, Check, User, Loader2,
   ExternalLink, BarChart2, Zap, RefreshCw, LogOut,
   ShieldCheck, Gift, CreditCard, Calendar, TrendingUp,
-  AlertTriangle, ArrowUpRight, Star,
+  AlertTriangle, ArrowUpRight, Star, Phone, Camera,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -12,6 +12,7 @@ import { useLocation } from "wouter";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const BASE = import.meta.env.BASE_URL;
+const MH_PRIMARY = "#1f9e6e";
 
 /* ─── Types ───────────────────────────────────────────────────────── */
 interface BrokerConfig {
@@ -19,8 +20,8 @@ interface BrokerConfig {
   subdomain: string;
   brokerName: string;
   logoUrl: string | null;
-  primaryColor: string;
-  secondaryColor: string;
+  agentPhotoUrl: string | null;
+  phoneNumber: string | null;
   tagline: string | null;
   welcomeMessage: string | null;
   contactEmail: string;
@@ -155,7 +156,7 @@ function CopyBtn({ text, label }: { text: string; label: string }) {
 ═══════════════════════════════════════════════════════════════════ */
 export default function BrokerDashboard() {
   const { user, loading: authLoading, logout } = useAuth();
-  const { setPreviewSubdomain, primaryColor: brandPrimary } = useBranding();
+  const { setPreviewSubdomain } = useBranding();
   const [, navigate] = useLocation();
 
   const [config, setConfig] = useState<BrokerConfig | null>(null);
@@ -201,7 +202,7 @@ export default function BrokerDashboard() {
   const avgScore = clients.length > 0
     ? Math.round(clients.reduce((s, c) => s + c.activityScore, 0) / clients.length) : null;
 
-  const accent = brandPrimary ?? config?.primaryColor ?? "#1f9e6e";
+  const accent = MH_PRIMARY;
   const isGift = config?.monetizationModel === "closing_gift";
   const inviteLink = config
     ? `${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}` : "";
@@ -264,11 +265,20 @@ export default function BrokerDashboard() {
               ? <img src={config.logoUrl} alt={config.brokerName} className="h-7 max-w-[110px] object-contain" />
               : <img src={`${BASE}images/logo-icon.png`} alt="MaintainHome" className="w-7 h-7 object-contain" />
             }
+            {config.agentPhotoUrl && (
+              <img src={config.agentPhotoUrl} alt={config.brokerName}
+                className="w-7 h-7 rounded-full object-cover border border-slate-200 hidden sm:block" />
+            )}
             <span className="font-bold text-slate-900 text-sm hidden sm:block">Partner Dashboard</span>
             <span className="text-slate-300 hidden sm:block">·</span>
             <span className="text-xs font-semibold truncate hidden sm:block" style={{ color: accent }}>
               {config.brokerName}
             </span>
+            {config.phoneNumber && (
+              <span className="hidden lg:flex items-center gap-1 text-xs text-slate-400">
+                <Phone className="w-3 h-3" />{config.phoneNumber}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={copyInviteLink}
@@ -291,14 +301,13 @@ export default function BrokerDashboard() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6 flex-1">
 
         {/* ════════════════════════════════════════════════════════
-            HERO — Premium, cinematic, centered
+            HERO — dark slate, MaintainHome theme
         ════════════════════════════════════════════════════════ */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="rounded-3xl text-white relative overflow-hidden"
-          style={{ background: `linear-gradient(145deg, ${config.secondaryColor} 0%, ${config.secondaryColor}e0 100%)` }}
+          className="rounded-3xl text-white relative overflow-hidden bg-slate-900"
         >
           {/* Animated radial glow — top right */}
           <motion.div
@@ -334,12 +343,12 @@ export default function BrokerDashboard() {
               </span>
             </motion.div>
 
-            {/* Logo — large and centered */}
+            {/* Logo + Agent photo — centered */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.4 }}
-              className="flex justify-center mb-5"
+              className="flex flex-col items-center gap-4 mb-5"
             >
               {config.logoUrl ? (
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/15">
@@ -350,6 +359,22 @@ export default function BrokerDashboard() {
                 <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
                   style={{ backgroundColor: accent + "33", border: `2px solid ${accent}40` }}>
                   <Building2 className="w-10 h-10" style={{ color: accent }} />
+                </div>
+              )}
+
+              {/* Agent photo + phone row */}
+              {(config.agentPhotoUrl || config.phoneNumber) && (
+                <div className="flex items-center gap-3">
+                  {config.agentPhotoUrl && (
+                    <img src={config.agentPhotoUrl} alt={config.brokerName}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-white/30 shadow-lg" />
+                  )}
+                  {config.phoneNumber && (
+                    <a href={`tel:${config.phoneNumber}`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-sm border border-white/15 hover:bg-white/20 transition-colors">
+                      <Phone className="w-3.5 h-3.5" />{config.phoneNumber}
+                    </a>
+                  )}
                 </div>
               )}
             </motion.div>
@@ -364,7 +389,7 @@ export default function BrokerDashboard() {
               {config.brokerName}
             </motion.h1>
 
-            {/* Tagline in accent color — big and bold */}
+            {/* Tagline in accent color */}
             {config.tagline && (
               <motion.p
                 initial={{ opacity: 0, y: 8 }}
@@ -480,7 +505,7 @@ export default function BrokerDashboard() {
           </div>
         </motion.div>
 
-        {/* ── Invite + Branding row ─────────────────────────────────── */}
+        {/* ── Invite + Agent Profile row ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Invite card */}
@@ -519,32 +544,61 @@ export default function BrokerDashboard() {
             </p>
           </motion.div>
 
-          {/* Branding card */}
+          {/* Agent Profile card */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.17 }}
             className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col gap-4">
             <div className="flex items-center gap-2">
-              <Palette className="w-5 h-5" style={{ color: accent }} />
-              <h2 className="font-bold text-slate-900">Your Branding</h2>
+              <ShieldCheck className="w-5 h-5" style={{ color: accent }} />
+              <h2 className="font-bold text-slate-900">Agent Profile</h2>
             </div>
-            <div className="flex gap-2">
-              <div className="flex-1 rounded-xl h-7 flex items-center justify-center" style={{ backgroundColor: config.primaryColor }}>
-                <span className="text-white text-[9px] font-mono font-bold opacity-80">{config.primaryColor}</span>
-              </div>
-              <div className="flex-1 rounded-xl h-7 flex items-center justify-center" style={{ backgroundColor: config.secondaryColor }}>
-                <span className="text-white text-[9px] font-mono font-bold opacity-80">{config.secondaryColor}</span>
-              </div>
-            </div>
-            {config.logoUrl && (
+
+            {/* Logo */}
+            {config.logoUrl ? (
               <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center justify-center border border-slate-100">
                 <img src={config.logoUrl} alt="logo" className="max-h-10 max-w-full object-contain" />
               </div>
+            ) : (
+              <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center justify-center border border-slate-100">
+                <Building2 className="w-6 h-6 text-slate-300" />
+              </div>
             )}
+
+            {/* Agent photo */}
+            {config.agentPhotoUrl ? (
+              <div className="flex items-center gap-3">
+                <img src={config.agentPhotoUrl} alt={config.brokerName}
+                  className="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0" />
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">{config.brokerName}</p>
+                  <p className="text-xs text-slate-400 capitalize">{config.type.replace("_", " ")}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100">
+                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+                  <Camera className="w-5 h-5 text-slate-400" />
+                </div>
+                <p className="text-xs text-slate-400">No headshot uploaded — contact support to update.</p>
+              </div>
+            )}
+
+            {/* Phone */}
+            {config.phoneNumber && (
+              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                <Phone className="w-4 h-4 text-slate-400 shrink-0" />
+                <p className="text-sm font-semibold text-slate-700">{config.phoneNumber}</p>
+              </div>
+            )}
+
+            {/* Tagline */}
             {config.tagline && (
               <p className="text-xs text-slate-500 italic border-l-2 pl-3 leading-relaxed"
                 style={{ borderColor: accent + "50" }}>
                 "{config.tagline}"
               </p>
             )}
+
+            {/* Model chip */}
             <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
               <MIcon className="w-4 h-4 text-slate-400 shrink-0" />
               <div>
@@ -552,13 +606,14 @@ export default function BrokerDashboard() {
                 <p className="text-xs text-slate-400">Offer model</p>
               </div>
             </div>
+
             <button onClick={() => { setPreviewSubdomain(config.subdomain); navigate("/"); }}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border font-bold text-sm hover:opacity-80 transition-colors mt-auto"
               style={{ borderColor: accent, color: accent }}>
               <ExternalLink className="w-4 h-4" />Preview Your Brand
             </button>
             <p className="text-xs text-slate-400 text-center">
-              To update branding,{" "}
+              To update your profile,{" "}
               <a href="mailto:support@maintainhome.ai" className="hover:underline" style={{ color: accent }}>contact support</a>
             </p>
           </motion.div>
@@ -767,8 +822,7 @@ export default function BrokerDashboard() {
 
         {/* ── How-to guide ──────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.26 }}
-          className="rounded-2xl p-6 sm:p-8 text-white"
-          style={{ backgroundColor: config.secondaryColor }}>
+          className="rounded-2xl p-6 sm:p-8 text-white bg-slate-900">
           <div className="flex items-center gap-2 mb-5">
             <BarChart2 className="w-5 h-5" style={{ color: accent }} />
             <h2 className="font-bold">How to Share Your Branded Experience</h2>
@@ -776,7 +830,7 @@ export default function BrokerDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {[
               { step: "1", title: "Copy your invite link", desc: "Share via email, text, or your website. Clients instantly see your brand." },
-              { step: "2", title: "Client signs up", desc: "They see your logo, colors, and tagline. Your welcome message greets them on first login." },
+              { step: "2", title: "Client signs up", desc: "They see your logo and photo. Your welcome message greets them on first login." },
               { step: "3", title: "They build their plan", desc: "Clients complete the home quiz, get their AI maintenance calendar, and track tasks — all under your brand." },
             ].map((item) => (
               <div key={item.step} className="flex gap-3">

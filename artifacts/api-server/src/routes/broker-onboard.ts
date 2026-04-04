@@ -7,7 +7,7 @@ import { ObjectStorageService } from "../lib/objectStorage";
 const router = Router();
 const objectStorage = new ObjectStorageService();
 
-const logoUpload = multer({
+const imageUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 2 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
@@ -19,7 +19,7 @@ const logoUpload = multer({
   },
 });
 
-router.post("/logo-upload", logoUpload.single("logo"), async (req: Request, res: Response) => {
+router.post("/logo-upload", imageUpload.single("logo"), async (req: Request, res: Response) => {
   try {
     const file = req.file;
     if (!file) {
@@ -38,6 +38,25 @@ router.post("/logo-upload", logoUpload.single("logo"), async (req: Request, res:
   }
 });
 
+router.post("/photo-upload", imageUpload.single("photo"), async (req: Request, res: Response) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      res.status(400).json({ error: "No image file provided" });
+      return;
+    }
+    const photoUrl = await objectStorage.uploadFile(file.buffer, file.mimetype, "broker-photos");
+    res.json({ photoUrl });
+  } catch (err: any) {
+    console.error("[photo-upload] error:", err);
+    if (err.message === "Only image files are allowed") {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    res.status(500).json({ error: "Failed to upload photo. Please try a URL instead." });
+  }
+});
+
 const SUBDOMAIN_RE = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
 const RESERVED = new Set(["www", "app", "api", "admin", "mail", "support", "help", "broker"]);
 
@@ -47,8 +66,8 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       subdomain,
       brokerName,
       logoUrl,
-      primaryColor,
-      secondaryColor,
+      agentPhotoUrl,
+      phoneNumber,
       tagline,
       welcomeMessage,
       contactEmail,
@@ -112,8 +131,8 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       subdomain: cleanSub,
       brokerName: brokerName.trim(),
       logoUrl: logoUrl?.trim() || null,
-      primaryColor: primaryColor?.trim() || "#1f9e6e",
-      secondaryColor: secondaryColor?.trim() || "#1e293b",
+      agentPhotoUrl: agentPhotoUrl?.trim() || null,
+      phoneNumber: phoneNumber?.trim() || null,
       tagline: tagline?.trim() || null,
       welcomeMessage: welcomeMessage?.trim() || null,
       contactEmail: contactEmail.trim().toLowerCase(),

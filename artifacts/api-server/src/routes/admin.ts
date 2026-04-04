@@ -41,17 +41,16 @@ router.post("/admin/broker-requests/:id/approve", requireAdminToken, async (req:
       return;
     }
 
-    const { primaryColor, secondaryColor, logoUrl, tagline, welcomeMessage } = req.body as Record<string, string>;
+    const { logoUrl, tagline, welcomeMessage, phoneNumber } = req.body as Record<string, string>;
 
     const updateData: Partial<typeof whiteLabelConfigsTable.$inferInsert> = {
       status: "approved",
       updatedAt: new Date(),
     };
-    if (primaryColor) updateData.primaryColor = primaryColor;
-    if (secondaryColor) updateData.secondaryColor = secondaryColor;
     if (logoUrl !== undefined) updateData.logoUrl = logoUrl || null;
     if (tagline !== undefined) updateData.tagline = tagline || null;
     if (welcomeMessage !== undefined) updateData.welcomeMessage = welcomeMessage || null;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber || null;
 
     const [updated] = await db
       .update(whiteLabelConfigsTable)

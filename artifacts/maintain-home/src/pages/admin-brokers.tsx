@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle2, XCircle, Trash2, Clock, RefreshCw, Eye, EyeOff,
-  Building2, User, ChevronDown, ChevronUp, Loader2, Shield
+  Building2, User, ChevronDown, ChevronUp, Loader2, Shield, Phone
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -13,8 +13,8 @@ interface BrokerRequest {
   subdomain: string;
   brokerName: string;
   logoUrl: string | null;
-  primaryColor: string;
-  secondaryColor: string;
+  agentPhotoUrl: string | null;
+  phoneNumber: string | null;
   tagline: string | null;
   welcomeMessage: string | null;
   contactEmail: string;
@@ -85,11 +85,10 @@ export default function AdminBrokers() {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Admin-Token": token },
         body: JSON.stringify({
-          primaryColor: overrides.primaryColor ?? req.primaryColor,
-          secondaryColor: overrides.secondaryColor ?? req.secondaryColor,
           logoUrl: overrides.logoUrl ?? req.logoUrl ?? "",
           tagline: overrides.tagline ?? req.tagline ?? "",
           welcomeMessage: overrides.welcomeMessage ?? req.welcomeMessage ?? "",
+          phoneNumber: overrides.phoneNumber ?? req.phoneNumber ?? "",
         }),
       });
       if (res.ok) {
@@ -248,23 +247,25 @@ export default function AdminBrokers() {
                   className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-slate-800/50 transition-colors"
                   onClick={() => setExpanded(isExpanded ? null : req.id)}
                 >
-                  <div
-                    className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ backgroundColor: req.primaryColor + "33" }}
-                  >
+                  <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
                     {req.type === "team_leader"
-                      ? <Building2 className="w-4 h-4" style={{ color: req.primaryColor }} />
-                      : <User className="w-4 h-4" style={{ color: req.primaryColor }} />}
+                      ? <Building2 className="w-4 h-4 text-primary" />
+                      : <User className="w-4 h-4 text-primary" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-white text-sm">{req.brokerName}</p>
                     <p className="text-slate-400 text-xs">{req.subdomain}.maintainhome.ai · {req.contactEmail}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="flex gap-1.5">
-                      <div className="w-4 h-4 rounded-full border border-white/10" style={{ backgroundColor: req.primaryColor }} />
-                      <div className="w-4 h-4 rounded-full border border-white/10" style={{ backgroundColor: req.secondaryColor }} />
-                    </div>
+                    {req.agentPhotoUrl && (
+                      <img src={req.agentPhotoUrl} alt={req.brokerName}
+                        className="w-7 h-7 rounded-full object-cover border border-slate-700" />
+                    )}
+                    {req.phoneNumber && (
+                      <span className="hidden sm:flex items-center gap-1 text-xs text-slate-500">
+                        <Phone className="w-3 h-3" />{req.phoneNumber}
+                      </span>
+                    )}
                     <span className="text-xs text-slate-500">{new Date(req.createdAt).toLocaleDateString()}</span>
                     {isExpanded ? <ChevronUp className="w-4 h-4 text-slate-500" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
                   </div>
@@ -281,6 +282,18 @@ export default function AdminBrokers() {
                         <p className="text-slate-500 text-xs mb-1">Logo URL</p>
                         <p className="text-white truncate">{req.logoUrl ?? "—"}</p>
                       </div>
+                      {req.agentPhotoUrl && (
+                        <div>
+                          <p className="text-slate-500 text-xs mb-1">Agent Photo</p>
+                          <img src={req.agentPhotoUrl} alt="Agent" className="w-10 h-10 rounded-full object-cover border border-slate-700" />
+                        </div>
+                      )}
+                      {req.phoneNumber && (
+                        <div>
+                          <p className="text-slate-500 text-xs mb-1">Phone</p>
+                          <p className="text-white">{req.phoneNumber}</p>
+                        </div>
+                      )}
                       <div className="col-span-2">
                         <p className="text-slate-500 text-xs mb-1">Tagline</p>
                         <p className="text-white">{req.tagline ?? "—"}</p>
@@ -303,37 +316,27 @@ export default function AdminBrokers() {
                       <div className="space-y-3 pt-2 border-t border-slate-800">
                         <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Override before approving (optional)</p>
                         <div className="grid grid-cols-2 gap-3">
-                          <div>
-                            <label className="text-xs text-slate-500 mb-1 block">Primary Color</label>
-                            <div className="flex items-center gap-2">
-                              <input type="color" value={edits.primaryColor ?? req.primaryColor}
-                                onChange={(e) => setEdit(req.id, "primaryColor", e.target.value)}
-                                className="w-8 h-8 rounded-lg cursor-pointer border border-slate-700 p-0.5 bg-transparent"
-                              />
-                              <input type="text" value={edits.primaryColor ?? req.primaryColor}
-                                onChange={(e) => setEdit(req.id, "primaryColor", e.target.value)}
-                                className="flex-1 px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs font-mono focus:outline-none"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="text-xs text-slate-500 mb-1 block">Secondary Color</label>
-                            <div className="flex items-center gap-2">
-                              <input type="color" value={edits.secondaryColor ?? req.secondaryColor}
-                                onChange={(e) => setEdit(req.id, "secondaryColor", e.target.value)}
-                                className="w-8 h-8 rounded-lg cursor-pointer border border-slate-700 p-0.5 bg-transparent"
-                              />
-                              <input type="text" value={edits.secondaryColor ?? req.secondaryColor}
-                                onChange={(e) => setEdit(req.id, "secondaryColor", e.target.value)}
-                                className="flex-1 px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-xs font-mono focus:outline-none"
-                              />
-                            </div>
-                          </div>
                           <div className="col-span-2">
                             <label className="text-xs text-slate-500 mb-1 block">Logo URL override</label>
                             <input type="url" value={edits.logoUrl ?? req.logoUrl ?? ""}
                               onChange={(e) => setEdit(req.id, "logoUrl", e.target.value)}
                               placeholder="https://..."
+                              className="w-full px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <label className="text-xs text-slate-500 mb-1 block">Phone override</label>
+                            <input type="tel" value={edits.phoneNumber ?? req.phoneNumber ?? ""}
+                              onChange={(e) => setEdit(req.id, "phoneNumber", e.target.value)}
+                              placeholder="(555) 867-5309"
+                              className="w-full px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <label className="text-xs text-slate-500 mb-1 block">Tagline override</label>
+                            <input type="text" value={edits.tagline ?? req.tagline ?? ""}
+                              onChange={(e) => setEdit(req.id, "tagline", e.target.value)}
+                              placeholder="Your tagline..."
                               className="w-full px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none"
                             />
                           </div>
@@ -475,7 +478,7 @@ function TestSubdomainPanel() {
         </pre>
       )}
       <p className="text-slate-500 text-xs">
-        "Test API" calls <code>/api/branding</code> directly. "Preview" redirects to <code>/</code> with the branding active so you can see how it looks — clear it by visiting <code>/?_clear_preview=1</code>.
+        "Test API" calls <code>/api/branding</code> directly. "Preview" redirects to <code>/</code> with the branding active — clear it by visiting <code>/?_clear_preview=1</code>.
       </p>
     </div>
   );
