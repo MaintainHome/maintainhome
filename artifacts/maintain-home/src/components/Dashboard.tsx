@@ -1475,11 +1475,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 {/* Logo half */}
                 <div className="flex-1 flex items-center justify-center px-6 py-7 border-r border-white/10">
                   {branding.logoUrl ? (
-                    <div className="bg-white/10 rounded-2xl px-5 py-4 w-full flex items-center justify-center">
+                    <div className="bg-white/10 rounded-xl px-3 py-2 w-full flex items-center justify-center">
                       <img
                         src={branding.logoUrl}
                         alt={branding.brokerName}
-                        className="h-14 max-w-[160px] object-contain"
+                        className="h-20 max-w-[180px] object-contain"
                       />
                     </div>
                   ) : (
