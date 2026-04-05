@@ -12,6 +12,7 @@ export const usersTable = pgTable("users", {
   referralSubdomain: text("referral_subdomain"),
   smsEnabled: boolean("sms_enabled").default(false).notNull(),
   smsPhone: text("sms_phone"),
+  stripeCustomerId: text("stripe_customer_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

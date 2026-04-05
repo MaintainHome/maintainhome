@@ -69,9 +69,34 @@ export const smsLogTable = pgTable("sms_log", {
   sentAt: timestamp("sent_at").defaultNow().notNull(),
 });
 
+export const giftCodesTable = pgTable("gift_codes", {
+  id: serial("id").primaryKey(),
+  code: text("code").notNull().unique(),
+  purchasedByUserId: integer("purchased_by_user_id").references(() => usersTable.id),
+  redeemedByUserId: integer("redeemed_by_user_id").references(() => usersTable.id),
+  stripeSessionId: text("stripe_session_id"),
+  priceCents: integer("price_cents").notNull().default(2900),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  redeemedAt: timestamp("redeemed_at"),
+});
+
+export const stripeTransactionsTable = pgTable("stripe_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => usersTable.id),
+  type: text("type").notNull(),
+  stripeSessionId: text("stripe_session_id").notNull().unique(),
+  stripeCustomerId: text("stripe_customer_id"),
+  amountCents: integer("amount_cents"),
+  status: text("status").notNull().default("pending"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export type SavedCalendar = typeof savedCalendarsTable.$inferSelect;
 export type MaintenanceLogEntry = typeof maintenanceLogTable.$inferSelect;
 export type MaintenanceNote = typeof maintenanceNotesTable.$inferSelect;
 export type MaintenanceDocument = typeof maintenanceDocumentsTable.$inferSelect;
 export type HomeProfile = typeof homeProfilesTable.$inferSelect;
 export type SmsLog = typeof smsLogTable.$inferSelect;
+export type GiftCode = typeof giftCodesTable.$inferSelect;
+export type StripeTransaction = typeof stripeTransactionsTable.$inferSelect;

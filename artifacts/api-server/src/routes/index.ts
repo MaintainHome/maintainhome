@@ -12,6 +12,8 @@ import adminRouter from "./admin";
 import brokerRouter from "./broker";
 import warrantiesRouter from "./warranties";
 import smsRouter from "./sms";
+import stripeRouter from "./stripe";
+import stripeSeedRouter from "./stripe-seed";
 
 const router: IRouter = Router();
 
@@ -28,5 +30,7 @@ router.use(adminRouter);
 router.use(brokerRouter);
 router.use(warrantiesRouter);
 router.use(smsRouter);
+router.use(stripeRouter);
+router.use(stripeSeedRouter);
 
 export default router;

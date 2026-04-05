@@ -9,6 +9,10 @@ const app: Express = express();
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
+
+// Webhook must receive raw Buffer BEFORE express.json() parses the body
+app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
