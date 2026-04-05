@@ -114,7 +114,6 @@ router.post("/stripe/checkout", requireAuth as any, async (req: AuthRequest, res
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
-    customer_update: { email: "auto" },
     payment_method_types: ["card"],
     line_items: [{ price: priceId, quantity: 1 }],
     mode: "subscription",
@@ -175,7 +174,6 @@ router.post("/stripe/gift-checkout", requireAuth as any, async (req: AuthRequest
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
-    customer_update: { email: "auto" },
     payment_method_types: ["card"],
     line_items: [{ price: ids.giftCode, quantity: qty }],
     mode: "payment",
