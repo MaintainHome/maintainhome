@@ -1092,9 +1092,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               </span>
                             )}
                             {!isCompleted && user?.smsEnabled && user?.smsPhone && isCriticalSmsTask(task.task) && (
-                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-violet-100 text-violet-700" title="SMS reminder enabled for this task">
+                              <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-violet-100 text-violet-700" title="Text reminder enabled for this task">
                                 <Phone className="w-3.5 h-3.5" />
-                                SMS Alert
+                                Text Alert
                               </span>
                             )}
                           </div>

@@ -10,7 +10,7 @@ const featureList = [
   {
     icon: <BellRing className="w-6 h-6 text-primary" />,
     title: "Smart Reminders",
-    description: "Get timely Email or SMS alerts for every task, so you never miss a filter change or smoke detector battery again.",
+    description: "Get timely email or text alerts for every task, so you never miss a filter change or smoke detector battery again.",
   },
   {
     icon: <MapPin className="w-6 h-6 text-primary" />,

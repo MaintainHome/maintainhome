@@ -138,7 +138,7 @@ export default function HomeProfilePage() {
       setSmsSaved(true);
       setTimeout(() => setSmsSaved(false), 3500);
     } catch (err: any) {
-      setSmsError(err.message ?? "Could not save SMS settings.");
+      setSmsError(err.message ?? "Could not save text reminder settings.");
     } finally {
       setSmsSaving(false);
     }
@@ -154,10 +154,10 @@ export default function HomeProfilePage() {
         credentials: "include",
       });
       const data = await r.json().catch(() => ({}));
-      if (!r.ok) throw new Error(data.error ?? "Test SMS failed.");
-      setSmsTestResult({ ok: true, message: data.message ?? "Test SMS sent!" });
+      if (!r.ok) throw new Error(data.error ?? "Could not send test message.");
+      setSmsTestResult({ ok: true, message: data.message ?? "Test message sent!" });
     } catch (err: any) {
-      setSmsTestResult({ ok: false, message: err.message ?? "Could not send test SMS." });
+      setSmsTestResult({ ok: false, message: err.message ?? "Could not send test message." });
     } finally {
       setSmsTesting(false);
     }
@@ -881,11 +881,11 @@ export default function HomeProfilePage() {
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-primary" />
-              <h2 className="text-base font-bold text-slate-900">SMS Reminders</h2>
+              <h2 className="text-base font-bold text-slate-900">Text Reminders</h2>
             </div>
             {smsEnabled && smsPhone ? (
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                <Bell className="w-3 h-3" />SMS Active
+                <Bell className="w-3 h-3" />Texts Active
               </span>
             ) : smsEnabled && !smsPhone ? (
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
@@ -906,13 +906,13 @@ export default function HomeProfilePage() {
             {/* Enable toggle */}
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-slate-800">Enable SMS Reminders</p>
-                <p className="text-xs text-slate-400 mt-0.5">Send critical task reminders via text</p>
+                <p className="text-sm font-semibold text-slate-800">Enable Text Reminders</p>
+                <p className="text-xs text-slate-400 mt-0.5">Receive critical task reminders by text message</p>
               </div>
               <button
                 onClick={() => setSmsEnabled((v) => !v)}
                 className="shrink-0 transition-colors"
-                title={smsEnabled ? "Disable SMS" : "Enable SMS"}
+                title={smsEnabled ? "Disable text reminders" : "Enable text reminders"}
               >
                 {smsEnabled
                   ? <ToggleRight className="w-10 h-10 text-primary" />
@@ -988,11 +988,11 @@ export default function HomeProfilePage() {
               <button
                 onClick={handleTestSms}
                 disabled={smsTesting || !user?.smsPhone}
-                title={!user?.smsPhone ? "Save a phone number first" : "Send a test SMS to your phone"}
+                title={!user?.smsPhone ? "Save a phone number first" : "Send a test text to your phone"}
                 className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-primary/60 hover:border-primary text-primary font-bold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
               >
                 {smsTesting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
-                {smsTesting ? "Sending…" : "Test SMS"}
+                {smsTesting ? "Sending…" : "Send Test Text"}
               </button>
             </div>
 
