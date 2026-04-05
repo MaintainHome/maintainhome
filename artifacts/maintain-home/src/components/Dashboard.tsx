@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
-import { WarrantiesWidget } from "@/components/WarrantiesWidget";
+import { HomeDocumentsWidget } from "@/components/HomeDocumentsWidget";
 import { isPro } from "@/contexts/AuthContext";
 import type { AuthUser } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -78,7 +78,7 @@ function fmtBytes(n: number) {
 const MAINTLY_WELCOME: ChatMessage = {
   role: "assistant",
   isWelcome: true,
-  content: `Hello friend! I'm Maintly.\nAsk me anything about your home — maintenance tips, repair schedules, or specific issues.\nI can also analyze photos, warranties, invoices, and other documents you upload.`,
+  content: `Hello friend! I'm Maintly.\nAsk me anything about your home — maintenance tips, repair schedules, or specific issues.\nI can also analyze photos and documents — warranties, insurance policies, HOA docs, deeds, manuals, and more.`,
 };
 
 interface LogEntry {
@@ -1288,7 +1288,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                         </p>
                         <p className="text-slate-600 text-sm leading-relaxed">
                           Ask me anything about your home — maintenance tips, repair schedules, or specific issues.{" "}
-                          I can also analyze photos, warranties, invoices, and other documents you upload.
+                          I can also analyze photos and documents — warranties, insurance policies, HOA docs, deeds, manuals, and more.
                         </p>
                       </div>
                     </div>
@@ -1603,13 +1603,13 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           )}
         </motion.div>
 
-        {/* ── My Warranties ── */}
+        {/* ── Home Documents ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.15 }}
         >
-          <WarrantiesWidget />
+          <HomeDocumentsWidget />
         </motion.div>
 
         {/* ── Future Big-Ticket Items (Pro) ── */}

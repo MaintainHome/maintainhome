@@ -2,9 +2,9 @@ import { Router, type Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import multer from "multer";
 import { db, usersTable, homeProfilesTable, maintenanceDocumentsTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
-import type { WarrantyData } from "./warranties";
+import type { DocumentData } from "./documents";
 
 const router = Router();
 
@@ -136,17 +136,34 @@ function buildForecastContext(yearBuilt: number | null | undefined, currentYear:
   return `\nBig-ticket component forecasts (home built ${yearBuilt}, now ${age} years old):\n${lines.join("\n")}\nReference these forecasts when the user asks about major systems, planning, budgeting, or inspection timing. Always note these are averages and recommend professional inspection.`;
 }
 
-function buildWarrantyContext(warranties: { displayName: string | null; warrantyData: unknown }[]): string {
-  if (!warranties.length) return "";
-  const lines = warranties.map((w) => {
-    const d = w.warrantyData as WarrantyData | null;
-    if (!d) return `  - ${w.displayName ?? "Unknown item"}`;
-    const expiry = d.expiryDate ? ` (expires ${d.expiryDate})` : "";
-    const coverage = d.coverageDetails ? ` — ${d.coverageDetails}` : "";
-    const serial = d.serialNumber ? `, S/N: ${d.serialNumber}` : "";
-    return `  - ${d.productName ?? w.displayName ?? "Unknown item"}${serial}${expiry}${coverage}`;
-  });
-  return `\nRegistered warranties on file:\n${lines.join("\n")}\nIf the user asks about any of these items, reference the warranty details above to give accurate, personalized guidance.`;
+function buildDocumentContext(documents: { displayName: string | null; docType: string; warrantyData: unknown }[]): string {
+  if (!documents.length) return "";
+
+  const byType: Record<string, string[]> = {};
+  for (const doc of documents) {
+    const d = doc.warrantyData as DocumentData | null;
+    const name = d?.documentTypeName ?? d?.productName ?? doc.displayName ?? "Unknown";
+    const expiry = d?.expiryDate ? ` (expires ${d.expiryDate})` : d?.renewalDate ? ` (renews ${d.renewalDate})` : "";
+    const issuer = d?.issuer ? ` | ${d.issuer}` : "";
+    const coverage = d?.coverageDetails ? ` — ${d.coverageDetails}` : "";
+    const serial = d?.serialNumber ? `, S/N: ${d.serialNumber}` : "";
+    const policy = d?.policyNumber ? `, #${d.policyNumber}` : "";
+    const entry = `  - ${name}${serial}${policy}${issuer}${expiry}${coverage}`;
+    const category = doc.docType ?? "other";
+    if (!byType[category]) byType[category] = [];
+    byType[category].push(entry);
+  }
+
+  const LABELS: Record<string, string> = {
+    warranty: "Warranties", hoa: "HOA Documents", insurance: "Insurance Policies",
+    deed: "Deeds & Titles", manual: "Manuals", other: "Other Documents",
+  };
+
+  const sections = Object.entries(byType).map(([type, lines]) =>
+    `${LABELS[type] ?? type}:\n${lines.join("\n")}`
+  ).join("\n");
+
+  return `\nHome documents on file:\n${sections}\nReference these documents when the user asks about warranties, insurance, HOA rules, property records, or any of the specific items above. Provide accurate, personalized guidance based on the details stored.`;
 }
 
 function buildSystemPrompt(
@@ -154,7 +171,7 @@ function buildSystemPrompt(
   state: string | null,
   qa: Record<string, string>,
   homeProfile?: HomeProfileData | null,
-  warranties?: { displayName: string | null; warrantyData: unknown }[],
+  documents?: { displayName: string | null; docType: string; warrantyData: unknown }[],
 ): string {
   const location = state ? `${state}${userZip ? ` (ZIP ${userZip})` : ""}` : userZip ?? "Unknown";
   const hasProfile = Object.keys(qa).length > 0;
@@ -182,7 +199,7 @@ function buildSystemPrompt(
   }
 
   const forecastContext = buildForecastContext(homeProfile?.yearBuilt, currentYear, qa.roofType);
-  const warrantyContext = warranties?.length ? buildWarrantyContext(warranties) : "";
+  const warrantyContext = documents?.length ? buildDocumentContext(documents) : "";
 
   const profileSection = hasProfile
     ? `User profile:
@@ -259,19 +276,19 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
   const zip = quizAnswers.zip ?? user.zipCode ?? null;
   const state = zip ? await getStateFromZip(zip) : null;
 
-  // Fetch home profile and warranties for richer context
+  // Fetch home profile and all home documents for richer context
   const [homeProfile] = await db
     .select()
     .from(homeProfilesTable)
     .where(eq(homeProfilesTable.userId, req.userId!))
     .limit(1);
 
-  const warranties = await db
-    .select({ displayName: maintenanceDocumentsTable.displayName, warrantyData: maintenanceDocumentsTable.warrantyData })
+  const homeDocs = await db
+    .select({ displayName: maintenanceDocumentsTable.displayName, docType: maintenanceDocumentsTable.docType, warrantyData: maintenanceDocumentsTable.warrantyData })
     .from(maintenanceDocumentsTable)
-    .where(and(eq(maintenanceDocumentsTable.userId, req.userId!), eq(maintenanceDocumentsTable.docType, "warranty")));
+    .where(eq(maintenanceDocumentsTable.userId, req.userId!));
 
-  const systemPrompt = buildSystemPrompt(zip, state, quizAnswers, homeProfile ?? null, warranties);
+  const systemPrompt = buildSystemPrompt(zip, state, quizAnswers, homeProfile ?? null, homeDocs);
 
   // Build messages array (keep last 10 turns for context)
   const contextHistory = history.slice(-10);
@@ -353,7 +370,7 @@ router.post(
     let quizAnswers: Record<string, string> = {};
     try { quizAnswers = JSON.parse((req.body.quizAnswers as string) || "{}"); } catch {}
 
-    // Look up state + home profile + warranties
+    // Look up state + home profile + all home documents
     const zip = quizAnswers.zip ?? user.zipCode ?? null;
     const state = zip ? await getStateFromZip(zip) : null;
     const [homeProfile] = await db
@@ -362,12 +379,12 @@ router.post(
       .where(eq(homeProfilesTable.userId, req.userId!))
       .limit(1);
 
-    const warranties = await db
-      .select({ displayName: maintenanceDocumentsTable.displayName, warrantyData: maintenanceDocumentsTable.warrantyData })
+    const homeDocs = await db
+      .select({ displayName: maintenanceDocumentsTable.displayName, docType: maintenanceDocumentsTable.docType, warrantyData: maintenanceDocumentsTable.warrantyData })
       .from(maintenanceDocumentsTable)
-      .where(and(eq(maintenanceDocumentsTable.userId, req.userId!), eq(maintenanceDocumentsTable.docType, "warranty")));
+      .where(eq(maintenanceDocumentsTable.userId, req.userId!));
 
-    const systemPrompt = buildSystemPrompt(zip, state, quizAnswers, homeProfile ?? null, warranties);
+    const systemPrompt = buildSystemPrompt(zip, state, quizAnswers, homeProfile ?? null, homeDocs);
 
     // Build Claude content blocks
     const base64Data = file.buffer.toString("base64");
