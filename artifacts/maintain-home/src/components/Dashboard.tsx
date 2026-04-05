@@ -1609,7 +1609,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.15 }}
         >
-          <HomeDocumentsWidget />
+          <HomeDocumentsWidget
+            onAskMaintly={(message) => {
+              setTaskChatMessage(message);
+              setTaskChatOpen(true);
+            }}
+          />
         </motion.div>
 
         {/* ── Future Big-Ticket Items (Pro) ── */}

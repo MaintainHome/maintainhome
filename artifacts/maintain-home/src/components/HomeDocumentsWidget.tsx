@@ -4,9 +4,10 @@ import {
   FolderOpen, Upload, Loader2, Trash2,
   CalendarDays, Tag, Hash, CheckCircle2, AlertTriangle, Clock,
   FileText, X, Shield, Building2, Home, BookOpen, MoreHorizontal,
-  Lock, Sparkles, Info, Eye, ChevronRight, Bot,
+  Lock, Sparkles, Info, Eye, MessageSquare, Bot,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
+import { AIChatModal } from "@/components/AIChatModal";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -74,6 +75,26 @@ export function fmt(dateStr: string | null): string {
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+// ── Build Ask Maintly context message ────────────────────────────────────────
+
+export function buildAskMessage(doc: HomeDoc): string {
+  const d = doc.warrantyData;
+  const cat = getCatConfig(doc.docType);
+  const name = d?.documentTypeName ?? d?.productName ?? doc.displayName ?? doc.fileName;
+  let msg = `Tell me about my ${cat.label.toLowerCase().replace(/s$/, "")} document for "${name}".`;
+  if (d?.issuer) msg += ` It's issued by ${d.issuer}.`;
+  if (d?.expiryDate) msg += ` It expires on ${fmt(d.expiryDate)}.`;
+  else if (d?.renewalDate) msg += ` It renews on ${fmt(d.renewalDate)}.`;
+  if (d?.coverageAmount) msg += ` Coverage amount: ${d.coverageAmount}.`;
+  if (d?.policyNumber) msg += ` Policy/reference number: ${d.policyNumber}.`;
+  if (d?.coverageDetails) {
+    const trimmed = d.coverageDetails.length > 200 ? d.coverageDetails.substring(0, 200) + "…" : d.coverageDetails;
+    msg += ` Coverage details: ${trimmed}`;
+  }
+  msg += " What should I know or do next?";
+  return msg;
 }
 
 // ── Expiry badge ─────────────────────────────────────────────────────────────
@@ -346,9 +367,13 @@ export function DocDetailsModal({
 function DarkDocCard({
   doc,
   onViewDetails,
+  onAskMaintly,
+  userIsPro,
 }: {
   doc: HomeDoc;
   onViewDetails: (doc: HomeDoc) => void;
+  onAskMaintly?: (message: string) => void;
+  userIsPro: boolean;
 }) {
   const d = doc.warrantyData;
   const cat = getCatConfig(doc.docType);
@@ -400,13 +425,35 @@ function DarkDocCard({
                 </span>
               )}
             </div>
-            <button
-              onClick={() => onViewDetails(doc)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
-            >
-              <Eye className="w-4 h-4" />
-              View Details
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                onClick={() => onViewDetails(doc)}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
+              >
+                <Eye className="w-4 h-4" />
+                View Details
+              </button>
+              {userIsPro ? (
+                <button
+                  onClick={() => onAskMaintly?.(buildAskMessage(doc))}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-primary border border-primary/40 hover:bg-primary/10 hover:border-primary active:scale-[0.97] transition-all"
+                  title="Ask Maintly about this document"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Ask Maintly
+                </button>
+              ) : (
+                <button
+                  disabled
+                  title="Upgrade to Pro to ask Maintly about your documents"
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-500 border border-slate-700/60 cursor-not-allowed opacity-50"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Ask Maintly
+                  <span className="text-[10px] font-bold bg-slate-700 text-slate-400 px-1.5 py-0.5 rounded ml-0.5">Pro</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -419,9 +466,13 @@ function DarkDocCard({
 export function LightDocRow({
   doc,
   onViewDetails,
+  onAskMaintly,
+  userIsPro,
 }: {
   doc: HomeDoc;
   onViewDetails: (doc: HomeDoc) => void;
+  onAskMaintly?: (message: string) => void;
+  userIsPro: boolean;
 }) {
   const d = doc.warrantyData;
   const cat = getCatConfig(doc.docType);
@@ -454,14 +505,38 @@ export function LightDocRow({
           )}
         </div>
       </div>
-      <button
-        onClick={() => onViewDetails(doc)}
-        className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
-      >
-        <Eye className="w-4 h-4" />
-        <span className="hidden sm:inline">View Details</span>
-        <span className="sm:hidden">Details</span>
-      </button>
+      <div className="shrink-0 flex items-center gap-2">
+        <button
+          onClick={() => onViewDetails(doc)}
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
+        >
+          <Eye className="w-4 h-4" />
+          <span className="hidden sm:inline">View Details</span>
+          <span className="sm:hidden">Details</span>
+        </button>
+        {userIsPro ? (
+          <button
+            onClick={() => onAskMaintly?.(buildAskMessage(doc))}
+            title="Ask Maintly about this document"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-primary border border-primary/30 hover:bg-primary/8 hover:border-primary/60 active:scale-[0.97] transition-all"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">Ask Maintly</span>
+            <span className="sm:hidden">Ask</span>
+          </button>
+        ) : (
+          <button
+            disabled
+            title="Upgrade to Pro to ask Maintly about your documents"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-400 border border-slate-200 cursor-not-allowed opacity-60"
+          >
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">Ask Maintly</span>
+            <span className="sm:hidden">Ask</span>
+            <span className="text-[9px] font-bold bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded ml-0.5 hidden sm:inline">Pro</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -521,7 +596,7 @@ function ProGateBanner({ dark = false }: { dark?: boolean }) {
 
 // ── Main Dashboard widget (dark theme) ───────────────────────────────────────
 
-export function HomeDocumentsWidget() {
+export function HomeDocumentsWidget({ onAskMaintly }: { onAskMaintly?: (message: string) => void }) {
   const { user } = useAuth();
   const userIsPro = isPro(user);
   const { docs, loading, removeDoc, addDoc } = useHomeDocuments();
@@ -751,7 +826,13 @@ export function HomeDocumentsWidget() {
             >
               <AnimatePresence mode="popLayout">
                 {filtered.map((doc) => (
-                  <DarkDocCard key={doc.id} doc={doc} onViewDetails={setSelectedDoc} />
+                  <DarkDocCard
+                    key={doc.id}
+                    doc={doc}
+                    onViewDetails={setSelectedDoc}
+                    onAskMaintly={onAskMaintly}
+                    userIsPro={userIsPro}
+                  />
                 ))}
               </AnimatePresence>
               <p className="text-[10px] text-slate-600 text-center pt-1">
@@ -788,7 +869,14 @@ export function HomeDocumentsSection() {
   const [activeTab, setActiveTab] = useState<DocCategory | "all">("all");
   const [dragOver, setDragOver] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<HomeDoc | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatMessage, setChatMessage] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
+
+  function handleAskMaintly(message: string) {
+    setChatMessage(message);
+    setChatOpen(true);
+  }
 
   async function handleFile(file: File) {
     if (!userIsPro) return;
@@ -1013,7 +1101,13 @@ export function HomeDocumentsSection() {
             className={`divide-y divide-slate-50 transition-all ${dragOver ? "ring-2 ring-primary/20 ring-inset" : ""}`}
           >
             {filtered.map((doc) => (
-              <LightDocRow key={doc.id} doc={doc} onViewDetails={setSelectedDoc} />
+              <LightDocRow
+                key={doc.id}
+                doc={doc}
+                onViewDetails={setSelectedDoc}
+                onAskMaintly={handleAskMaintly}
+                userIsPro={userIsPro}
+              />
             ))}
           </div>
         )}
@@ -1036,6 +1130,13 @@ export function HomeDocumentsSection() {
           onDelete={(id) => { removeDoc(id); setSelectedDoc(null); }}
         />
       )}
+
+      {/* Ask Maintly chat modal */}
+      <AIChatModal
+        isOpen={chatOpen}
+        onClose={() => { setChatOpen(false); setChatMessage(""); }}
+        initialMessage={chatMessage}
+      />
     </>
   );
 }
