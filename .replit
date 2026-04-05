@@ -33,3 +33,6 @@ channel = "stable-25_05"
 [userenv.shared]
 RESEND_FROM_EMAIL = "MaintainHome.ai <noreply@maintainhome.ai>"
 ADMIN_SECRET = "4bba608cc447380e4f444a6aa6af31ad6e4e3ca1"
+STRIPE_PRICE_MONTHLY = "price_1TIh1XCzTuJKltlj6TmftYQt"
+STRIPE_PRICE_ANNUAL = "price_1TIh1YCzTuJKltljzj6OpxRb"
+STRIPE_PRICE_GIFT_CODE = "price_1TIh1ZCzTuJKltljsnVa687n"

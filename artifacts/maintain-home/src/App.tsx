@@ -15,6 +15,7 @@ import AdminBrokers from "@/pages/admin-brokers";
 import BrokerDashboard from "@/pages/broker-dashboard";
 import ChooseRole from "@/pages/choose-role";
 import InviteLanding from "@/pages/invite-landing";
+import CheckoutSuccess from "@/pages/checkout-success";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient({
@@ -51,6 +52,7 @@ function Router() {
       <Route path="/admin/brokers" component={AdminBrokers} />
       <Route path="/broker-dashboard" component={BrokerDashboard} />
       <Route path="/choose-role" component={ChooseRole} />
+      <Route path="/checkout/success" component={CheckoutSuccess} />
       <Route path="/invite/:subdomain" component={InviteLanding} />
       <Route path="/invite" component={InviteLanding} />
       <Route path="/:subdomain" component={InviteLanding} />

@@ -163,6 +163,172 @@ function CopyBtn({ text, label }: { text: string; label: string }) {
   );
 }
 
+/* ─── Gift Code Purchase Panel ───────────────────────────────────── */
+function GiftCodePurchasePanel({ accent }: { accent: string }) {
+  const [qty, setQty] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [existingCodes, setExistingCodes] = useState<{ code: string; redeemedAt: string | null; createdAt: string }[]>([]);
+  const [codesLoaded, setCodesLoaded] = useState(false);
+  const [showCodes, setShowCodes] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  async function loadCodes() {
+    try {
+      const res = await fetch(`${API_BASE}/api/stripe/my-gift-codes`, { credentials: "include" });
+      if (res.ok) {
+        const data = await res.json();
+        setExistingCodes(data);
+      }
+    } catch {}
+    setCodesLoaded(true);
+  }
+
+  async function handlePurchase() {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/stripe/gift-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ quantity: qty }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Could not start checkout.");
+      } else if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function copyCode(code: string) {
+    navigator.clipboard.writeText(code).catch(() => {});
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  }
+
+  const redeemed = existingCodes.filter((c) => c.redeemedAt).length;
+  const available = existingCodes.filter((c) => !c.redeemedAt).length;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: 0.18 }}
+      className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+    >
+      <div className="flex items-start gap-4 flex-wrap">
+        <div className="flex items-center gap-2 mb-1 flex-1 min-w-[200px]">
+          <Gift className="w-5 h-5 shrink-0" style={{ color: accent }} />
+          <div>
+            <h2 className="font-bold text-slate-900">Gift Codes for Clients</h2>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Give your homeowner clients 1 year of Pro access as a closing gift. Each code is $29.
+            </p>
+          </div>
+        </div>
+
+        {/* Price callout */}
+        <div className="flex items-baseline gap-1 shrink-0">
+          <span className="text-3xl font-black text-slate-900">$29</span>
+          <span className="text-slate-400 text-sm">/code</span>
+        </div>
+      </div>
+
+      <div className="mt-5 flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+        {/* Qty selector */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Quantity</label>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setQty((q) => Math.max(1, q - 1))}
+              className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-lg transition-colors"
+              disabled={qty <= 1}
+            >−</button>
+            <span className="w-10 text-center text-lg font-black text-slate-900 tabular-nums">{qty}</span>
+            <button
+              onClick={() => setQty((q) => Math.min(50, q + 1))}
+              className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-lg transition-colors"
+              disabled={qty >= 50}
+            >+</button>
+          </div>
+        </div>
+
+        {/* Total */}
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Total</label>
+          <div className="h-9 flex items-center px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-black tabular-nums">
+            ${(qty * 29).toFixed(2)}
+          </div>
+        </div>
+
+        {/* Buy button */}
+        <button
+          onClick={handlePurchase}
+          disabled={loading}
+          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-sm h-9"
+          style={{ backgroundColor: accent }}
+        >
+          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+          {loading ? "Redirecting…" : `Buy ${qty} Code${qty > 1 ? "s" : ""}`}
+        </button>
+
+        {/* View existing codes toggle */}
+        <button
+          onClick={() => { setShowCodes((v) => !v); if (!codesLoaded) loadCodes(); }}
+          className="h-9 flex items-center gap-1.5 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+        >
+          <Gift className="w-4 h-4" />
+          My Codes
+        </button>
+      </div>
+
+      {error && <p className="mt-3 text-xs text-red-600 font-medium">{error}</p>}
+
+      {/* Existing codes panel */}
+      {showCodes && (
+        <div className="mt-5 pt-5 border-t border-slate-100">
+          {!codesLoaded ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+            </div>
+          ) : existingCodes.length === 0 ? (
+            <p className="text-sm text-slate-400 text-center py-3">No gift codes purchased yet.</p>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 mb-3">
+                <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Your Gift Codes</p>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">{available} available</span>
+                {redeemed > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">{redeemed} used</span>}
+              </div>
+              <div className="grid gap-2 max-h-52 overflow-y-auto pr-1">
+                {existingCodes.map((c) => (
+                  <div key={c.code} className={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border ${c.redeemedAt ? "bg-slate-50 border-slate-100 opacity-60" : "bg-white border-slate-200"}`}>
+                    <span className={`font-mono font-semibold text-sm tracking-widest ${c.redeemedAt ? "text-slate-400 line-through" : "text-slate-800"}`}>{c.code}</span>
+                    {c.redeemedAt ? (
+                      <span className="text-xs text-slate-400 font-medium shrink-0">Used</span>
+                    ) : (
+                      <button onClick={() => copyCode(c.code)} className="text-slate-400 hover:text-primary transition-colors shrink-0" title="Copy code">
+                        {copiedCode === c.code ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    Main page
 ═══════════════════════════════════════════════════════════════════ */
@@ -734,6 +900,9 @@ export default function BrokerDashboard() {
             </p>
           </motion.div>
         </div>
+
+        {/* ── Buy Gift Codes ───────────────────────────────────────── */}
+        <GiftCodePurchasePanel accent={accent} />
 
         {/* ── Client table ─────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
