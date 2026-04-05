@@ -1,5 +1,5 @@
-import { Router, type Response } from "express";
-import { db, usersTable, giftCodesTable, stripeTransactionsTable } from "@workspace/db";
+import { Router, type Request, type Response } from "express";
+import { db, usersTable, giftCodesTable, stripeTransactionsTable, sessionsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 import { getStripeClient } from "../stripeClient";
@@ -7,8 +7,10 @@ import crypto from "crypto";
 
 const router = Router();
 
-// ── Price IDs — set after running seed-stripe script ─────────────────────────
-// These are read from env so the seed script can write them without code changes
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
 function getPriceIds() {
   return {
     monthly: process.env.STRIPE_PRICE_MONTHLY ?? "",
@@ -17,23 +19,54 @@ function getPriceIds() {
   };
 }
 
-function getBaseUrl(req: any): string {
-  const domain = process.env.REPLIT_DOMAINS?.split(",")[0];
-  if (domain) return `https://${domain}`;
-  return `${req.protocol}://${req.get("host")}`;
+/**
+ * Build the base URL using the ACTUAL request headers (forwarded host),
+ * not the REPLIT_DOMAINS env var which may not match the current access domain.
+ */
+function getBaseUrl(req: Request): string {
+  const proto = (req.headers["x-forwarded-proto"] as string) ?? req.protocol ?? "https";
+  const host = (req.headers["x-forwarded-host"] as string) ?? req.get("host") ?? "localhost";
+  return `${proto}://${host}`;
+}
+
+function isRequestHttps(req: Request): boolean {
+  const forwarded = req.headers["x-forwarded-proto"] as string | undefined;
+  if (forwarded) return forwarded === "https";
+  return req.secure;
+}
+
+function setSessionCookie(res: Response, token: string, isHttps: boolean) {
+  res.cookie("mh_session", token, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    secure: isHttps,
+    maxAge: THIRTY_DAYS_MS,
+  });
 }
 
 function generateGiftCode(): string {
   return crypto.randomBytes(5).toString("hex").toUpperCase().replace(/(.{4})/g, "$1-").slice(0, 14);
 }
 
-// ── GET /api/stripe/config ─────────────────────────────────────────────────
-// Returns the publishable key so the frontend doesn't need a separate secret
+/**
+ * Creates a DB session and sets the cookie — auto-logs in the user.
+ * Called after verifying a successful Stripe payment.
+ */
+async function autoLoginUser(res: Response, userId: number, isHttps: boolean) {
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + THIRTY_DAYS_MS);
+  await db.insert(sessionsTable).values({ token, userId, expiresAt, staySignedIn: true });
+  setSessionCookie(res, token, isHttps);
+  return token;
+}
+
+// ── GET /api/stripe/config ────────────────────────────────────────────────────
 router.get("/stripe/config", (_req, res: Response) => {
   res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? "" });
 });
 
-// ── GET /api/stripe/prices ─────────────────────────────────────────────────
+// ── GET /api/stripe/prices ────────────────────────────────────────────────────
 router.get("/stripe/prices", (_req, res: Response) => {
   const ids = getPriceIds();
   res.json({
@@ -43,8 +76,7 @@ router.get("/stripe/prices", (_req, res: Response) => {
   });
 });
 
-// ── POST /api/stripe/checkout ─────────────────────────────────────────────
-// Subscription checkout for homeowners
+// ── POST /api/stripe/checkout ─────────────────────────────────────────────────
 router.post("/stripe/checkout", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const { plan } = req.body as { plan?: "monthly" | "annual" };
   if (!plan || !["monthly", "annual"].includes(plan)) {
@@ -54,9 +86,8 @@ router.post("/stripe/checkout", requireAuth as any, async (req: AuthRequest, res
 
   const ids = getPriceIds();
   const priceId = plan === "monthly" ? ids.monthly : ids.annual;
-
   if (!priceId) {
-    res.status(500).json({ error: "Stripe prices not yet configured. Run the seed script." });
+    res.status(500).json({ error: "Stripe prices not yet configured." });
     return;
   }
 
@@ -83,12 +114,14 @@ router.post("/stripe/checkout", requireAuth as any, async (req: AuthRequest, res
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
+    customer_update: { email: "auto" },
     payment_method_types: ["card"],
     line_items: [{ price: priceId, quantity: 1 }],
     mode: "subscription",
+    // Store user identity so verify-session can auto-login without a cookie
+    metadata: { userId: String(user.id), email: user.email, type: "subscription", plan },
     success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${base}/checkout/cancel`,
-    metadata: { userId: String(user.id), type: "subscription", plan },
+    cancel_url: `${base}/#pricing`,
   });
 
   await db.insert(stripeTransactionsTable).values({
@@ -99,13 +132,12 @@ router.post("/stripe/checkout", requireAuth as any, async (req: AuthRequest, res
     amountCents: plan === "monthly" ? 499 : 3999,
     status: "pending",
     metadata: { plan },
-  });
+  }).onConflictDoNothing();
 
   res.json({ url: session.url });
 });
 
-// ── POST /api/stripe/gift-checkout ──────────────────────────────────────────
-// One-time purchase of gift codes for brokers
+// ── POST /api/stripe/gift-checkout ────────────────────────────────────────────
 router.post("/stripe/gift-checkout", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const { quantity } = req.body as { quantity?: number };
   const qty = Number(quantity ?? 1);
@@ -116,7 +148,7 @@ router.post("/stripe/gift-checkout", requireAuth as any, async (req: AuthRequest
 
   const ids = getPriceIds();
   if (!ids.giftCode) {
-    res.status(500).json({ error: "Stripe prices not yet configured. Run the seed script." });
+    res.status(500).json({ error: "Stripe prices not yet configured." });
     return;
   }
 
@@ -143,12 +175,13 @@ router.post("/stripe/gift-checkout", requireAuth as any, async (req: AuthRequest
 
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
+    customer_update: { email: "auto" },
     payment_method_types: ["card"],
     line_items: [{ price: ids.giftCode, quantity: qty }],
     mode: "payment",
+    metadata: { userId: String(user.id), email: user.email, type: "gift_code", quantity: String(qty) },
     success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${base}/checkout/cancel`,
-    metadata: { userId: String(user.id), type: "gift_code", quantity: String(qty) },
+    cancel_url: `${base}/broker-dashboard`,
   });
 
   await db.insert(stripeTransactionsTable).values({
@@ -159,96 +192,142 @@ router.post("/stripe/gift-checkout", requireAuth as any, async (req: AuthRequest
     amountCents: 2900 * qty,
     status: "pending",
     metadata: { quantity: qty },
-  });
+  }).onConflictDoNothing();
 
   res.json({ url: session.url });
 });
 
-// ── GET /api/stripe/verify-session ──────────────────────────────────────────
-// Called from success page to confirm payment and update user/DB
-router.get("/stripe/verify-session", requireAuth as any, async (req: AuthRequest, res: Response) => {
+// ── GET /api/stripe/verify-session ────────────────────────────────────────────
+// Called from the success page after Stripe redirects back.
+// Does NOT require auth — it auto-logs in the user using Stripe metadata,
+// because the session cookie may have been dropped in the Stripe cross-site redirect.
+router.get("/stripe/verify-session", async (req: Request, res: Response) => {
   const { session_id } = req.query as { session_id?: string };
-  if (!session_id) { res.status(400).json({ error: "session_id required" }); return; }
+  if (!session_id) {
+    res.status(400).json({ error: "session_id is required." });
+    return;
+  }
 
   const stripe = getStripeClient();
 
-  let session: any;
+  let stripeSession: any;
   try {
-    session = await stripe.checkout.sessions.retrieve(session_id, {
+    stripeSession = await stripe.checkout.sessions.retrieve(session_id, {
       expand: ["subscription"],
     });
   } catch {
-    res.status(400).json({ error: "Invalid session ID." });
+    res.status(400).json({ error: "Invalid or expired session ID. Please contact support if you were charged." });
     return;
   }
 
-  if (session.payment_status !== "paid" && session.status !== "complete") {
-    res.json({ status: "pending", message: "Payment not yet complete." });
+  if (stripeSession.payment_status !== "paid" && stripeSession.status !== "complete") {
+    res.json({ status: "pending", message: "Payment not yet complete — please wait a moment and refresh." });
     return;
   }
 
-  const meta = session.metadata ?? {};
-  const userId = req.userId!;
+  const meta = stripeSession.metadata ?? {};
+  const userId = Number(meta.userId);
 
-  // Verify this session belongs to the requesting user
-  if (meta.userId && Number(meta.userId) !== userId) {
-    res.status(403).json({ error: "Session does not belong to this user." });
+  if (!userId) {
+    res.status(400).json({
+      error: "Could not identify the user for this session. Please sign in and contact support.",
+    });
     return;
   }
 
-  // Mark transaction as paid
-  await db
-    .update(stripeTransactionsTable)
-    .set({ status: "paid" })
-    .where(eq(stripeTransactionsTable.stripeSessionId, session_id));
+  // Fetch the user
+  const [user] = await db
+    .select()
+    .from(usersTable)
+    .where(eq(usersTable.id, userId))
+    .limit(1);
 
+  if (!user) {
+    res.status(404).json({ error: "User account not found. Please contact support." });
+    return;
+  }
+
+  const https = isRequestHttps(req);
+
+  // ── Handle subscription upgrade ───────────────────────────────────────────
   if (meta.type === "subscription") {
     const plan = meta.plan as "monthly" | "annual";
     const status = plan === "annual" ? "pro_annual" : "pro_monthly";
-    await db
-      .update(usersTable)
-      .set({
-        subscriptionStatus: status,
-        fullAccess: true,
-        stripeCustomerId: session.customer ?? undefined,
-      })
-      .where(eq(usersTable.id, userId));
 
-    res.json({ status: "ok", type: "subscription", plan, message: `You're now on Pro ${plan === "annual" ? "Annual" : "Monthly"}!` });
+    await db.update(usersTable).set({
+      subscriptionStatus: status,
+      fullAccess: true,
+      stripeCustomerId: stripeSession.customer ?? user.stripeCustomerId,
+    }).where(eq(usersTable.id, userId));
+
+    await db.update(stripeTransactionsTable)
+      .set({ status: "paid" })
+      .where(eq(stripeTransactionsTable.stripeSessionId, session_id))
+      .catch(() => {});
+
+    // Auto-login: create a fresh session so the user is authenticated
+    await autoLoginUser(res, userId, https);
+
+    res.json({
+      status: "ok",
+      type: "subscription",
+      plan,
+      message: `You're now on Pro ${plan === "annual" ? "Annual" : "Monthly"}! Welcome.`,
+    });
     return;
   }
 
+  // ── Handle gift code purchase ─────────────────────────────────────────────
   if (meta.type === "gift_code") {
     const qty = Number(meta.quantity ?? 1);
-    const codes: string[] = [];
 
-    for (let i = 0; i < qty; i++) {
-      const code = generateGiftCode();
-      codes.push(code);
-      await db.insert(giftCodesTable).values({
-        code,
-        purchasedByUserId: userId,
-        stripeSessionId: session_id,
-        priceCents: 2900,
-      });
+    await db.update(stripeTransactionsTable)
+      .set({ status: "paid" })
+      .where(eq(stripeTransactionsTable.stripeSessionId, session_id))
+      .catch(() => {});
+
+    // Check if codes were already generated (idempotency)
+    const existing = await db
+      .select({ code: giftCodesTable.code })
+      .from(giftCodesTable)
+      .where(eq(giftCodesTable.stripeSessionId, session_id));
+
+    let codes: string[];
+    if (existing.length > 0) {
+      codes = existing.map((r) => r.code);
+    } else {
+      codes = [];
+      for (let i = 0; i < qty; i++) {
+        const code = generateGiftCode();
+        codes.push(code);
+        await db.insert(giftCodesTable).values({
+          code,
+          purchasedByUserId: userId,
+          stripeSessionId: session_id,
+          priceCents: 2900,
+        }).catch(() => {});
+      }
     }
+
+    // Auto-login
+    await autoLoginUser(res, userId, https);
 
     res.json({
       status: "ok",
       type: "gift_code",
       codes,
-      quantity: qty,
-      message: `${qty} gift code${qty > 1 ? "s" : ""} generated successfully!`,
+      quantity: codes.length,
+      message: `${codes.length} gift code${codes.length > 1 ? "s" : ""} generated successfully!`,
     });
     return;
   }
 
+  // Fallback — unknown type but payment succeeded
+  await autoLoginUser(res, userId, https);
   res.json({ status: "ok", message: "Payment confirmed." });
 });
 
-// ── POST /api/stripe/webhook ──────────────────────────────────────────────
-// Stripe sends events here — used as async backup to verify-session
-// Registered BEFORE express.json() in app.ts
+// ── POST /api/stripe/webhook ──────────────────────────────────────────────────
 router.post(
   "/stripe/webhook",
   async (req: any, res: Response) => {
@@ -262,12 +341,11 @@ router.post(
         const stripe = getStripeClient();
         event = stripe.webhooks.constructEvent(req.body, sig, webhookSecret);
       } catch (err: any) {
-        console.error("[stripe webhook] signature verification failed:", err.message);
+        console.error("[stripe webhook] signature error:", err.message);
         res.status(400).json({ error: "Invalid signature" });
         return;
       }
     } else {
-      // No webhook secret — parse raw body manually (test mode convenience)
       try {
         event = JSON.parse(req.body.toString());
       } catch {
@@ -279,8 +357,7 @@ router.post(
     if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       if (session.payment_status !== "paid" && session.status !== "complete") {
-        res.json({ received: true });
-        return;
+        res.json({ received: true }); return;
       }
 
       const meta = session.metadata ?? {};
@@ -324,7 +401,7 @@ router.post(
   }
 );
 
-// ── GET /api/stripe/my-gift-codes ──────────────────────────────────────────
+// ── GET /api/stripe/my-gift-codes ─────────────────────────────────────────────
 router.get("/stripe/my-gift-codes", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const codes = await db
     .select()
@@ -333,8 +410,7 @@ router.get("/stripe/my-gift-codes", requireAuth as any, async (req: AuthRequest,
   res.json(codes);
 });
 
-// ── POST /api/auth/redeem-gift ───────────────────────────────────────────────
-// Homeowner redeems a gift code for 1-year Pro access
+// ── POST /api/auth/redeem-gift ────────────────────────────────────────────────
 router.post("/auth/redeem-gift", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const { code } = req.body as { code?: string };
   if (!code?.trim()) { res.status(400).json({ error: "Gift code required." }); return; }

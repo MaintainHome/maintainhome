@@ -48,11 +48,13 @@ export default function CheckoutSuccess() {
           return;
         }
 
+        // Always refresh the user — verify-session auto-logs in via cookie
+        await refreshUser();
+
         if (data.type === "subscription") {
           setStatus("ok_subscription");
           setPlan(data.plan ?? "monthly");
           setMessage(data.message ?? "You're now a Pro member!");
-          await refreshUser();
         } else if (data.type === "gift_code") {
           setStatus("ok_gift");
           setGiftCodes(data.codes ?? []);
@@ -60,7 +62,6 @@ export default function CheckoutSuccess() {
         } else {
           setStatus("ok_subscription");
           setMessage(data.message ?? "Payment confirmed!");
-          await refreshUser();
         }
       } catch {
         setStatus("error");
