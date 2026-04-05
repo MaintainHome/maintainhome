@@ -202,6 +202,42 @@ router.post("/sms/trigger-check", requireAuth as any, async (req: AuthRequest, r
   }
 });
 
+// ── POST /api/sms/test ────────────────────────────────────────────────────────
+// Sends a test message to the user's saved phone number. No rate limiting.
+router.post("/sms/test", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const [user] = await db
+    .select({ smsPhone: usersTable.smsPhone, smsEnabled: usersTable.smsEnabled })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.userId!))
+    .limit(1);
+
+  if (!user) { res.status(401).json({ error: "User not found." }); return; }
+  if (!user.smsPhone) {
+    res.status(400).json({ error: "No phone number saved. Add a phone number and save your settings first." });
+    return;
+  }
+  if (!isValidPhone(user.smsPhone)) {
+    res.status(400).json({ error: "Saved phone number is not valid. Please update it and save again." });
+    return;
+  }
+
+  const body = [
+    "✅ Test message from MaintainHome.ai!",
+    "",
+    "Your SMS reminders are working. You'll receive monthly alerts for critical home maintenance tasks like smoke detector checks and air filter replacements.",
+    "",
+    "Reply STOP at any time to opt out. Msg & data rates may apply.",
+  ].join("\n");
+
+  const result = await sendTwilioSms(user.smsPhone, body);
+
+  if (result.ok) {
+    res.json({ ok: true, message: `Test SMS sent to ${user.smsPhone}` });
+  } else {
+    res.status(500).json({ ok: false, error: result.error ?? "Failed to send test SMS." });
+  }
+});
+
 // ── GET /api/sms/log ──────────────────────────────────────────────────────────
 router.get("/sms/log", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const logs = await db

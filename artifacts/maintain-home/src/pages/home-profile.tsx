@@ -109,6 +109,8 @@ export default function HomeProfilePage() {
   const [smsSaved, setSmsSaved] = useState(false);
   const [smsError, setSmsError] = useState<string | null>(null);
   const [smsLog, setSmsLog] = useState<{ id: number; taskNames: string; month: string; status: string; sentAt: string }[]>([]);
+  const [smsTesting, setSmsTesting] = useState(false);
+  const [smsTestResult, setSmsTestResult] = useState<{ ok: boolean; message: string } | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -123,6 +125,7 @@ export default function HomeProfilePage() {
   async function handleSaveSms() {
     setSmsSaving(true);
     setSmsError(null);
+    setSmsTestResult(null);
     try {
       const r = await fetch("/api/user/sms-settings", {
         method: "PUT",
@@ -138,6 +141,25 @@ export default function HomeProfilePage() {
       setSmsError(err.message ?? "Could not save SMS settings.");
     } finally {
       setSmsSaving(false);
+    }
+  }
+
+  async function handleTestSms() {
+    setSmsTesting(true);
+    setSmsTestResult(null);
+    setSmsError(null);
+    try {
+      const r = await fetch("/api/sms/test", {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(data.error ?? "Test SMS failed.");
+      setSmsTestResult({ ok: true, message: data.message ?? "Test SMS sent!" });
+    } catch (err: any) {
+      setSmsTestResult({ ok: false, message: err.message ?? "Could not send test SMS." });
+    } finally {
+      setSmsTesting(false);
     }
   }
 
@@ -943,17 +965,39 @@ export default function HomeProfilePage() {
               </div>
             )}
 
-            <button
-              onClick={handleSaveSms}
-              disabled={smsSaving}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors disabled:opacity-60"
-            >
-              {smsSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : smsSaved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-              {smsSaved ? "Saved!" : smsSaving ? "Saving…" : "Save SMS Settings"}
-            </button>
+            {smsTestResult && (
+              <div className={`flex items-start gap-2 rounded-xl px-3 py-2.5 text-xs ${smsTestResult.ok ? "bg-emerald-50 border border-emerald-200 text-emerald-800" : "bg-red-50 border border-red-200 text-red-700"}`}>
+                {smsTestResult.ok
+                  ? <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 shrink-0 text-emerald-600" />
+                  : <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                }
+                <span>{smsTestResult.message}</span>
+              </div>
+            )}
+
+            <div className="flex gap-2.5">
+              <button
+                onClick={handleSaveSms}
+                disabled={smsSaving}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors disabled:opacity-60"
+              >
+                {smsSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : smsSaved ? <CheckCircle2 className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                {smsSaved ? "Saved!" : smsSaving ? "Saving…" : "Save Settings"}
+              </button>
+
+              <button
+                onClick={handleTestSms}
+                disabled={smsTesting || !user?.smsPhone}
+                title={!user?.smsPhone ? "Save a phone number first" : "Send a test SMS to your phone"}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border-2 border-primary/60 hover:border-primary text-primary font-bold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+              >
+                {smsTesting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+                {smsTesting ? "Sending…" : "Test SMS"}
+              </button>
+            </div>
 
             <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-              Message and data rates may apply. Reply STOP to any message to opt out. Max 2 messages per month.
+              Message and data rates may apply. Reply STOP to any message to opt out. Max 2 reminders per month.
             </p>
           </div>
         </motion.div>
