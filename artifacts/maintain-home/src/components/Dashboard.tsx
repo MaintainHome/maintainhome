@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, type RefObject } from "react";
 import {
   Calendar, ClipboardList, Zap, ArrowRight,
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
@@ -10,8 +10,10 @@ import {
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { HomeDocumentsWidget } from "@/components/HomeDocumentsWidget";
-import { isPro } from "@/contexts/AuthContext";
+import { isPro, useAuth } from "@/contexts/AuthContext";
 import type { AuthUser } from "@/contexts/AuthContext";
+import { DashboardTour } from "@/components/DashboardTour";
+import type { TourStep } from "@/components/DashboardTour";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useLocation } from "wouter";
 
@@ -258,6 +260,7 @@ function getNextDueTasks(calendarData: any, limit = 5): { task: string; month: s
 }
 
 export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps) {
+  const { refreshUser } = useAuth();
   const [, navigate] = useLocation();
   const [recentLog, setRecentLog] = useState<LogEntry[]>([]);
   const [logLoading, setLogLoading] = useState(true);
@@ -286,6 +289,34 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const chatScrollRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
   const chatAbortRef = useRef<AbortController | null>(null);
+
+  // ── Onboarding Tour ────────────────────────────────────────────────────
+  const [showTour, setShowTour] = useState(false);
+  const tourRef1 = useRef<HTMLButtonElement | null>(null);
+  const tourRef2 = useRef<HTMLButtonElement | null>(null);
+  const tourRef3 = useRef<HTMLButtonElement | null>(null);
+  const tourRef4 = useRef<HTMLButtonElement | null>(null);
+  const tourRef5 = useRef<HTMLDivElement | null>(null);
+
+  // Show tour once user data is loaded and they haven't seen it
+  useEffect(() => {
+    if (!user || user.hasSeenDashboardTour) return;
+    const timer = setTimeout(() => setShowTour(true), 900);
+    return () => clearTimeout(timer);
+  }, [user?.hasSeenDashboardTour]);
+
+  const completeTour = useCallback(async () => {
+    setShowTour(false);
+    try {
+      await fetch(`${API_BASE}/api/user/complete-tour`, {
+        method: "POST",
+        credentials: "include",
+      });
+      await refreshUser();
+    } catch {
+      // Silently ignore — tour won't re-show since showTour is false
+    }
+  }, [refreshUser]);
 
   // File upload state for inline chat
   const [chatPendingFile, setChatPendingFile] = useState<File | null>(null);
@@ -753,6 +784,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           {/* Ask Maintly */}
           {userIsPro ? (
             <button
+              ref={tourRef1}
               onClick={onOpenAIChat}
               className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group overflow-hidden"
             >
@@ -773,6 +805,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             </button>
           ) : (
             <button
+              ref={tourRef1}
               onClick={() => navigate("/home-profile")}
               className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-dashed border-amber-300 hover:border-amber-400 hover:shadow-sm transition-all text-left group overflow-hidden"
             >
@@ -795,6 +828,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
           {/* Tile 2: Maintenance Log */}
           <button
+            ref={tourRef2}
             onClick={() => navigate("/history")}
             className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
           >
@@ -809,6 +843,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
           {/* Tile 3: This Month Tasks */}
           <button
+            ref={tourRef3}
             onClick={scrollToThisMonth}
             className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
           >
@@ -823,6 +858,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
           {/* Tile 4: My Property Facts */}
           <button
+            ref={tourRef4}
             onClick={() => navigate("/home-profile")}
             className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
           >
@@ -838,6 +874,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
         {/* ── Home Health Score ── */}
         <motion.div
+          ref={tourRef5}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.09 }}
@@ -1939,6 +1976,41 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         quizAnswers={savedCalendar?.quizAnswers ?? {}}
         initialMessage={taskChatMessage}
       />
+
+      {/* ── First-Time Onboarding Tour ── */}
+      {showTour && (
+        <DashboardTour
+          steps={[
+            {
+              ref: tourRef1 as RefObject<HTMLElement | null>,
+              title: "Talk to Maintly",
+              description: "Maintly is your personal AI home ownership chatbot. Ask him anything about maintenance, repairs, warranties, or your home documents — he's always ready to help!",
+            },
+            {
+              ref: tourRef2 as RefObject<HTMLElement | null>,
+              title: "Historical Home Maintenance Log",
+              description: "All your completed maintenance tasks live here. Mark tasks as done from your monthly to-do list and they'll be logged automatically — with notes if you add them.",
+            },
+            {
+              ref: tourRef3 as RefObject<HTMLElement | null>,
+              title: "To-Do List This Month",
+              description: "Your personalized monthly maintenance checklist, generated from your home quiz. Check off tasks as you complete them and they'll be saved to your log.",
+            },
+            {
+              ref: tourRef4 as RefObject<HTMLElement | null>,
+              title: "My Property Facts",
+              description: "Add more details about your home — square footage, roof type, HVAC age, and more. The more Maintly knows about your property, the smarter your reminders get.",
+            },
+            {
+              ref: tourRef5 as RefObject<HTMLElement | null>,
+              title: "Home Health Score",
+              description: "Your overall home health score is calculated from your maintenance activity, upcoming tasks, and home profile completeness. Aim to keep it in the green by staying on top of your monthly to-do list!",
+            },
+          ] as TourStep[]}
+          onComplete={completeTour}
+          onSkip={completeTour}
+        />
+      )}
     </div>
   );
 }

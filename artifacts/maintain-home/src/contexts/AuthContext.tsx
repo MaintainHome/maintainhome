@@ -12,6 +12,7 @@ export interface AuthUser {
   isBroker: boolean;
   smsEnabled: boolean;
   smsPhone: string | null;
+  hasSeenDashboardTour: boolean;
 }
 
 export function isPro(user: AuthUser | null): boolean {

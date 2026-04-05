@@ -13,6 +13,7 @@ export const usersTable = pgTable("users", {
   smsEnabled: boolean("sms_enabled").default(false).notNull(),
   smsPhone: text("sms_phone"),
   stripeCustomerId: text("stripe_customer_id"),
+  hasSeenDashboardTour: boolean("has_seen_dashboard_tour").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

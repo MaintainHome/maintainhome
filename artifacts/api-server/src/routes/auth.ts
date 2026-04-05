@@ -247,6 +247,7 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
       subscriptionStatus: usersTable.subscriptionStatus,
       smsEnabled: usersTable.smsEnabled,
       smsPhone: usersTable.smsPhone,
+      hasSeenDashboardTour: usersTable.hasSeenDashboardTour,
     })
     .from(usersTable)
     .where(eq(usersTable.id, req.userId!))
@@ -280,6 +281,15 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
     .limit(1);
 
   res.json({ ...user, isBroker: !!brokerRecord });
+});
+
+// Mark dashboard tour as completed (permanent flag, never resets)
+router.post("/user/complete-tour", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  await db
+    .update(usersTable)
+    .set({ hasSeenDashboardTour: true })
+    .where(eq(usersTable.id, req.userId!));
+  res.json({ ok: true });
 });
 
 router.post("/auth/redeem-promo", requireAuth as any, async (req: AuthRequest, res: Response) => {
