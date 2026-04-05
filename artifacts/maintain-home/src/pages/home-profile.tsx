@@ -10,6 +10,7 @@ import {
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { PricingSection } from "@/components/PricingSection";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
+import { HomeDocumentsSection } from "@/components/HomeDocumentsWidget";
 
 // ── Label maps (mirrors quiz + ai-chat server) ─────────────────────────────
 const HOME_AGE_LABELS: Record<string, string> = {
@@ -1000,6 +1001,15 @@ export default function HomeProfilePage() {
               Message and data rates may apply. Reply STOP to any message to opt out. Max 2 reminders per month.
             </p>
           </div>
+        </motion.div>
+
+        {/* ── Home Documents ─────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.19 }}
+        >
+          <HomeDocumentsSection />
         </motion.div>
 
         {/* ── Danger Zone ────────────────────────────────────────────── */}
