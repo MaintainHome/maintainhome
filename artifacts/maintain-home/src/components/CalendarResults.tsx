@@ -657,7 +657,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
         {orderedMonths.map((month, idx) => {
           const isCurrentMonth = idx === 0;
           const isNextMonth = idx === 1;
-          const isLocked = userIsPro ? false : idx >= 2;
+          const isLocked = userIsPro ? false : idx >= 1;
           const showMarkDone = !isLocked;
 
           return (
@@ -739,10 +739,10 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
                 </div>
               </div>
 
-              {/* Lock overlay for months 3–12 */}
+              {/* Lock overlay for months 2–12 */}
               {isLocked && (
                 <button
-                  onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+                  onClick={() => navigate("/pricing")}
                   className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/70 backdrop-blur-[2px] hover:bg-white/80 transition-colors cursor-pointer group"
                 >
                   <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shadow-sm group-hover:bg-primary/10 transition-colors">
@@ -752,7 +752,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
                     Pro plan<br />unlocks this
                   </p>
                   <span className="text-xs text-primary font-semibold underline-offset-2 underline">
-                    See pricing ↓
+                    Upgrade to Pro →
                   </span>
                 </button>
               )}
@@ -774,7 +774,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
             </p>
           </div>
           <Button
-            onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+            onClick={() => navigate("/pricing")}
             className="shrink-0 rounded-xl bg-primary hover:bg-primary/90 text-white px-6 gap-2"
           >
             <Zap className="w-4 h-4" />

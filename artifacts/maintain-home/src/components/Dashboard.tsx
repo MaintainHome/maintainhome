@@ -946,7 +946,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               {!userIsPro && (
                 <p className="mt-3 text-[11px] text-slate-400 flex items-center gap-1">
                   <Zap className="w-3 h-3 text-amber-400" />
-                  <button onClick={() => navigate("/home-profile")} className="hover:underline text-amber-600 font-semibold">Upgrade to Pro</button> for a detailed score breakdown
+                  <button onClick={() => navigate("/pricing")} className="hover:underline text-amber-600 font-semibold">Upgrade to Pro</button> for a detailed score breakdown
                 </p>
               )}
             </div>
@@ -1157,7 +1157,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                             </button>
                           ) : (
                             <button
-                              onClick={() => navigate("/home-profile")}
+                              onClick={() => navigate("/pricing")}
                               title="Upgrade to Pro to ask Maintly"
                               className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-600 transition-colors hover:bg-amber-100"
                             >
@@ -1528,7 +1528,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                       Upgrade to Pro to chat with Maintly — your personal home maintenance expert, personalized to your home.
                     </p>
                     <button
-                      onClick={() => navigate("/home-profile")}
+                      onClick={() => navigate("/pricing")}
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-sm font-bold transition-colors shadow-md shadow-amber-900/20"
                     >
                       <Zap className="w-3.5 h-3.5" />
@@ -1646,12 +1646,38 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.15 }}
         >
-          <HomeDocumentsWidget
-            onAskMaintly={(message) => {
-              setTaskChatMessage(message);
-              setTaskChatOpen(true);
-            }}
-          />
+          {userIsPro ? (
+            <HomeDocumentsWidget
+              onAskMaintly={(message) => {
+                setTaskChatMessage(message);
+                setTaskChatOpen(true);
+              }}
+            />
+          ) : (
+            <div className="bg-white rounded-2xl border border-dashed border-amber-300 overflow-hidden">
+              <div className="flex items-start gap-4 px-5 py-5">
+                <div className="w-11 h-11 rounded-2xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <FileText className="w-5 h-5 text-amber-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h2 className="text-sm font-bold text-slate-900">Home Documents</h2>
+                    <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full uppercase tracking-wide">Pro</span>
+                  </div>
+                  <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                    Store warranties, insurance policies, HOA docs, receipts, and more. Maintly can also analyze your documents and answer questions about them.
+                  </p>
+                  <button
+                    onClick={() => navigate("/pricing")}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-amber-900/10 bg-amber-500 hover:bg-amber-400"
+                  >
+                    <Zap className="w-4 h-4" />
+                    Upgrade to Pro
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* ── Future Big-Ticket Items (Pro) ── */}
@@ -1771,7 +1797,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <p className="text-xs text-slate-500 mt-0.5 leading-snug">See when your roof, HVAC, water heater & more are due for replacement, with estimated costs.</p>
               </div>
               <button
-                onClick={() => navigate("/home-profile")}
+                onClick={() => navigate("/pricing")}
                 className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold transition-colors shadow-sm"
               >
                 <Zap className="w-3.5 h-3.5" />

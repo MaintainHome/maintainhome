@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 
 const FREE_FEATURES = [
-  "Current month + 1 additional month free",
+  "Current month maintenance tasks only",
   "AI-personalized for your ZIP code",
   "Task details & tips",
   "Mark tasks as done",
-  "View history + add custom notes",
+  "View task history + add custom notes",
 ];
 
 const PRO_FEATURES = [
@@ -189,7 +189,7 @@ export function PricingSection({ onOpenAuth }: { onOpenAuth?: () => void } = {})
               ))}
               <li className="flex gap-2.5 text-sm text-slate-400 line-through">
                 <Lock className="w-4 h-4 shrink-0 mt-0.5" />
-                Months 3–12 locked
+                Months 2–12 locked
               </li>
               <li className="flex gap-2.5 text-sm text-slate-400 line-through">
                 <Lock className="w-4 h-4 shrink-0 mt-0.5" />
