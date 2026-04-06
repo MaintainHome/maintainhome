@@ -354,9 +354,9 @@ export default function HomeProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
         >
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900">Current Plan</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Your active subscription and access level</p>
+          <div className="px-5 py-4 border-b border-slate-800 bg-slate-900">
+            <h2 className="text-base font-bold text-white">Current Plan</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Your active subscription and access level</p>
           </div>
           <div className="px-5 py-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -400,14 +400,14 @@ export default function HomeProfilePage() {
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
         >
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-slate-900">Home Setup Answers</h2>
-              <p className="text-xs text-slate-500 mt-0.5">From your original quiz — these power your calendar</p>
+              <h2 className="text-base font-bold text-white">Home Setup Answers</h2>
+              <p className="text-xs text-slate-400 mt-0.5">From your original quiz — these power your calendar</p>
             </div>
             <button
               onClick={() => navigate("/quiz")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-semibold transition-colors"
             >
               <Edit2 className="w-3.5 h-3.5" />
               Retake Quiz
@@ -454,9 +454,9 @@ export default function HomeProfilePage() {
           transition={{ delay: 0.06 }}
           className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
         >
-          <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="text-base font-bold text-slate-900">Additional Home Details</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Optional — fills in extra context for Maintly and your calendar</p>
+          <div className="px-5 py-4 border-b border-slate-800 bg-slate-900">
+            <h2 className="text-base font-bold text-white">Additional Home Details</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Optional — fills in extra context for Maintly and your calendar</p>
           </div>
           <div className="px-5 py-4 space-y-5">
             {/* Full Address */}
@@ -620,8 +620,8 @@ export default function HomeProfilePage() {
                 : "bg-slate-50 border-slate-200"
             }`}
           >
-            <div className="px-5 py-4 border-b border-black/5">
-              <h2 className="text-base font-bold text-slate-900">Mortgage Rate Comparison</h2>
+            <div className="px-5 py-4 border-b border-slate-800 bg-slate-900">
+              <h2 className="text-base font-bold text-white">Mortgage Rate Comparison</h2>
             </div>
             <div className="px-5 py-5 space-y-4">
               <div className="flex items-center gap-4">
@@ -693,14 +693,14 @@ export default function HomeProfilePage() {
               transition={{ delay: 0.12 }}
               className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
             >
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900">
                 <div>
-                  <h2 className="text-base font-bold text-slate-900">Future Big-Ticket Items</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Based on your home built in <span className="font-semibold text-slate-700">{yb}</span> ({age} yrs old) · averages, ±3 yrs
+                  <h2 className="text-base font-bold text-white">Future Big-Ticket Items</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Based on your home built in <span className="font-semibold text-slate-200">{yb}</span> ({age} yrs old) · averages, ±3 yrs
                   </p>
                 </div>
-                <Shield className="w-4 h-4 text-primary shrink-0" />
+                <Shield className="w-4 h-4 text-green-400 shrink-0" />
               </div>
               <div className="divide-y divide-slate-50">
                 {items.map(item => {
@@ -784,12 +784,12 @@ export default function HomeProfilePage() {
               transition={{ delay: 0.14 }}
               className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
             >
-              <div className="px-5 py-4 border-b border-slate-100">
+              <div className="px-5 py-4 border-b border-slate-800 bg-slate-900">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-primary shrink-0" />
-                  <h2 className="text-base font-bold text-slate-900">Home Value Estimates</h2>
+                  <MapPin className="w-4 h-4 text-green-400 shrink-0" />
+                  <h2 className="text-base font-bold text-white">Home Value Estimates</h2>
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5 ml-6">Enter your address to look up live estimates on major real estate sites</p>
+                <p className="text-xs text-slate-400 mt-0.5 ml-6">Enter your address to look up live estimates on major real estate sites</p>
               </div>
 
               <div className="px-5 pt-4 pb-2 space-y-4">
@@ -879,21 +879,21 @@ export default function HomeProfilePage() {
           transition={{ delay: 0.18 }}
           className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
         >
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-3">
+          <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4 text-primary" />
-              <h2 className="text-base font-bold text-slate-900">Text Reminders</h2>
+              <MessageSquare className="w-4 h-4 text-green-400" />
+              <h2 className="text-base font-bold text-white">Text Reminders</h2>
             </div>
             {smsEnabled && smsPhone ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300 bg-emerald-900/60 border border-emerald-700 px-2.5 py-1 rounded-full">
                 <Bell className="w-3 h-3" />Texts Active
               </span>
             ) : smsEnabled && !smsPhone ? (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-300 bg-amber-900/60 border border-amber-700 px-2.5 py-1 rounded-full">
                 <Phone className="w-3 h-3" />Phone Required
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 bg-slate-800 border border-slate-700 px-2.5 py-1 rounded-full">
                 <BellOff className="w-3 h-3" />Off
               </span>
             )}
@@ -1019,9 +1019,9 @@ export default function HomeProfilePage() {
           transition={{ delay: 0.2 }}
           className="bg-white rounded-2xl border border-red-100 shadow-sm overflow-hidden"
         >
-          <div className="px-5 py-4 border-b border-red-50">
-            <h2 className="text-base font-bold text-red-700">Danger Zone</h2>
-            <p className="text-xs text-slate-500 mt-0.5">Permanent actions that cannot be undone</p>
+          <div className="px-5 py-4 border-b border-red-900 bg-red-950">
+            <h2 className="text-base font-bold text-red-300">Danger Zone</h2>
+            <p className="text-xs text-red-400/70 mt-0.5">Permanent actions that cannot be undone</p>
           </div>
           <div className="px-5 py-4 flex items-center justify-between gap-4">
             <div>
