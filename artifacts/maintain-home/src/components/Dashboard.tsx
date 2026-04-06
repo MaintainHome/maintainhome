@@ -5,7 +5,7 @@ import {
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
   Send, Loader2, User, TrendingDown, TrendingUp, Shield, ChevronDown, ChevronUp,
-  Clock, TriangleAlert, Paperclip, FileText, Phone, Building2,
+  Clock, TriangleAlert, Paperclip, FileText, Phone, Building2, Gift,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -260,7 +260,7 @@ function getNextDueTasks(calendarData: any, limit = 5): { task: string; month: s
 }
 
 export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps) {
-  const { refreshUser } = useAuth();
+  const { refreshUser, giftRedemptionResult, clearGiftRedemptionResult } = useAuth();
   const [, navigate] = useLocation();
   const [recentLog, setRecentLog] = useState<LogEntry[]>([]);
   const [logLoading, setLogLoading] = useState(true);
@@ -692,6 +692,47 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         <div className="sm:hidden flex justify-center">
           <AddToHomeScreen />
         </div>
+
+        {/* ── Gift code redemption result banner ── */}
+        <AnimatePresence>
+          {giftRedemptionResult && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className={`flex items-start gap-3 px-5 py-4 rounded-2xl border ${
+                giftRedemptionResult.ok
+                  ? "bg-emerald-50 border-emerald-200"
+                  : "bg-red-50 border-red-200"
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                giftRedemptionResult.ok ? "bg-emerald-100" : "bg-red-100"
+              }`}>
+                {giftRedemptionResult.ok
+                  ? <Gift className="w-4.5 h-4.5 text-emerald-600" />
+                  : <AlertCircle className="w-4.5 h-4.5 text-red-600" />
+                }
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-bold ${giftRedemptionResult.ok ? "text-emerald-800" : "text-red-800"}`}>
+                  {giftRedemptionResult.ok ? "Gift code redeemed!" : "Gift code issue"}
+                </p>
+                <p className={`text-xs mt-0.5 ${giftRedemptionResult.ok ? "text-emerald-700" : "text-red-700"}`}>
+                  {giftRedemptionResult.message}
+                </p>
+              </div>
+              <button
+                onClick={clearGiftRedemptionResult}
+                className={`shrink-0 w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                  giftRedemptionResult.ok ? "text-emerald-500 hover:bg-emerald-100" : "text-red-400 hover:bg-red-100"
+                }`}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Broker role switcher ── only shown if user also has a broker account */}
         {user.isBroker && (

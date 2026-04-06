@@ -5,7 +5,7 @@ import {
   Home, Save, CheckCircle2, AlertCircle, Edit2,
   MapPin, Bed, Bath, Layers, Waves, Calendar, Percent,
   TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2, Shield,
-  ExternalLink, MessageSquare, Phone, Bell, BellOff, ToggleLeft, ToggleRight,
+  ExternalLink, MessageSquare, Phone, Bell, BellOff, ToggleLeft, ToggleRight, Gift, Loader2,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { PricingSection } from "@/components/PricingSection";
@@ -101,6 +101,10 @@ export default function HomeProfilePage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  const [giftCodeInput, setGiftCodeInput] = useState("");
+  const [giftCodeLoading, setGiftCodeLoading] = useState(false);
+  const [giftCodeResult, setGiftCodeResult] = useState<{ ok: boolean; message: string } | null>(null);
+
   const userIsPro = isPro(user);
 
   // ── SMS settings state ────────────────────────────────────────────────────
@@ -122,6 +126,33 @@ export default function HomeProfilePage() {
       .then((data) => setSmsLog(data))
       .catch(() => {});
   }, [user?.id]);
+
+  async function handleRedeemGiftCode() {
+    const code = giftCodeInput.trim().toUpperCase();
+    if (!code) return;
+    setGiftCodeLoading(true);
+    setGiftCodeResult(null);
+    try {
+      const r = await fetch("/api/auth/redeem-gift", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const data = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        setGiftCodeResult({ ok: false, message: data.error ?? "Failed to redeem code. Please try again." });
+      } else {
+        setGiftCodeResult({ ok: true, message: data.message ?? "Gift code redeemed! You now have 1 year of Pro access." });
+        setGiftCodeInput("");
+        await refreshUser();
+      }
+    } catch {
+      setGiftCodeResult({ ok: false, message: "Network error. Please try again." });
+    } finally {
+      setGiftCodeLoading(false);
+    }
+  }
 
   async function handleSaveSms() {
     setSmsSaving(true);
@@ -393,6 +424,67 @@ export default function HomeProfilePage() {
             </button>
           </div>
         </motion.div>
+
+        {/* ── Redeem Gift Code ────────────────────────────────────────── */}
+        {!userIsPro && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+          >
+            <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center gap-3">
+              <Gift className="w-4 h-4 text-green-400 shrink-0" />
+              <div>
+                <h2 className="text-base font-bold text-white">Redeem a Gift Code</h2>
+                <p className="text-xs text-slate-400 mt-0.5">Have a gift code from a broker or realtor? Enter it here.</p>
+              </div>
+            </div>
+            <div className="px-5 py-4">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    type="text"
+                    value={giftCodeInput}
+                    onChange={(e) => { setGiftCodeInput(e.target.value.toUpperCase()); setGiftCodeResult(null); }}
+                    onKeyDown={(e) => e.key === "Enter" && handleRedeemGiftCode()}
+                    placeholder="e.g. A1B2C3D4E5"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm font-mono tracking-wider text-slate-800 transition-all"
+                    disabled={giftCodeLoading}
+                  />
+                </div>
+                <button
+                  onClick={handleRedeemGiftCode}
+                  disabled={!giftCodeInput.trim() || giftCodeLoading}
+                  className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-primary/20"
+                >
+                  {giftCodeLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Gift className="w-4 h-4" />}
+                  Redeem
+                </button>
+              </div>
+              <AnimatePresence>
+                {giftCodeResult && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className={`flex items-center gap-2 mt-3 px-3 py-2.5 rounded-xl text-sm font-semibold ${
+                      giftCodeResult.ok
+                        ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                        : "bg-red-50 border border-red-200 text-red-700"
+                    }`}
+                  >
+                    {giftCodeResult.ok
+                      ? <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                      : <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                    }
+                    {giftCodeResult.message}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
 
         {/* ── Original Quiz Answers ──────────────────────────────────── */}
         <motion.div

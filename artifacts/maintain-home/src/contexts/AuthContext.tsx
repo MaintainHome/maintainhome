@@ -27,6 +27,8 @@ export function isPro(user: AuthUser | null): boolean {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
+  giftRedemptionResult: { ok: boolean; message: string } | null;
+  clearGiftRedemptionResult: () => void;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -36,6 +38,9 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [giftRedemptionResult, setGiftRedemptionResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const clearGiftRedemptionResult = useCallback(() => setGiftRedemptionResult(null), []);
 
   const refreshUser = useCallback(async () => {
     try {
@@ -43,6 +48,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+
+        const pendingGift = localStorage.getItem("mh_pending_gift");
+        if (pendingGift) {
+          localStorage.removeItem("mh_pending_gift");
+          try {
+            const redeemRes = await fetch("/api/auth/redeem-gift", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ code: pendingGift }),
+            });
+            const redeemData = await redeemRes.json();
+            if (redeemRes.ok) {
+              const refreshed = await fetch("/api/auth/me", { credentials: "include" });
+              if (refreshed.ok) setUser(await refreshed.json());
+              setGiftRedemptionResult({ ok: true, message: redeemData.message ?? "Gift code redeemed! You now have 1 year of Pro access." });
+            } else {
+              setGiftRedemptionResult({ ok: false, message: redeemData.error ?? "Gift code could not be redeemed." });
+            }
+          } catch {
+            setGiftRedemptionResult({ ok: false, message: "Gift code redemption failed. Try again in Settings." });
+          }
+        }
       } else {
         setUser(null);
       }
@@ -67,7 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshUser]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, refreshUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, giftRedemptionResult, clearGiftRedemptionResult, refreshUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from "express";
-import { db, usersTable, giftCodesTable, stripeTransactionsTable, sessionsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, usersTable, giftCodesTable, stripeTransactionsTable, sessionsTable, whiteLabelConfigsTable } from "@workspace/db";
+import { eq, and } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 import { getStripeClient } from "../stripeClient";
 import crypto from "crypto";
@@ -401,38 +401,87 @@ router.post(
 
 // ── GET /api/stripe/my-gift-codes ─────────────────────────────────────────────
 router.get("/stripe/my-gift-codes", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const redeemerAlias = usersTable;
   const codes = await db
-    .select()
+    .select({
+      id: giftCodesTable.id,
+      code: giftCodesTable.code,
+      createdAt: giftCodesTable.createdAt,
+      redeemedAt: giftCodesTable.redeemedAt,
+      redeemedByUserId: giftCodesTable.redeemedByUserId,
+      redeemerName: redeemerAlias.name,
+      redeemerEmail: redeemerAlias.email,
+    })
     .from(giftCodesTable)
+    .leftJoin(redeemerAlias, eq(giftCodesTable.redeemedByUserId, redeemerAlias.id))
     .where(eq(giftCodesTable.purchasedByUserId, req.userId!));
   res.json(codes);
 });
 
-// ── POST /api/auth/redeem-gift ────────────────────────────────────────────────
+// ── POST /api/stripe/auth/redeem-gift ─────────────────────────────────────────
 router.post("/auth/redeem-gift", requireAuth as any, async (req: AuthRequest, res: Response) => {
   const { code } = req.body as { code?: string };
   if (!code?.trim()) { res.status(400).json({ error: "Gift code required." }); return; }
 
+  const normalizedCode = code.trim().toUpperCase();
+
   const [gift] = await db
     .select()
     .from(giftCodesTable)
-    .where(eq(giftCodesTable.code, code.trim().toUpperCase()))
+    .where(eq(giftCodesTable.code, normalizedCode))
     .limit(1);
 
-  if (!gift) { res.status(404).json({ error: "Gift code not found." }); return; }
+  if (!gift) { res.status(404).json({ error: "Invalid gift code. Please check the code and try again." }); return; }
   if (gift.redeemedByUserId) { res.status(400).json({ error: "This gift code has already been redeemed." }); return; }
+
+  const proExpiresAt = new Date();
+  proExpiresAt.setFullYear(proExpiresAt.getFullYear() + 1);
 
   await db.update(giftCodesTable).set({
     redeemedByUserId: req.userId!,
     redeemedAt: new Date(),
   }).where(eq(giftCodesTable.id, gift.id));
 
-  await db.update(usersTable).set({
+  const userUpdates: Partial<typeof usersTable.$inferInsert> = {
     subscriptionStatus: "pro_annual",
     fullAccess: true,
-  }).where(eq(usersTable.id, req.userId!));
+    proExpiresAt,
+  };
 
-  res.json({ ok: true, message: "Gift code redeemed! You now have 1 year of Pro access." });
+  if (gift.purchasedByUserId) {
+    const [purchaser] = await db
+      .select({ email: usersTable.email })
+      .from(usersTable)
+      .where(eq(usersTable.id, gift.purchasedByUserId))
+      .limit(1);
+
+    if (purchaser) {
+      const [brokerConfig] = await db
+        .select({ subdomain: whiteLabelConfigsTable.subdomain })
+        .from(whiteLabelConfigsTable)
+        .where(and(
+          eq(whiteLabelConfigsTable.contactEmail, purchaser.email),
+          eq(whiteLabelConfigsTable.status, "approved"),
+        ))
+        .limit(1);
+
+      if (brokerConfig) {
+        const [currentUser] = await db
+          .select({ referralSubdomain: usersTable.referralSubdomain })
+          .from(usersTable)
+          .where(eq(usersTable.id, req.userId!))
+          .limit(1);
+        if (!currentUser?.referralSubdomain) {
+          userUpdates.referralSubdomain = brokerConfig.subdomain;
+        }
+      }
+    }
+  }
+
+  await db.update(usersTable).set(userUpdates).where(eq(usersTable.id, req.userId!));
+
+  console.log(`[gift] Code ${normalizedCode} redeemed by user ${req.userId}. Pro until ${proExpiresAt.toISOString()}`);
+  res.json({ ok: true, subscriptionStatus: "pro_annual", message: "Gift code redeemed successfully! You now have 1 year of Pro access." });
 });
 
 export default router;

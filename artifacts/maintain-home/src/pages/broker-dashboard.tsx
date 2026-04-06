@@ -168,7 +168,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
   const [qty, setQty] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [existingCodes, setExistingCodes] = useState<{ code: string; redeemedAt: string | null; createdAt: string }[]>([]);
+  const [existingCodes, setExistingCodes] = useState<{ code: string; redeemedAt: string | null; createdAt: string; redeemerName: string | null; redeemerEmail: string | null }[]>([]);
   const [codesLoaded, setCodesLoaded] = useState(false);
   const [showCodes, setShowCodes] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -307,14 +307,32 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
                 <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">{available} available</span>
                 {redeemed > 0 && <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">{redeemed} used</span>}
               </div>
-              <div className="grid gap-2 max-h-52 overflow-y-auto pr-1">
+              <div className="grid gap-2 max-h-72 overflow-y-auto pr-1">
                 {existingCodes.map((c) => (
-                  <div key={c.code} className={`flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl border ${c.redeemedAt ? "bg-slate-50 border-slate-100 opacity-60" : "bg-white border-slate-200"}`}>
-                    <span className={`font-mono font-semibold text-sm tracking-widest ${c.redeemedAt ? "text-slate-400 line-through" : "text-slate-800"}`}>{c.code}</span>
+                  <div key={c.code} className={`flex items-start justify-between gap-3 px-4 py-3 rounded-xl border ${c.redeemedAt ? "bg-slate-50 border-slate-100" : "bg-white border-slate-200"}`}>
+                    <div className="flex-1 min-w-0">
+                      <span className={`font-mono font-semibold text-sm tracking-widest block ${c.redeemedAt ? "text-slate-400 line-through" : "text-slate-800"}`}>{c.code}</span>
+                      {c.redeemedAt && (
+                        <div className="mt-1">
+                          <p className="text-xs text-slate-500 font-medium">
+                            Redeemed by{" "}
+                            <span className="font-semibold text-slate-700">
+                              {c.redeemerName || c.redeemerEmail || "a homeowner"}
+                            </span>
+                          </p>
+                          {c.redeemerEmail && c.redeemerName && (
+                            <p className="text-xs text-slate-400">{c.redeemerEmail}</p>
+                          )}
+                          <p className="text-xs text-slate-400">
+                            {new Date(c.redeemedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                     {c.redeemedAt ? (
-                      <span className="text-xs text-slate-400 font-medium shrink-0">Used</span>
+                      <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold shrink-0 mt-0.5">Used</span>
                     ) : (
-                      <button onClick={() => copyCode(c.code)} className="text-slate-400 hover:text-primary transition-colors shrink-0" title="Copy code">
+                      <button onClick={() => copyCode(c.code)} className="text-slate-400 hover:text-primary transition-colors shrink-0 mt-0.5" title="Copy code">
                         {copiedCode === c.code ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
                       </button>
                     )}

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, Mail, CheckCircle2, Loader2, Tag, ShieldCheck, Unlock,
-  UserPlus, LogIn, User, ArrowRight, Sparkles,
+  UserPlus, LogIn, User, ArrowRight, Sparkles, Gift,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -26,6 +26,8 @@ export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [promoCode, setPromoCode] = useState("");
+  const [giftCode, setGiftCode] = useState("");
+  const [showGiftField, setShowGiftField] = useState(false);
   const [staySignedIn, setStaySignedIn] = useState(true);
   const [loading, setLoading] = useState(false);
   const [checkingEmail, setCheckingEmail] = useState(false);
@@ -43,6 +45,8 @@ export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
       setEmail("");
       setName("");
       setPromoCode("");
+      setGiftCode("");
+      setShowGiftField(false);
       setErrorMsg("");
       setDebugLink(null);
       setFullAccessGranted(false);
@@ -106,6 +110,9 @@ export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
         if (promoCode.trim()) body.promoCode = promoCode.trim();
         const referral = localStorage.getItem("mh_referral_sub");
         if (referral) body.referralSubdomain = referral;
+      }
+      if (giftCode.trim()) {
+        localStorage.setItem("mh_pending_gift", giftCode.trim().toUpperCase());
       }
 
       const res = await fetch("/api/auth/request-link", {
@@ -326,6 +333,41 @@ export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Gift code — both modes */}
+                <div className="mb-4">
+                  {!showGiftField ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowGiftField(true)}
+                      className="flex items-center gap-1.5 text-xs text-primary font-semibold hover:underline"
+                    >
+                      <Gift className="w-3.5 h-3.5" />
+                      Have a gift code?
+                    </button>
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                        Gift Code
+                      </label>
+                      <div className="relative">
+                        <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                        <input
+                          type="text"
+                          value={giftCode}
+                          onChange={(e) => setGiftCode(e.target.value.toUpperCase())}
+                          placeholder="e.g. A1B2-C3D4-E5F6"
+                          className="w-full pl-9 pr-4 py-3 rounded-xl border-2 border-primary/30 focus:border-primary focus:outline-none text-sm transition-colors font-mono tracking-wider bg-primary/5"
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">Enter your gift code — you'll get 1 year of Pro after signing in.</p>
+                    </motion.div>
+                  )}
+                </div>
 
                 {/* Stay signed in */}
                 <label className="flex items-start gap-2.5 mb-5 cursor-pointer select-none">
