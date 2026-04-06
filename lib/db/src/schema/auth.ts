@@ -24,6 +24,7 @@ export const magicLinkTokensTable = pgTable("magic_link_tokens", {
   token: text("token").notNull().unique(),
   expiresAt: timestamp("expires_at").notNull(),
   used: boolean("used").default(false).notNull(),
+  pendingGiftCode: text("pending_gift_code"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

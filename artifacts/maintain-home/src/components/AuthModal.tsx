@@ -112,6 +112,7 @@ export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
         if (referral) body.referralSubdomain = referral;
       }
       if (giftCode.trim()) {
+        body.giftCode = giftCode.trim().toUpperCase();
         localStorage.setItem("mh_pending_gift", giftCode.trim().toUpperCase());
       }
 

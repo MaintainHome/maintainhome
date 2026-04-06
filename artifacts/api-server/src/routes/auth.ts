@@ -4,6 +4,7 @@ import { eq, and, gt } from "drizzle-orm";
 import crypto from "crypto";
 import { Resend } from "resend";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
+import { applyGiftCode } from "./stripe";
 
 const router = Router();
 
@@ -95,9 +96,9 @@ router.post("/auth/check-email", async (req: Request, res: Response) => {
 
 const VALID_PROMO_CODE = "BETA2026";
 
-// Request magic link — accepts optional name, zipCode, promoCode, staySignedIn, referralSubdomain
+// Request magic link — accepts optional name, zipCode, promoCode, staySignedIn, referralSubdomain, giftCode
 router.post("/auth/request-link", async (req: Request, res: Response) => {
-  const { email, name, zipCode, promoCode, staySignedIn, referralSubdomain } = req.body;
+  const { email, name, zipCode, promoCode, staySignedIn, referralSubdomain, giftCode } = req.body;
   const stay = staySignedIn !== false;
   if (!email || typeof email !== "string" || !email.includes("@")) {
     res.status(400).json({ error: "Valid email address required" });
@@ -155,7 +156,15 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
 
   const token = crypto.randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-  await db.insert(magicLinkTokensTable).values({ email: normalizedEmail, token, expiresAt });
+  const normalizedGiftCode = typeof giftCode === "string" && giftCode.trim()
+    ? giftCode.trim().toUpperCase()
+    : null;
+  await db.insert(magicLinkTokensTable).values({
+    email: normalizedEmail,
+    token,
+    expiresAt,
+    pendingGiftCode: normalizedGiftCode,
+  });
 
   const baseUrl = getBaseUrl(req);
   const redirect = isNewUser ? "quiz" : "dashboard";
@@ -231,9 +240,21 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
 
   setSessionCookie(res, sessionToken, staySignedIn, https);
 
+  let giftApplied = false;
+  if (linkRecord.pendingGiftCode) {
+    const result = await applyGiftCode(user.id, linkRecord.pendingGiftCode);
+    if (result.ok) {
+      giftApplied = true;
+      console.log(`[auth] Auto-applied gift code ${linkRecord.pendingGiftCode} for user ${user.id}`);
+    } else {
+      console.log(`[auth] Gift code auto-apply failed for ${linkRecord.pendingGiftCode}: ${result.message}`);
+    }
+  }
+
   const baseUrl = getBaseUrl(req);
   const destination = redirectParam === "dashboard" ? "/" : "/quiz";
-  res.redirect(`${baseUrl}${destination}`);
+  const giftParam = giftApplied ? "?gift_applied=1" : "";
+  res.redirect(`${baseUrl}${destination}${giftParam}`);
 });
 
 router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Response) => {

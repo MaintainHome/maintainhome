@@ -49,6 +49,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await res.json();
         setUser(data);
 
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("gift_applied") === "1") {
+          urlParams.delete("gift_applied");
+          const newSearch = urlParams.toString();
+          const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
+          window.history.replaceState({}, "", newUrl);
+          setGiftRedemptionResult({ ok: true, message: "Gift code redeemed! You now have 1 year of Pro access." });
+          localStorage.removeItem("mh_pending_gift");
+          return;
+        }
+
         const pendingGift = localStorage.getItem("mh_pending_gift");
         if (pendingGift) {
           localStorage.removeItem("mh_pending_gift");

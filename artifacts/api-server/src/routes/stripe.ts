@@ -418,11 +418,11 @@ router.get("/stripe/my-gift-codes", requireAuth as any, async (req: AuthRequest,
   res.json(codes);
 });
 
-// ── POST /api/stripe/auth/redeem-gift ─────────────────────────────────────────
-router.post("/auth/redeem-gift", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  const { code } = req.body as { code?: string };
-  if (!code?.trim()) { res.status(400).json({ error: "Gift code required." }); return; }
-
+// ── Shared gift code application logic ────────────────────────────────────────
+export async function applyGiftCode(
+  userId: number,
+  code: string,
+): Promise<{ ok: boolean; message: string; alreadyRedeemed?: boolean }> {
   const normalizedCode = code.trim().toUpperCase();
 
   const [gift] = await db
@@ -431,14 +431,18 @@ router.post("/auth/redeem-gift", requireAuth as any, async (req: AuthRequest, re
     .where(eq(giftCodesTable.code, normalizedCode))
     .limit(1);
 
-  if (!gift) { res.status(404).json({ error: "Invalid gift code. Please check the code and try again." }); return; }
-  if (gift.redeemedByUserId) { res.status(400).json({ error: "This gift code has already been redeemed." }); return; }
+  if (!gift) {
+    return { ok: false, message: "Invalid gift code. Please check the code and try again." };
+  }
+  if (gift.redeemedByUserId) {
+    return { ok: false, message: "This gift code has already been redeemed.", alreadyRedeemed: true };
+  }
 
   const proExpiresAt = new Date();
   proExpiresAt.setFullYear(proExpiresAt.getFullYear() + 1);
 
   await db.update(giftCodesTable).set({
-    redeemedByUserId: req.userId!,
+    redeemedByUserId: userId,
     redeemedAt: new Date(),
   }).where(eq(giftCodesTable.id, gift.id));
 
@@ -459,29 +463,34 @@ router.post("/auth/redeem-gift", requireAuth as any, async (req: AuthRequest, re
       const [brokerConfig] = await db
         .select({ subdomain: whiteLabelConfigsTable.subdomain })
         .from(whiteLabelConfigsTable)
-        .where(and(
-          eq(whiteLabelConfigsTable.contactEmail, purchaser.email),
-          eq(whiteLabelConfigsTable.status, "approved"),
-        ))
+        .where(eq(whiteLabelConfigsTable.contactEmail, purchaser.email))
         .limit(1);
 
       if (brokerConfig) {
-        const [currentUser] = await db
-          .select({ referralSubdomain: usersTable.referralSubdomain })
-          .from(usersTable)
-          .where(eq(usersTable.id, req.userId!))
-          .limit(1);
-        if (!currentUser?.referralSubdomain) {
-          userUpdates.referralSubdomain = brokerConfig.subdomain;
-        }
+        userUpdates.referralSubdomain = brokerConfig.subdomain;
       }
     }
   }
 
-  await db.update(usersTable).set(userUpdates).where(eq(usersTable.id, req.userId!));
+  await db.update(usersTable).set(userUpdates).where(eq(usersTable.id, userId));
 
-  console.log(`[gift] Code ${normalizedCode} redeemed by user ${req.userId}. Pro until ${proExpiresAt.toISOString()}`);
-  res.json({ ok: true, subscriptionStatus: "pro_annual", message: "Gift code redeemed successfully! You now have 1 year of Pro access." });
+  console.log(`[gift] Code ${normalizedCode} redeemed by user ${userId}. Pro until ${proExpiresAt.toISOString()}`);
+  return { ok: true, message: "Gift code redeemed successfully! You now have 1 year of Pro access." };
+}
+
+// ── POST /api/auth/redeem-gift ─────────────────────────────────────────────────
+router.post("/auth/redeem-gift", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const { code } = req.body as { code?: string };
+  if (!code?.trim()) { res.status(400).json({ error: "Gift code required." }); return; }
+
+  const result = await applyGiftCode(req.userId!, code);
+  if (!result.ok) {
+    const status = result.alreadyRedeemed ? 400 : 404;
+    res.status(status).json({ error: result.message });
+    return;
+  }
+
+  res.json({ ok: true, subscriptionStatus: "pro_annual", message: result.message });
 });
 
 export default router;
