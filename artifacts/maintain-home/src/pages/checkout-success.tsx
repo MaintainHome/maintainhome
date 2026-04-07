@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import { CheckCircle2, XCircle, Loader2, Copy, Check, ArrowRight, Gift } from "lucide-react";
+import { CheckCircle2, XCircle, Loader2, Copy, Check, ArrowRight, Gift, UserPlus, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
-type Status = "loading" | "ok_subscription" | "ok_gift" | "error" | "pending";
+type Status = "loading" | "ok_subscription" | "ok_gift" | "ok_precreate" | "error" | "pending";
 
 export default function CheckoutSuccess() {
   const [status, setStatus] = useState<Status>("loading");
@@ -14,6 +14,9 @@ export default function CheckoutSuccess() {
   const [giftCodes, setGiftCodes] = useState<string[]>([]);
   const [plan, setPlan] = useState<string>("");
   const [copied, setCopied] = useState<string | null>(null);
+  const [activationLink, setActivationLink] = useState<string>("");
+  const [clientEmail, setClientEmail] = useState<string>("");
+  const [clientName, setClientName] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const { refreshUser } = useAuth();
 
@@ -27,7 +30,7 @@ export default function CheckoutSuccess() {
     }
 
     let attempts = 0;
-    const maxAttempts = 6;
+    const maxAttempts = 8;
 
     async function verify() {
       try {
@@ -48,7 +51,6 @@ export default function CheckoutSuccess() {
           return;
         }
 
-        // Always refresh the user — verify-session auto-logs in via cookie
         await refreshUser();
 
         if (data.type === "subscription") {
@@ -59,6 +61,15 @@ export default function CheckoutSuccess() {
           setStatus("ok_gift");
           setGiftCodes(data.codes ?? []);
           setMessage(data.message ?? "Gift codes generated!");
+        } else if (data.type === "broker_precreate") {
+          setStatus("ok_precreate");
+          setActivationLink(data.activationLink ?? "");
+          setClientEmail(data.clientEmail ?? "");
+          setClientName(data.clientName ?? null);
+          setMessage(data.message ?? "Client account created!");
+        } else if (data.type === "broker_precreate_error") {
+          setStatus("error");
+          setMessage(data.message ?? "Account setup failed. Please contact support.");
         } else {
           setStatus("ok_subscription");
           setMessage(data.message ?? "Payment confirmed!");
@@ -72,9 +83,9 @@ export default function CheckoutSuccess() {
     verify();
   }, [refreshUser]);
 
-  function copyCode(code: string) {
-    navigator.clipboard.writeText(code).catch(() => {});
-    setCopied(code);
+  function copyText(text: string, key: string) {
+    navigator.clipboard.writeText(text).catch(() => {});
+    setCopied(key);
     setTimeout(() => setCopied(null), 2000);
   }
 
@@ -93,7 +104,7 @@ export default function CheckoutSuccess() {
           <div className="text-center">
             <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">Confirming your payment…</h2>
-            <p className="text-slate-400">This only takes a moment.</p>
+            <p className="text-slate-400">This only takes a moment. We're generating the AI calendar now.</p>
           </div>
         )}
 
@@ -139,7 +150,7 @@ export default function CheckoutSuccess() {
                 >
                   <span className="font-mono font-semibold text-slate-800 tracking-widest text-sm">{code}</span>
                   <button
-                    onClick={() => copyCode(code)}
+                    onClick={() => copyText(code, code)}
                     className="text-slate-400 hover:text-primary transition-colors shrink-0"
                     title="Copy"
                   >
@@ -179,6 +190,93 @@ export default function CheckoutSuccess() {
               Back to Broker Dashboard
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
+          </div>
+        )}
+
+        {/* Broker pre-create success */}
+        {status === "ok_precreate" && (
+          <div className="bg-white rounded-2xl p-8 shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <UserPlus className="w-8 h-8 text-primary" />
+              </div>
+              <h1 className="text-2xl font-display font-black text-slate-900 mb-2">Client Account Created!</h1>
+              <p className="text-slate-600 text-sm">
+                {clientName ? `${clientName}'s` : "The client's"} dashboard is fully pre-loaded with their home data, AI calendar, and 13 months of Pro access.
+              </p>
+            </div>
+
+            <div className="space-y-3 mb-6">
+              {/* Client info */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+                <p className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">Account Created For</p>
+                <p className="text-sm font-semibold text-emerald-900">{clientName || "—"}</p>
+                <p className="text-xs text-emerald-700">{clientEmail}</p>
+              </div>
+
+              {/* Activation link */}
+              <div className="space-y-2">
+                <p className="text-xs font-bold text-slate-600 uppercase tracking-wide flex items-center gap-1.5">
+                  <Key className="w-3.5 h-3.5" />
+                  Activation Link — Send to Client
+                </p>
+                <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                  <span className="text-xs text-slate-600 font-mono flex-1 break-all min-w-0">{activationLink}</span>
+                  <button
+                    onClick={() => copyText(activationLink, "link")}
+                    className="text-slate-400 hover:text-primary transition-colors shrink-0"
+                    title="Copy link"
+                  >
+                    {copied === "link"
+                      ? <Check className="w-4 h-4 text-primary" />
+                      : <Copy className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Send this link to {clientEmail}. When they click it, they'll be instantly signed in to their pre-loaded dashboard — no password needed.
+                </p>
+              </div>
+
+              {/* What's included */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                <p className="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">What's Pre-Loaded</p>
+                <ul className="space-y-1">
+                  {[
+                    "13 months of Pro access (starts today)",
+                    "Personalized AI 12-month maintenance calendar",
+                    "Home profile with all property details",
+                    "Your broker branding applied",
+                    "Any documents you uploaded",
+                  ].map((item) => (
+                    <li key={item} className="flex items-center gap-2 text-xs text-slate-600">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Button
+                className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl"
+                onClick={() => copyText(activationLink, "link2")}
+              >
+                {copied === "link2"
+                  ? <><Check className="w-4 h-4 mr-2" />Copied!</>
+                  : <><Copy className="w-4 h-4 mr-2" />Copy Activation Link</>
+                }
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full rounded-xl border-slate-200"
+                onClick={() => navigate("/broker-dashboard")}
+              >
+                Back to Broker Dashboard
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
           </div>
         )}
 

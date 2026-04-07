@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { db, usersTable, magicLinkTokensTable, sessionsTable, whiteLabelConfigsTable } from "@workspace/db";
+import { db, usersTable, magicLinkTokensTable, sessionsTable, whiteLabelConfigsTable, brokerPrecreationsTable } from "@workspace/db";
 import { eq, and, gt } from "drizzle-orm";
 import crypto from "crypto";
 import { Resend } from "resend";
@@ -361,6 +361,65 @@ router.delete("/auth/delete-account", requireAuth as any, async (req: AuthReques
     console.error("[auth] Delete account error:", err);
     res.status(500).json({ error: "Failed to delete account. Please try again." });
   }
+});
+
+// ── POST /api/auth/broker-activate ────────────────────────────────────────────
+// Client clicks their activation link → sign in + mark account activated
+router.post("/auth/broker-activate", async (req: Request, res: Response) => {
+  const { token } = req.body as { token?: string };
+  if (!token?.trim()) {
+    res.status(400).json({ error: "Activation token required." });
+    return;
+  }
+
+  const [precreation] = await db
+    .select()
+    .from(brokerPrecreationsTable)
+    .where(eq(brokerPrecreationsTable.activationToken, token.trim()))
+    .limit(1);
+
+  if (!precreation) {
+    res.status(404).json({ error: "Invalid or expired activation link." });
+    return;
+  }
+
+  if (precreation.status !== "active" || !precreation.clientUserId) {
+    res.status(400).json({ error: "This account is not yet ready. Please try again in a moment." });
+    return;
+  }
+
+  const clientUserId = precreation.clientUserId;
+
+  const [user] = await db.select({ id: usersTable.id, email: usersTable.email, name: usersTable.name })
+    .from(usersTable).where(eq(usersTable.id, clientUserId)).limit(1);
+  if (!user) {
+    res.status(404).json({ error: "Client account not found." });
+    return;
+  }
+
+  if (!precreation.activatedAt) {
+    await db.update(brokerPrecreationsTable)
+      .set({ activatedAt: new Date() })
+      .where(eq(brokerPrecreationsTable.id, precreation.id));
+    await db.update(usersTable)
+      .set({ updatedAt: new Date() })
+      .where(eq(usersTable.id, clientUserId));
+  }
+
+  const sessionToken = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + THIRTY_DAYS_MS);
+  await db.insert(sessionsTable).values({ token: sessionToken, userId: clientUserId, expiresAt, staySignedIn: true });
+
+  const isHttps = isRequestHttps(req);
+  res.cookie("mh_session", sessionToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    secure: isHttps,
+    maxAge: THIRTY_DAYS_MS,
+  });
+
+  res.json({ ok: true, email: user.email, name: user.name, isNewActivation: !precreation.activatedAt });
 });
 
 router.post("/auth/logout", requireAuth as any, async (req: AuthRequest, res: Response) => {

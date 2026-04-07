@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Building2, Users, Link2, Copy, Check, User, Loader2,
   ExternalLink, BarChart2, Zap, RefreshCw, LogOut,
   ShieldCheck, Gift, CreditCard, Calendar, TrendingUp,
   AlertTriangle, ArrowUpRight, Star, Phone, Camera,
-  Pencil, X, Upload, CheckCircle2, HomeIcon,
+  Pencil, X, Upload, CheckCircle2, HomeIcon, PlusCircle,
+  FileText, Trash2, UserPlus, Key, Clock,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -56,6 +57,9 @@ interface Client {
   activityScore: number;
   bigTicketAlertCount: number;
   bigTicketAlerts: string[];
+  isPrecreated?: boolean;
+  isActivated?: boolean;
+  activationToken?: string | null;
 }
 
 /* ─── Helpers ─────────────────────────────────────────────────────── */
@@ -344,6 +348,490 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         </div>
       )}
     </motion.div>
+  );
+}
+
+/* ─── Pre-Create Client Panel ────────────────────────────────────── */
+interface DocEntry {
+  objectPath: string;
+  fileName: string;
+  contentType: string;
+  fileSizeBytes?: number;
+  displayName?: string;
+}
+
+function PreCreateClientPanel({ accent }: { accent: string }) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [docUploading, setDocUploading] = useState(false);
+
+  const [form, setForm] = useState({
+    clientEmail: "",
+    clientName: "",
+    fullAddress: "",
+    zipCode: "",
+    homeType: "single_family",
+    yearBuilt: "",
+    sqft: "2500_4000",
+    roofType: "asphalt",
+    waterSource: "municipal",
+    sewerSystem: "municipal",
+    pestSchedule: "no",
+    landscaping: "mostly_grass",
+    crawlSpace: "no",
+    crawlSpaceSealed: "not_sure",
+    allergies: "no",
+    allergiesDetails: "",
+    bedrooms: "",
+    bathrooms: "",
+    finishedBasement: "no",
+    poolOrHotTub: "no",
+  });
+
+  const [docs, setDocs] = useState<DocEntry[]>([]);
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  function setField(key: string, val: string) {
+    setForm((f) => ({ ...f, [key]: val }));
+  }
+
+  async function handleDocUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setDocUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("document", file);
+      const res = await fetch(`${API_BASE}/api/broker/precreate-doc-upload`, {
+        method: "POST", body: fd, credentials: "include",
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      setDocs((prev) => [...prev, data]);
+    } catch (err: any) {
+      setError(err.message ?? "Document upload failed");
+    } finally {
+      setDocUploading(false);
+      if (docInputRef.current) docInputRef.current.value = "";
+    }
+  }
+
+  async function handlePurchase() {
+    setError(null);
+    if (!form.clientEmail.trim()) { setError("Client email is required"); return; }
+    if (!form.zipCode.trim()) { setError("ZIP code is required"); return; }
+
+    const quizAnswers = {
+      zip: form.zipCode.trim(),
+      homeAge: form.yearBuilt
+        ? (Number(form.yearBuilt) >= new Date().getFullYear() - 10 ? "resale_recent" : "resale_old")
+        : "resale_old",
+      homeType: form.homeType,
+      roofType: form.roofType,
+      waterSource: form.waterSource,
+      sewerSystem: form.sewerSystem,
+      pestSchedule: form.pestSchedule,
+      sqft: form.sqft,
+      allergies: form.allergies,
+      allergiesDetails: form.allergiesDetails,
+      crawlSpace: form.crawlSpace,
+      crawlSpaceSealed: form.crawlSpace === "yes" ? form.crawlSpaceSealed : undefined,
+      landscaping: form.landscaping,
+      yearBuilt: form.yearBuilt ? Number(form.yearBuilt) : undefined,
+    };
+
+    const propertyData = {
+      fullAddress: form.fullAddress.trim() || null,
+      zipCode: form.zipCode.trim(),
+      homeType: form.homeType,
+      yearBuilt: form.yearBuilt ? Number(form.yearBuilt) : null,
+      sqft: form.sqft,
+      roofType: form.roofType,
+      waterSource: form.waterSource,
+      sewerSystem: form.sewerSystem,
+      landscaping: form.landscaping,
+      bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
+      bathrooms: form.bathrooms || null,
+      finishedBasement: form.finishedBasement,
+      poolOrHotTub: form.poolOrHotTub,
+    };
+
+    setLoading(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/broker/precreate-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          clientEmail: form.clientEmail.trim().toLowerCase(),
+          clientName: form.clientName.trim() || null,
+          propertyData,
+          quizAnswers,
+          documentPaths: docs,
+        }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) { setError(data.error ?? "Could not start checkout."); return; }
+      if (data.url) window.location.href = data.url;
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const SelectField = ({ label, id, value, onChange, children }: { label: string; id: string; value: string; onChange: (v: string) => void; children: React.ReactNode }) => (
+    <div>
+      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+      >
+        {children}
+      </select>
+    </div>
+  );
+
+  return (
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.19 }}
+        className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
+      >
+        <div className="flex items-start gap-4 flex-wrap justify-between">
+          <div className="flex items-center gap-3 flex-1 min-w-[220px]">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: accent + "18" }}>
+              <UserPlus className="w-5 h-5" style={{ color: accent }} />
+            </div>
+            <div>
+              <h2 className="font-bold text-slate-900">Create Client Account (Pre-Paid Gift)</h2>
+              <p className="text-sm text-slate-500 mt-0.5">
+                Pre-build a client's full home dashboard — calendar, documents, and 13 months Pro — ready before they log in.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-1 shrink-0">
+            <span className="text-3xl font-black text-slate-900">$36</span>
+            <span className="text-slate-400 text-sm">/client · 13 months Pro</span>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
+            style={{ backgroundColor: accent }}
+          >
+            <PlusCircle className="w-4 h-4" />
+            Create Client Account
+          </button>
+          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>AI calendar pre-generated · Documents pre-loaded · Activation link sent by you</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── Pre-Create Modal ── */}
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-0 sm:px-4"
+            onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto"
+            >
+              {/* Header */}
+              <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between rounded-t-3xl sm:rounded-t-3xl z-10">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+                    style={{ backgroundColor: accent + "18" }}>
+                    <UserPlus className="w-4 h-4" style={{ color: accent }} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-sm">Create Client Account</h3>
+                    <p className="text-xs text-slate-400">$36 · 13 months Pro · AI calendar included</p>
+                  </div>
+                </div>
+                <button onClick={() => setOpen(false)}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="px-6 py-5 space-y-6">
+
+                {/* Client Info */}
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Client Information</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">
+                        Email <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={form.clientEmail}
+                        onChange={(e) => setField("clientEmail", e.target.value)}
+                        placeholder="client@example.com"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Full Name</label>
+                      <input
+                        type="text"
+                        value={form.clientName}
+                        onChange={(e) => setField("clientName", e.target.value)}
+                        placeholder="Jane Smith"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Property Info */}
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Property Details</p>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Full Address</label>
+                    <input
+                      type="text"
+                      value={form.fullAddress}
+                      onChange={(e) => setField("fullAddress", e.target.value)}
+                      placeholder="123 Oak Lane, Raleigh, NC"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">
+                        ZIP Code <span className="text-red-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={form.zipCode}
+                        onChange={(e) => setField("zipCode", e.target.value)}
+                        placeholder="27612"
+                        maxLength={5}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Year Built</label>
+                      <input
+                        type="number"
+                        value={form.yearBuilt}
+                        onChange={(e) => setField("yearBuilt", e.target.value)}
+                        placeholder="2005"
+                        min="1800" max={new Date().getFullYear()}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Bedrooms</label>
+                      <input
+                        type="number"
+                        value={form.bedrooms}
+                        onChange={(e) => setField("bedrooms", e.target.value)}
+                        placeholder="3"
+                        min="1" max="20"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Bathrooms</label>
+                      <input
+                        type="text"
+                        value={form.bathrooms}
+                        onChange={(e) => setField("bathrooms", e.target.value)}
+                        placeholder="2.5"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <SelectField label="Home Type" id="homeType" value={form.homeType} onChange={(v) => setField("homeType", v)}>
+                      <option value="single_family">Single Family</option>
+                      <option value="townhome">Townhome</option>
+                      <option value="condo">Condo/Apt</option>
+                      <option value="other">Other</option>
+                    </SelectField>
+                    <SelectField label="Square Footage" id="sqft" value={form.sqft} onChange={(v) => setField("sqft", v)}>
+                      <option value="under_1500">Under 1,500 sq ft</option>
+                      <option value="1500_2500">1,500–2,500 sq ft</option>
+                      <option value="2500_4000">2,500–4,000 sq ft</option>
+                      <option value="over_4000">Over 4,000 sq ft</option>
+                    </SelectField>
+                    <SelectField label="Roof Type" id="roofType" value={form.roofType} onChange={(v) => setField("roofType", v)}>
+                      <option value="asphalt">Asphalt Shingles</option>
+                      <option value="metal">Metal Roof</option>
+                      <option value="tile">Tile Roof</option>
+                      <option value="flat">Flat Roof</option>
+                      <option value="other">Other/Unknown</option>
+                    </SelectField>
+                    <SelectField label="Water Source" id="waterSource" value={form.waterSource} onChange={(v) => setField("waterSource", v)}>
+                      <option value="municipal">Municipal/City</option>
+                      <option value="well">Private Well</option>
+                    </SelectField>
+                    <SelectField label="Sewer" id="sewerSystem" value={form.sewerSystem} onChange={(v) => setField("sewerSystem", v)}>
+                      <option value="municipal">Municipal Sewer</option>
+                      <option value="septic">Septic System</option>
+                    </SelectField>
+                    <SelectField label="Landscaping" id="landscaping" value={form.landscaping} onChange={(v) => setField("landscaping", v)}>
+                      <option value="mostly_grass">Mostly Grass</option>
+                      <option value="natural_areas">Natural/Mulch Areas</option>
+                      <option value="minimal">Minimal</option>
+                    </SelectField>
+                    <SelectField label="Pest Prevention" id="pestSchedule" value={form.pestSchedule} onChange={(v) => setField("pestSchedule", v)}>
+                      <option value="yes">Yes, on schedule</option>
+                      <option value="no">No schedule</option>
+                      <option value="not_sure">Not sure</option>
+                    </SelectField>
+                    <SelectField label="Crawl Space" id="crawlSpace" value={form.crawlSpace} onChange={(v) => setField("crawlSpace", v)}>
+                      <option value="no">No crawl space</option>
+                      <option value="yes">Yes</option>
+                    </SelectField>
+                    {form.crawlSpace === "yes" && (
+                      <SelectField label="Crawl Space Sealed?" id="crawlSpaceSealed" value={form.crawlSpaceSealed} onChange={(v) => setField("crawlSpaceSealed", v)}>
+                        <option value="yes">Yes, sealed</option>
+                        <option value="no">No, open/vented</option>
+                        <option value="not_sure">Not sure</option>
+                      </SelectField>
+                    )}
+                    <SelectField label="Finished Basement" id="finishedBasement" value={form.finishedBasement} onChange={(v) => setField("finishedBasement", v)}>
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </SelectField>
+                    <SelectField label="Pool / Hot Tub" id="poolOrHotTub" value={form.poolOrHotTub} onChange={(v) => setField("poolOrHotTub", v)}>
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </SelectField>
+                    <SelectField label="Allergies / Pets" id="allergies" value={form.allergies} onChange={(v) => setField("allergies", v)}>
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </SelectField>
+                    {form.allergies === "yes" && (
+                      <div className="col-span-2">
+                        <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Allergy / Pet Details</label>
+                        <input
+                          type="text"
+                          value={form.allergiesDetails}
+                          onChange={(e) => setField("allergiesDetails", e.target.value)}
+                          placeholder="e.g. dog, pollen, dust mites"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                          style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Documents */}
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Initial Documents <span className="font-normal normal-case text-slate-400">(optional)</span></p>
+                  <p className="text-xs text-slate-400">Upload warranties, HOA docs, insurance, or inspection reports. These will be pre-loaded into the client's Home Documents section.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {docs.map((doc, i) => (
+                      <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <FileText className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span className="text-xs font-medium text-emerald-800 truncate max-w-[150px]">{doc.fileName}</span>
+                        <button onClick={() => setDocs((prev) => prev.filter((_, j) => j !== i))}
+                          className="text-emerald-400 hover:text-red-400 transition-colors ml-1">
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <input ref={docInputRef} type="file" className="hidden" onChange={handleDocUpload}
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.heic" />
+                  <button
+                    onClick={() => docInputRef.current?.click()}
+                    disabled={docUploading}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                  >
+                    {docUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    {docUploading ? "Uploading…" : "Upload Document"}
+                  </button>
+                </div>
+
+                {/* Price summary */}
+                <div className="rounded-2xl p-4 border"
+                  style={{ backgroundColor: accent + "08", borderColor: accent + "30" }}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-slate-800">Pre-Created Client Account</p>
+                      <ul className="mt-1.5 space-y-0.5">
+                        {[
+                          "13 months of Pro access",
+                          "AI-generated 12-month maintenance calendar",
+                          `${docs.length > 0 ? `${docs.length} document${docs.length > 1 ? "s" : ""} pre-loaded` : "Document storage included"}`,
+                          "Your branding applied to their dashboard",
+                          "Secure activation link for client hand-off",
+                        ].map((item) => (
+                          <li key={item} className="flex items-center gap-1.5 text-xs text-slate-600">
+                            <Check className="w-3 h-3 shrink-0" style={{ color: accent }} />{item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="text-right shrink-0 ml-4">
+                      <p className="text-2xl font-black text-slate-900">$36</p>
+                      <p className="text-xs text-slate-400">one-time</p>
+                    </div>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl">
+                    <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pb-2">
+                  <button
+                    onClick={handlePurchase}
+                    disabled={loading || docUploading}
+                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-bold text-white transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-sm"
+                    style={{ backgroundColor: accent }}
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                    {loading ? "Starting checkout…" : "Pay $36 & Create Account"}
+                  </button>
+                  <button onClick={() => setOpen(false)}
+                    className="px-5 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+                    Cancel
+                  </button>
+                </div>
+
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -922,6 +1410,9 @@ export default function BrokerDashboard() {
         {/* ── Buy Gift Codes ───────────────────────────────────────── */}
         <GiftCodePurchasePanel accent={accent} />
 
+        {/* ── Pre-Create Client Account ────────────────────────────── */}
+        <PreCreateClientPanel accent={accent} />
+
         {/* ── Client table ─────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
           className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -1041,10 +1532,17 @@ export default function BrokerDashboard() {
 
                         {/* Plan */}
                         <div>
-                          {isPro(client.subscriptionStatus) ? (
+                          {client.isPrecreated && !client.isActivated ? (
+                            <div>
+                              <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-200">
+                                <Clock className="w-3 h-3" />Pending
+                              </span>
+                              <p className="text-[10px] mt-0.5 font-medium text-slate-400">Not activated yet</p>
+                            </div>
+                          ) : isPro(client.subscriptionStatus) ? (
                             <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full"
                               style={{ backgroundColor: "#f59e0b18", color: "#d97706" }}>
-                              <Zap className="w-3 h-3" />Pro
+                              <Zap className="w-3 h-3" />{client.isPrecreated ? "Pre-Created" : "Pro"}
                             </span>
                           ) : expiry ? (
                             <div>

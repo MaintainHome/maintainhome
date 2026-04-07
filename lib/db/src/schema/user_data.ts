@@ -92,6 +92,24 @@ export const stripeTransactionsTable = pgTable("stripe_transactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const brokerPrecreationsTable = pgTable("broker_precreations", {
+  id: serial("id").primaryKey(),
+  brokerUserId: integer("broker_user_id").notNull().references(() => usersTable.id),
+  stripeSessionId: text("stripe_session_id").unique(),
+  clientEmail: text("client_email").notNull(),
+  clientName: text("client_name"),
+  propertyData: jsonb("property_data"),
+  quizAnswers: jsonb("quiz_answers"),
+  calendarData: jsonb("calendar_data"),
+  documentPaths: jsonb("document_paths"),
+  activationToken: text("activation_token").unique(),
+  clientUserId: integer("client_user_id").references(() => usersTable.id),
+  activatedAt: timestamp("activated_at"),
+  status: text("status").notNull().default("pending_payment"),
+  priceCents: integer("price_cents").notNull().default(3600),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export type SavedCalendar = typeof savedCalendarsTable.$inferSelect;
 export type MaintenanceLogEntry = typeof maintenanceLogTable.$inferSelect;
 export type MaintenanceNote = typeof maintenanceNotesTable.$inferSelect;
@@ -100,3 +118,4 @@ export type HomeProfile = typeof homeProfilesTable.$inferSelect;
 export type SmsLog = typeof smsLogTable.$inferSelect;
 export type GiftCode = typeof giftCodesTable.$inferSelect;
 export type StripeTransaction = typeof stripeTransactionsTable.$inferSelect;
+export type BrokerPrecreation = typeof brokerPrecreationsTable.$inferSelect;

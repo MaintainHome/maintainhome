@@ -15,6 +15,7 @@ export const usersTable = pgTable("users", {
   stripeCustomerId: text("stripe_customer_id"),
   hasSeenDashboardTour: boolean("has_seen_dashboard_tour").default(false).notNull(),
   proExpiresAt: timestamp("pro_expires_at"),
+  brokerPreCreated: boolean("broker_pre_created").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

@@ -3,6 +3,7 @@ import { db, usersTable, giftCodesTable, stripeTransactionsTable, sessionsTable,
 import { eq, and } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 import { getStripeClient } from "../stripeClient";
+import { processBrokerPrecreation } from "./broker";
 import crypto from "crypto";
 
 const router = Router();
@@ -320,6 +321,40 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
     return;
   }
 
+  // ── Handle broker pre-creation ────────────────────────────────────────────
+  if (meta.type === "broker_precreate") {
+    const precreationId = Number(meta.precreationId);
+    const brokerSubdomain = meta.brokerSubdomain ?? "";
+
+    await db.update(stripeTransactionsTable)
+      .set({ status: "paid" })
+      .where(eq(stripeTransactionsTable.stripeSessionId, session_id))
+      .catch(() => {});
+
+    try {
+      const base = getBaseUrl(req);
+      const result = await processBrokerPrecreation(precreationId, brokerSubdomain, base);
+      await autoLoginUser(res, userId, https);
+      res.json({
+        status: "ok",
+        type: "broker_precreate",
+        activationLink: result.activationLink,
+        clientEmail: result.clientEmail,
+        clientName: result.clientName,
+        message: `Client account created for ${result.clientEmail}. Send them the activation link!`,
+      });
+    } catch (err: any) {
+      console.error("[stripe] broker_precreate processing error:", err);
+      await autoLoginUser(res, userId, https);
+      res.json({
+        status: "ok",
+        type: "broker_precreate_error",
+        message: `Payment received but account setup failed: ${err.message}. Please contact support.`,
+      });
+    }
+    return;
+  }
+
   // Fallback — unknown type but payment succeeded
   await autoLoginUser(res, userId, https);
   res.json({ status: "ok", message: "Payment confirmed." });
@@ -391,6 +426,19 @@ router.post(
               priceCents: 2900,
             }).catch(() => {});
           }
+        }
+      }
+
+      if (meta.type === "broker_precreate") {
+        const precreationId = Number(meta.precreationId);
+        const brokerSubdomain = meta.brokerSubdomain ?? "";
+        if (precreationId) {
+          const proto = "https";
+          const host = (session as any).success_url?.match(/^(https?:\/\/[^/]+)/)?.[1] ?? "";
+          const base = host || "https://maintainhome.ai";
+          processBrokerPrecreation(precreationId, brokerSubdomain, base).catch((err) => {
+            console.error("[webhook] broker_precreate processing error:", err);
+          });
         }
       }
     }
