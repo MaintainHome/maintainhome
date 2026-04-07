@@ -1176,7 +1176,7 @@ export default function BrokerDashboard() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.4 }}
-              className="text-3xl sm:text-4xl font-black mb-2 leading-tight"
+              className="text-3xl sm:text-4xl font-black mb-2 leading-tight text-white"
             >
               {config.brokerName}
             </motion.h1>
@@ -1297,6 +1297,12 @@ export default function BrokerDashboard() {
           </div>
         </motion.div>
 
+        {/* ── Pre-Create Client Account ────────────────────────────── */}
+        <PreCreateClientPanel accent={accent} />
+
+        {/* ── Buy Gift Codes ───────────────────────────────────────── */}
+        <GiftCodePurchasePanel accent={accent} />
+
         {/* ── Invite + Agent Profile row ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -1410,12 +1416,6 @@ export default function BrokerDashboard() {
             </p>
           </motion.div>
         </div>
-
-        {/* ── Buy Gift Codes ───────────────────────────────────────── */}
-        <GiftCodePurchasePanel accent={accent} />
-
-        {/* ── Pre-Create Client Account ────────────────────────────── */}
-        <PreCreateClientPanel accent={accent} />
 
         {/* ── Client table ─────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
