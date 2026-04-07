@@ -73,7 +73,7 @@ router.get("/stripe/prices", (_req, res: Response) => {
   res.json({
     monthly: { priceId: ids.monthly, amount: 499, interval: "month" },
     annual: { priceId: ids.annual, amount: 3999, interval: "year" },
-    giftCode: { priceId: ids.giftCode, amount: 2900 },
+    giftCode: { priceId: ids.giftCode, amount: 3600 },
   });
 });
 
@@ -188,7 +188,7 @@ router.post("/stripe/gift-checkout", requireAuth as any, async (req: AuthRequest
     type: "gift_code",
     stripeSessionId: session.id,
     stripeCustomerId: customerId,
-    amountCents: 2900 * qty,
+    amountCents: 3600 * qty,
     status: "pending",
     metadata: { quantity: qty },
   }).onConflictDoNothing();
@@ -303,7 +303,7 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
           code,
           purchasedByUserId: userId,
           stripeSessionId: session_id,
-          priceCents: 2900,
+          priceCents: 3600,
         }).catch(() => {});
       }
     }
@@ -423,7 +423,7 @@ router.post(
               code: generateGiftCode(),
               purchasedByUserId: userId,
               stripeSessionId: session.id,
-              priceCents: 2900,
+              priceCents: 3600,
             }).catch(() => {});
           }
         }

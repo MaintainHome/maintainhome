@@ -233,14 +233,14 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
           <div>
             <h2 className="font-bold text-slate-900">Gift Codes for Clients</h2>
             <p className="text-sm text-slate-500 mt-0.5">
-              Give your homeowner clients 1 year of Pro access as a closing gift. Each code is $29.
+              Give your homeowner clients 1 year of Pro access as a closing gift. Each code is $36.
             </p>
           </div>
         </div>
 
         {/* Price callout */}
         <div className="flex items-baseline gap-1 shrink-0">
-          <span className="text-3xl font-black text-slate-900">$29</span>
+          <span className="text-3xl font-black text-slate-900">$36</span>
           <span className="text-slate-400 text-sm">/code</span>
         </div>
       </div>
@@ -268,7 +268,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         <div className="flex flex-col gap-1">
           <label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Total</label>
           <div className="h-9 flex items-center px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-black tabular-nums">
-            ${(qty * 29).toFixed(2)}
+            ${(qty * 36).toFixed(2)}
           </div>
         </div>
 
@@ -852,6 +852,7 @@ export default function BrokerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [messageCopied, setMessageCopied] = useState(false);
 
   /* ── Edit Branding modal state ────────────────────────────────── */
   const [editOpen, setEditOpen] = useState(false);
@@ -894,6 +895,19 @@ export default function BrokerDashboard() {
     navigator.clipboard.writeText(`${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}`);
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2500);
+  }
+
+  function copyFullMessage() {
+    if (!config) return;
+    const link = `${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}`;
+    const msg = `Hi [Client Name],
+
+I wanted to give you this personal gift to help with your new home. MaintainHome.ai is an app that will streamline your homeownership experience. You'll be able to track maintenance, talk to your AI assistant Maintly, keep all your documents in one place, and stay on top of everything about your most important investment.
+
+Click here to get started: ${link}`;
+    navigator.clipboard.writeText(msg);
+    setMessageCopied(true);
+    setTimeout(() => setMessageCopied(false), 3000);
   }
 
   function openEditModal() {
@@ -1309,34 +1323,63 @@ export default function BrokerDashboard() {
           {/* Invite card */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.14 }}
             className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-1">
               <Link2 className="w-5 h-5" style={{ color: accent }} />
               <h2 className="font-bold text-slate-900">Invite New Client</h2>
             </div>
             <p className="text-sm text-slate-500 mb-4 leading-relaxed">
-              Share this link. Clients instantly see your branded experience and sign up under your account.
+              Copy the message below and send it to your client — your invite link is already embedded.
             </p>
-            <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-4 py-3 border border-slate-200 mb-4">
-              <span className="text-sm text-slate-700 font-mono flex-1 truncate min-w-0">{inviteLink}</span>
-              <CopyBtn text={inviteLink} label="invite link" />
+
+            {/* Pre-written message preview */}
+            <div className="relative bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 flex-1">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Ready-to-send message</p>
+              <div className="space-y-3 text-sm text-slate-700 leading-relaxed">
+                <p>Hi <span className="font-semibold text-slate-500 italic">[Client Name]</span>,</p>
+                <p>
+                  I wanted to give you this personal gift to help with your new home.{" "}
+                  <span className="font-semibold text-slate-900">MaintainHome.ai</span> is an app that will streamline
+                  your homeownership experience. You'll be able to track maintenance, talk to your AI assistant{" "}
+                  <span className="font-semibold text-slate-900">Maintly</span>, keep all your documents in one place,
+                  and stay on top of everything about your most important investment.
+                </p>
+                <p>
+                  Click here to get started:{" "}
+                  <span className="font-mono text-xs break-all" style={{ color: accent }}>{inviteLink}</span>
+                </p>
+              </div>
             </div>
 
-            {/* Primary CTA — large, glowing */}
+            {/* Primary CTA — copy full message */}
             <button
-              onClick={copyInviteLink}
-              className="w-full flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl text-white font-extrabold text-base transition-all hover:scale-[1.02] active:scale-[0.99] mt-auto"
+              onClick={copyFullMessage}
+              className="w-full flex items-center justify-center gap-2.5 px-6 py-4 rounded-2xl text-white font-extrabold text-base transition-all hover:scale-[1.02] active:scale-[0.99]"
               style={{
                 backgroundColor: accent,
-                boxShadow: linkCopied
+                boxShadow: messageCopied
                   ? `0 4px 20px ${accent}30`
                   : `0 6px 28px ${accent}55, 0 2px 8px ${accent}30`,
               }}
             >
-              {linkCopied
-                ? <><Check className="w-5 h-5" />Copied to clipboard!</>
-                : <><Copy className="w-5 h-5" />Copy Invite Link</>}
+              {messageCopied
+                ? <><Check className="w-5 h-5" />Message copied!</>
+                : <><Copy className="w-5 h-5" />Copy Full Message</>}
             </button>
-            <p className="text-xs text-slate-400 mt-3 text-center">
+
+            {/* Secondary: link-only */}
+            <div className="flex items-center gap-2 mt-3">
+              <div className="flex items-center gap-2 bg-slate-50 rounded-xl px-3 py-2 border border-slate-200 flex-1 min-w-0">
+                <span className="text-xs text-slate-500 font-mono truncate min-w-0">{inviteLink}</span>
+              </div>
+              <button
+                onClick={copyInviteLink}
+                title="Copy link only"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-colors shrink-0"
+              >
+                {linkCopied ? <><Check className="w-3.5 h-3.5 text-emerald-500" />Copied</> : <><Copy className="w-3.5 h-3.5" />Link only</>}
+              </button>
+            </div>
+            <p className="text-xs text-slate-400 mt-2 text-center">
               Short link:{" "}
               <strong className="text-slate-600 font-mono">maintainhome.ai/{config.subdomain}</strong>
             </p>
