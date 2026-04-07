@@ -55,8 +55,8 @@ interface Client {
   hasCalendar: boolean;
   logCount: number;
   activityScore: number;
-  bigTicketAlertCount: number;
-  bigTicketAlerts: string[];
+  imminentAlertCount: number;
+  imminentAlerts: string[];
   isPrecreated?: boolean;
   isActivated?: boolean;
   activationToken?: string | null;
@@ -1081,7 +1081,7 @@ Click here to get started: ${link}`;
 
   /* ── Derived stats ─────────────────────────────────────────────── */
   const proClients = clients.filter((c) => isPro(c.subscriptionStatus));
-  const bigTicketClients = clients.filter((c) => c.bigTicketAlertCount > 0);
+  const imminentClients = clients.filter((c) => c.imminentAlertCount > 0);
   const avgScore = clients.length > 0
     ? Math.round(clients.reduce((s, c) => s + c.activityScore, 0) / clients.length) : null;
 
@@ -1406,12 +1406,12 @@ Click here to get started: ${link}`;
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow duration-200">
-            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${bigTicketClients.length > 0 ? "bg-orange-50" : "bg-slate-50"}`}>
-              <AlertTriangle className={`w-6 h-6 ${bigTicketClients.length > 0 ? "text-orange-500" : "text-slate-300"}`} />
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${imminentClients.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
+              <AlertTriangle className={`w-6 h-6 ${imminentClients.length > 0 ? "text-red-500" : "text-slate-300"}`} />
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900 leading-none">{bigTicketClients.length}</p>
-              <p className="text-xs text-slate-400 font-medium mt-1">Big-Ticket Alerts</p>
+              <p className="text-2xl font-black text-slate-900 leading-none">{imminentClients.length}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">Imminent Alerts</p>
             </div>
           </div>
         </motion.div>
@@ -1642,7 +1642,7 @@ Click here to get started: ${link}`;
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                           {client.hasCalendar && <Calendar className="w-3.5 h-3.5 text-blue-400" />}
-                          {client.bigTicketAlertCount > 0 && <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />}
+                          {client.imminentAlertCount > 0 && <AlertTriangle className="w-3.5 h-3.5 text-red-500" />}
                           {isPro(client.subscriptionStatus)
                             ? <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#f59e0b18", color: "#d97706" }}>Pro</span>
                             : expiry
@@ -1665,9 +1665,9 @@ Click here to get started: ${link}`;
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5">
                               <p className="text-sm font-semibold text-slate-900 truncate">{client.name ?? "—"}</p>
-                              {client.bigTicketAlertCount > 0 && (
-                                <AlertTriangle className="w-3.5 h-3.5 text-orange-400 shrink-0"
-                                  title={`${client.bigTicketAlertCount} big-ticket alert${client.bigTicketAlertCount > 1 ? "s" : ""}`} />
+                              {client.imminentAlertCount > 0 && (
+                                <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0"
+                                  title={`${client.imminentAlertCount} imminent alert${client.imminentAlertCount > 1 ? "s" : ""}`} />
                               )}
                               {client.hasCalendar && (
                                 <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0" title="AI calendar built" />
@@ -1731,34 +1731,35 @@ Click here to get started: ${link}`;
           )}
         </motion.div>
 
-        {/* ── Big-ticket spotlight ──────────────────────────────────── */}
-        {bigTicketClients.length > 0 && (
+        {/* ── Big-ticket spotlight (Imminent only) ──────────────────── */}
+        {imminentClients.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.24 }}
             className="rounded-2xl p-6 border"
             style={{
-              backgroundColor: "#fff7ed",
-              borderColor: "#fed7aa",
+              backgroundColor: "#fef2f2",
+              borderColor: "#fecaca",
               borderLeftWidth: "4px",
-              borderLeftColor: "#f97316",
+              borderLeftColor: "#ef4444",
             }}
           >
             <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-orange-500" />
-              <h2 className="font-bold text-orange-900">Big-Ticket Alerts Across Your Clients</h2>
-              <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">{bigTicketClients.length}</span>
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <h2 className="font-bold text-red-900">Big-Ticket Alerts Across Your Clients</h2>
+              <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold">{imminentClients.length}</span>
+              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-semibold border border-red-200 ml-1">Imminent — Next 12 Months</span>
             </div>
             <div className="space-y-3">
-              {bigTicketClients.slice(0, 5).map((client) => (
-                <div key={client.id} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-orange-100 shadow-sm">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-black bg-orange-100 text-orange-600 mt-0.5">
+              {imminentClients.slice(0, 5).map((client) => (
+                <div key={client.id} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-red-100 shadow-sm">
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-black bg-red-100 text-red-600 mt-0.5">
                     {(client.name ?? client.email)[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-slate-800 truncate">{client.name ?? client.email}</p>
                     <ul className="mt-1 space-y-0.5">
-                      {client.bigTicketAlerts.map((alert, i) => (
-                        <li key={i} className="text-xs text-orange-700 flex items-start gap-1.5">
-                          <span className="text-orange-400 mt-0.5 shrink-0">•</span>
+                      {client.imminentAlerts.map((alert, i) => (
+                        <li key={i} className="text-xs text-red-700 flex items-start gap-1.5">
+                          <span className="text-red-400 mt-0.5 shrink-0">•</span>
                           {alert}
                         </li>
                       ))}
@@ -1767,8 +1768,8 @@ Click here to get started: ${link}`;
                 </div>
               ))}
             </div>
-            <p className="text-xs text-orange-600 mt-3 text-center">
-              These clients have big-ticket alerts in their AI plan — consider reaching out to offer guidance.
+            <p className="text-xs text-red-600 mt-3 text-center">
+              These clients have major home systems due within the next 12 months — consider reaching out proactively.
             </p>
           </motion.div>
         )}

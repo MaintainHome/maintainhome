@@ -50,6 +50,35 @@ router.get("/broker/me", requireAuth as any, async (req: AuthRequest, res: Respo
   }
 });
 
+// ─── Big-ticket imminent forecast helpers ─────────────────────────────────────
+const BIG_TICKET_ITEMS_BROKER = [
+  { key: "roof",       name: "Roof",            avgLife: 25, costRange: "$12,000–$25,000" },
+  { key: "hvac",       name: "HVAC System",      avgLife: 17, costRange: "$8,000–$15,000" },
+  { key: "water",      name: "Water Heater",     avgLife: 12, costRange: "$1,200–$3,500" },
+  { key: "windows",    name: "Windows",          avgLife: 25, costRange: "$8,000–$20,000" },
+  { key: "paint",      name: "Exterior Paint",   avgLife: 8,  costRange: "$3,000–$8,000" },
+  { key: "panel",      name: "Electrical Panel", avgLife: 30, costRange: "$2,500–$6,000" },
+  { key: "garage",     name: "Garage Door",      avgLife: 15, costRange: "$1,000–$3,500" },
+  { key: "appliances", name: "Major Appliances", avgLife: 12, costRange: "$1,000–$3,000 ea" },
+];
+
+function computeImminentForecasts(yearBuilt: number, currentYear: number): string[] {
+  return BIG_TICKET_ITEMS_BROKER
+    .map((item) => {
+      const dueYear = yearBuilt + item.avgLife;
+      const yearsLeft = dueYear - currentYear;
+      return { ...item, dueYear, yearsLeft };
+    })
+    .filter((item) => item.yearsLeft <= 1)
+    .map((item) =>
+      item.yearsLeft < 0
+        ? `${item.name} — overdue (est. ${item.costRange})`
+        : item.yearsLeft === 0
+        ? `${item.name} — due this year (est. ${item.costRange})`
+        : `${item.name} — due ~${item.dueYear} (est. ${item.costRange})`
+    );
+}
+
 router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
     const config = await getBrokerConfig(req.userEmail!);
@@ -78,7 +107,7 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
 
     const userIds = rawClients.map((c) => c.id);
 
-    const [calendarRows, logRows, precreationRows] = await Promise.all([
+    const [calendarRows, logRows, precreationRows, homeProfileRows] = await Promise.all([
       db
         .select({ userId: savedCalendarsTable.userId, calendarData: savedCalendarsTable.calendarData })
         .from(savedCalendarsTable)
@@ -95,6 +124,10 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
           eq(brokerPrecreationsTable.brokerUserId, req.userId!),
           inArray(brokerPrecreationsTable.clientUserId as any, userIds),
         )),
+      db
+        .select({ userId: homeProfilesTable.userId, yearBuilt: homeProfilesTable.yearBuilt })
+        .from(homeProfilesTable)
+        .where(inArray(homeProfilesTable.userId, userIds)),
     ]);
 
     const calendarMap = new Map(calendarRows.map((r) => [r.userId, r.calendarData]));
@@ -104,14 +137,12 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         .filter((r) => r.clientUserId != null)
         .map((r) => [r.clientUserId!, r]),
     );
+    const homeProfileMap = new Map(homeProfileRows.map((r) => [r.userId, r.yearBuilt]));
+    const currentYear = new Date().getFullYear();
 
     const clients = rawClients.map((c) => {
       const calData = calendarMap.get(c.id) as Record<string, unknown> | undefined;
       const hasCalendar = !!calData;
-      const bigTicketAlertCount = Array.isArray((calData as any)?.big_ticket_alerts)
-        ? (calData as any).big_ticket_alerts.length : 0;
-      const bigTicketAlerts: string[] = Array.isArray((calData as any)?.big_ticket_alerts)
-        ? (calData as any).big_ticket_alerts.slice(0, 3) : [];
       const logCount = logCountMap.get(c.id) ?? 0;
       const activityScore = Math.min((hasCalendar ? 60 : 0) + Math.min(logCount * 8, 40), 100);
 
@@ -120,13 +151,17 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
       const isActivated = !!precreation?.activatedAt;
       const activationToken = isPrecreated && !isActivated ? precreation?.activationToken ?? null : null;
 
+      const yearBuilt = homeProfileMap.get(c.id);
+      const imminentAlerts: string[] = yearBuilt ? computeImminentForecasts(yearBuilt, currentYear) : [];
+      const imminentAlertCount = imminentAlerts.length;
+
       return {
         ...c,
         hasCalendar,
         logCount,
         activityScore,
-        bigTicketAlertCount,
-        bigTicketAlerts,
+        imminentAlertCount,
+        imminentAlerts,
         isPrecreated,
         isActivated,
         activationToken,

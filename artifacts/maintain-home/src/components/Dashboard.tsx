@@ -219,7 +219,7 @@ const BIG_TICKET_ITEMS: BigTicketItem[] = [
 interface ForecastResult extends BigTicketItem {
   dueYear: number;
   yearsLeft: number;
-  urgency: "overdue" | "critical" | "watch" | "good";
+  urgency: "imminent" | "soon" | "planning";
 }
 
 function computeForecasts(yearBuilt: number, currentYear: number, roofType?: string): ForecastResult[] {
@@ -232,9 +232,8 @@ function computeForecasts(yearBuilt: number, currentYear: number, roofType?: str
     const dueYear = yearBuilt + life;
     const yearsLeft = dueYear - currentYear;
     const urgency: ForecastResult["urgency"] =
-      yearsLeft < 0 ? "overdue" :
-      yearsLeft <= 5 ? "critical" :
-      yearsLeft <= 10 ? "watch" : "good";
+      yearsLeft <= 1 ? "imminent" :
+      yearsLeft <= 4 ? "soon" : "planning";
     return { ...item, dueYear, yearsLeft, urgency };
   }).sort((a, b) => a.yearsLeft - b.yearsLeft);
 }
@@ -389,6 +388,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           lastRenovationYear: data.lastRenovationYear != null ? String(data.lastRenovationYear) : null,
           mortgageRate: data.mortgageRate ?? null,
         } : null);
+        if (Array.isArray(data?.resolvedBigTicketKeys)) {
+          setResolvedKeys(new Set(data.resolvedBigTicketKeys as string[]));
+        }
       })
       .catch(() => { setMortgageRate(null); setHomeProfile(null); });
   }, [user.id]);
@@ -673,9 +675,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const currentYear = new Date().getFullYear();
   const yearBuiltNum = homeProfile?.yearBuilt ? parseInt(homeProfile.yearBuilt) : null;
   const roofType = savedCalendar?.quizAnswers?.roofType ?? undefined;
-  const forecasts: ForecastResult[] = yearBuiltNum
+  const allForecasts: ForecastResult[] = yearBuiltNum
     ? computeForecasts(yearBuiltNum, currentYear, roofType)
     : [];
+  const [resolvedKeys, setResolvedKeys] = useState<Set<string>>(new Set());
+  const [resolvingKey, setResolvingKey] = useState<string | null>(null);
+  const forecasts = allForecasts.filter((f) => !resolvedKeys.has(f.key));
 
   function openChatForTask(taskName: string) {
     const locationHint = state ? ` for a home in ${state}` : "";
@@ -1811,20 +1816,22 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
                 <div className="px-5 pb-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {forecasts.map(item => {
-                    const isOverdue = item.urgency === "overdue";
-                    const isCritical = item.urgency === "critical";
-                    const isWatch = item.urgency === "watch";
-                    const cardBg = isOverdue || isCritical ? "bg-red-50 border-red-200" :
-                      isWatch ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200";
-                    const badgeColor = isOverdue || isCritical ? "bg-red-100 text-red-700" :
-                      isWatch ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
-                    const yearColor = isOverdue || isCritical ? "text-red-700" :
-                      isWatch ? "text-amber-700" : "text-emerald-700";
-                    const Icon = isOverdue || isCritical ? TriangleAlert : isWatch ? Clock : CheckCircle2;
-                    const yearsLabel = isOverdue
+                    const isImminent = item.urgency === "imminent";
+                    const isSoon = item.urgency === "soon";
+                    const cardBg = isImminent ? "bg-red-50 border-red-200" :
+                      isSoon ? "bg-amber-50 border-amber-200" : "bg-emerald-50 border-emerald-200";
+                    const badgeColor = isImminent ? "bg-red-100 text-red-700" :
+                      isSoon ? "bg-amber-100 text-amber-700" : "bg-emerald-100 text-emerald-700";
+                    const yearColor = isImminent ? "text-red-700" :
+                      isSoon ? "text-amber-700" : "text-emerald-700";
+                    const Icon = isImminent ? TriangleAlert : isSoon ? Clock : CheckCircle2;
+                    const yearsLabel = item.yearsLeft < 0
                       ? `Overdue by ${Math.abs(item.yearsLeft)} yr${Math.abs(item.yearsLeft) !== 1 ? "s" : ""}`
                       : item.yearsLeft === 0 ? "Due this year"
-                      : `~${item.yearsLeft} year${item.yearsLeft !== 1 ? "s" : ""}`;
+                      : item.yearsLeft === 1 ? "Due next year (Imminent)"
+                      : `~${item.yearsLeft} years`;
+                    const badgeLabel = isImminent ? "Imminent" : isSoon ? "2–4 Years" : "5+ Years";
+                    const isResolving = resolvingKey === item.key;
                     return (
                       <div key={item.key} className={`rounded-xl border px-4 py-3 ${cardBg}`}>
                         <div className="flex items-start justify-between gap-2 mb-1.5">
@@ -1836,18 +1843,56 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                             </div>
                           </div>
                           <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>
-                            {yearsLabel}
+                            {badgeLabel}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-2 mt-1">
                           <Icon className={`w-3.5 h-3.5 shrink-0 ${yearColor}`} />
                           <p className="text-xs text-slate-700 leading-snug">
                             <span className={`font-bold ${yearColor}`}>
-                              {isOverdue ? "Already due" : `Due ~${item.dueYear}`}
+                              {item.yearsLeft < 0 ? "Already due" : item.yearsLeft === 0 ? "Due this year" : `Due ~${item.dueYear}`}
                             </span>
                             {" "}(±3 yrs) · <span className="font-semibold">{item.costRange}</span>
                           </p>
                         </div>
+                        <div className="flex items-center gap-1 mt-2 text-[10px] text-slate-500">
+                          <span className={`text-[10px] font-medium ${yearColor}`}>{yearsLabel}</span>
+                        </div>
+                        <button
+                          disabled={isResolving}
+                          onClick={async () => {
+                            setResolvingKey(item.key);
+                            try {
+                              const r = await fetch(`${API_BASE}/api/user/big-ticket/resolve`, {
+                                method: "POST",
+                                credentials: "include",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ key: item.key, name: item.name }),
+                              });
+                              if (r.ok) {
+                                setResolvedKeys((prev) => new Set([...prev, item.key]));
+                                setRecentLog((prev) => [{
+                                  id: Date.now(),
+                                  taskName: `Big-ticket item resolved: ${item.name}`,
+                                  taskKey: `big-ticket-resolved-${item.key}`,
+                                  month: new Date().toLocaleString("en-US", { month: "long" }),
+                                  completedAt: new Date().toISOString(),
+                                  notes: "Big-ticket item marked as resolved by homeowner",
+                                }, ...prev]);
+                              }
+                            } finally {
+                              setResolvingKey(null);
+                            }
+                          }}
+                          className="mt-2.5 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/70 hover:bg-white border border-slate-200 text-[11px] font-semibold text-slate-600 hover:text-slate-800 transition-colors disabled:opacity-50"
+                        >
+                          {isResolving ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="w-3 h-3" />
+                          )}
+                          I've already handled this
+                        </button>
                       </div>
                     );
                   })}

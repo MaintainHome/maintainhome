@@ -151,6 +151,64 @@ router.delete("/user/documents/:id", requireAuth as any, async (req: AuthRequest
   res.json({ ok: true });
 });
 
+// ─── Big-Ticket Resolve ───────────────────────────────────────────────────────
+
+router.post("/user/big-ticket/resolve", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const { key, name } = req.body as { key?: string; name?: string };
+  if (!key || !name) {
+    res.status(400).json({ error: "key and name are required" });
+    return;
+  }
+
+  const [existing] = await db
+    .select({ id: homeProfilesTable.id, resolved: homeProfilesTable.resolvedBigTicketKeys })
+    .from(homeProfilesTable)
+    .where(eq(homeProfilesTable.userId, req.userId!))
+    .limit(1);
+
+  const currentResolved: string[] = Array.isArray(existing?.resolved) ? (existing.resolved as string[]) : [];
+  if (!currentResolved.includes(key)) {
+    const next = [...currentResolved, key];
+    if (existing) {
+      await db.update(homeProfilesTable).set({ resolvedBigTicketKeys: next, updatedAt: new Date() })
+        .where(eq(homeProfilesTable.userId, req.userId!));
+    } else {
+      await db.insert(homeProfilesTable).values({ userId: req.userId!, resolvedBigTicketKeys: next });
+    }
+  }
+
+  const now = new Date();
+  const month = now.toLocaleString("en-US", { month: "long" });
+  await db.insert(maintenanceLogTable).values({
+    userId: req.userId!,
+    taskName: `Big-ticket item resolved: ${name}`,
+    taskKey: `big-ticket-resolved-${key}`,
+    month,
+    notes: "Big-ticket item marked as resolved by homeowner",
+  });
+
+  res.json({ ok: true, resolvedKey: key });
+});
+
+router.post("/user/big-ticket/unresolve", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const { key } = req.body as { key?: string };
+  if (!key) { res.status(400).json({ error: "key is required" }); return; }
+
+  const [existing] = await db
+    .select({ id: homeProfilesTable.id, resolved: homeProfilesTable.resolvedBigTicketKeys })
+    .from(homeProfilesTable)
+    .where(eq(homeProfilesTable.userId, req.userId!))
+    .limit(1);
+
+  const currentResolved: string[] = Array.isArray(existing?.resolved) ? (existing.resolved as string[]) : [];
+  const next = currentResolved.filter((k) => k !== key);
+  if (existing) {
+    await db.update(homeProfilesTable).set({ resolvedBigTicketKeys: next, updatedAt: new Date() })
+      .where(eq(homeProfilesTable.userId, req.userId!));
+  }
+  res.json({ ok: true });
+});
+
 // ─── Export (Pro only) ───────────────────────────────────────────────────────
 
 router.get("/user/export", requireAuth as any, requirePro as any, async (_req: AuthRequest, res: Response) => {

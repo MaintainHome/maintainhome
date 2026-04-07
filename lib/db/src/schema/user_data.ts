@@ -64,6 +64,7 @@ export const homeProfilesTable = pgTable("home_profiles", {
   sidingType: text("siding_type"),
   pastPestIssues: text("past_pest_issues"),
   pastPestIssuesNotes: text("past_pest_issues_notes"),
+  resolvedBigTicketKeys: jsonb("resolved_big_ticket_keys").default([]),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
