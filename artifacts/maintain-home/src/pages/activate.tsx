@@ -3,6 +3,7 @@ import { useLocation } from "wouter";
 import { CheckCircle2, XCircle, Loader2, ArrowRight, Home as HomeIcon, Key } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranding } from "@/contexts/BrandingContext";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const BASE = import.meta.env.BASE_URL;
@@ -15,6 +16,7 @@ export default function ActivatePage() {
   const [clientName, setClientName] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const { refreshUser } = useAuth();
+  const { setBrokerReferral } = useBranding();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -42,6 +44,10 @@ export default function ActivatePage() {
           return;
         }
 
+        if (data.referralSubdomain) {
+          setBrokerReferral(data.referralSubdomain);
+        }
+
         if (data.name) setClientName(data.name);
         await refreshUser();
         setStatus("success");
@@ -57,7 +63,7 @@ export default function ActivatePage() {
     }
 
     activate();
-  }, [refreshUser, navigate]);
+  }, [refreshUser, navigate, setBrokerReferral]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center px-4">

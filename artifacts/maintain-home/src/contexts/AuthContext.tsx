@@ -13,6 +13,7 @@ export interface AuthUser {
   smsEnabled: boolean;
   smsPhone: string | null;
   hasSeenDashboardTour: boolean;
+  referralSubdomain: string | null;
 }
 
 export function isPro(user: AuthUser | null): boolean {

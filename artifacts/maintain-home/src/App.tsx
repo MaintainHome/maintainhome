@@ -2,8 +2,8 @@ import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { BrandingProvider } from "@/contexts/BrandingContext";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { BrandingProvider, useBranding } from "@/contexts/BrandingContext";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import History from "@/pages/history";
@@ -42,6 +42,24 @@ function ClearPreviewHandler() {
   return null;
 }
 
+function AuthBrandingSync() {
+  const { user } = useAuth();
+  const { branding, setBrokerReferral } = useBranding();
+
+  useEffect(() => {
+    if (user?.referralSubdomain && !branding) {
+      const hostname = window.location.hostname;
+      const parts = hostname.split(".");
+      const hasHostnameSubdomain = parts.length > 2 && parts[0] !== "www";
+      if (!hasHostnameSubdomain) {
+        setBrokerReferral(user.referralSubdomain);
+      }
+    }
+  }, [user?.referralSubdomain, branding, setBrokerReferral]);
+
+  return null;
+}
+
 function Router() {
   return (
     <Switch>
@@ -72,6 +90,7 @@ function App() {
         <AuthProvider>
           <TooltipProvider>
             <ClearPreviewHandler />
+            <AuthBrandingSync />
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               <Router />
             </WouterRouter>

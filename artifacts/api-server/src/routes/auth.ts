@@ -273,6 +273,7 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
       smsEnabled: usersTable.smsEnabled,
       smsPhone: usersTable.smsPhone,
       hasSeenDashboardTour: usersTable.hasSeenDashboardTour,
+      referralSubdomain: usersTable.referralSubdomain,
     })
     .from(usersTable)
     .where(eq(usersTable.id, req.userId!))
@@ -390,7 +391,7 @@ router.post("/auth/broker-activate", async (req: Request, res: Response) => {
 
   const clientUserId = precreation.clientUserId;
 
-  const [user] = await db.select({ id: usersTable.id, email: usersTable.email, name: usersTable.name })
+  const [user] = await db.select({ id: usersTable.id, email: usersTable.email, name: usersTable.name, referralSubdomain: usersTable.referralSubdomain })
     .from(usersTable).where(eq(usersTable.id, clientUserId)).limit(1);
   if (!user) {
     res.status(404).json({ error: "Client account not found." });
@@ -419,7 +420,7 @@ router.post("/auth/broker-activate", async (req: Request, res: Response) => {
     maxAge: THIRTY_DAYS_MS,
   });
 
-  res.json({ ok: true, email: user.email, name: user.name, isNewActivation: !precreation.activatedAt });
+  res.json({ ok: true, email: user.email, name: user.name, referralSubdomain: user.referralSubdomain ?? null, isNewActivation: !precreation.activatedAt });
 });
 
 router.post("/auth/logout", requireAuth as any, async (req: AuthRequest, res: Response) => {

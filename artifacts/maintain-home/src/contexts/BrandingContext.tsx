@@ -16,6 +16,7 @@ interface BrandingContextType {
   loading: boolean;
   previewSubdomain: string | null;
   setPreviewSubdomain: (sub: string | null) => void;
+  setBrokerReferral: (subdomain: string) => void;
 }
 
 const BrandingContext = createContext<BrandingContextType | null>(null);
@@ -63,6 +64,7 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const [previewSubdomain, setPreviewSubdomainState] = useState<string | null>(
     () => sessionStorage.getItem(PREVIEW_KEY) || null,
   );
+  const [forcedReferral, setForcedReferral] = useState<string | null>(null);
 
   const setPreviewSubdomain = useCallback((sub: string | null) => {
     setPreviewSubdomainState(sub);
@@ -73,9 +75,15 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const setBrokerReferral = useCallback((subdomain: string) => {
+    const sub = subdomain.toLowerCase().trim();
+    localStorage.setItem(REFERRAL_KEY, sub);
+    setForcedReferral(sub);
+  }, []);
+
   useEffect(() => {
     const referral = detectReferralParam();
-    const subdomain = previewSubdomain || detectSubdomain() || referral;
+    const subdomain = previewSubdomain || detectSubdomain() || forcedReferral || referral;
 
     if (!subdomain) {
       setBranding(null);
@@ -95,10 +103,10 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
         setBranding(null);
       })
       .finally(() => setLoading(false));
-  }, [previewSubdomain]);
+  }, [previewSubdomain, forcedReferral]);
 
   return (
-    <BrandingContext.Provider value={{ branding, loading, previewSubdomain, setPreviewSubdomain }}>
+    <BrandingContext.Provider value={{ branding, loading, previewSubdomain, setPreviewSubdomain, setBrokerReferral }}>
       {children}
     </BrandingContext.Provider>
   );
