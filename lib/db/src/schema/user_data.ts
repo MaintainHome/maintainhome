@@ -55,6 +55,15 @@ export const homeProfilesTable = pgTable("home_profiles", {
   lastRenovationYear: integer("last_renovation_year"),
   yearBuilt: integer("year_built"),
   mortgageRate: text("mortgage_rate"),
+  // New Maintly-accuracy fields
+  grassType: text("grass_type"),
+  foundationType: text("foundation_type"),
+  crawlSpaceSealed: text("crawl_space_sealed"),
+  hvacType: text("hvac_type"),
+  roofAgeYear: integer("roof_age_year"),
+  sidingType: text("siding_type"),
+  pastPestIssues: text("past_pest_issues"),
+  pastPestIssuesNotes: text("past_pest_issues_notes"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

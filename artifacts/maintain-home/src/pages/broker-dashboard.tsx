@@ -379,14 +379,20 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
     sewerSystem: "municipal",
     pestSchedule: "no",
     landscaping: "mostly_grass",
-    crawlSpace: "no",
+    foundationType: "",
     crawlSpaceSealed: "not_sure",
     allergies: "no",
     allergiesDetails: "",
     bedrooms: "",
     bathrooms: "",
-    finishedBasement: "no",
     poolOrHotTub: "no",
+    // Maintly-accuracy fields
+    grassType: "",
+    hvacType: "",
+    roofAgeYear: "",
+    sidingType: "",
+    pastPestIssues: "no",
+    pastPestIssuesNotes: "",
   });
 
   const [docs, setDocs] = useState<DocEntry[]>([]);
@@ -422,6 +428,9 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
     if (!form.clientEmail.trim()) { setError("Client email is required"); return; }
     if (!form.zipCode.trim()) { setError("ZIP code is required"); return; }
 
+    const isCrawlSpace = form.foundationType === "crawl_space";
+    const derivedFinishedBasement = form.foundationType === "basement_finished" ? "yes" : "no";
+
     const quizAnswers = {
       zip: form.zipCode.trim(),
       homeAge: form.yearBuilt
@@ -435,8 +444,8 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
       sqft: form.sqft,
       allergies: form.allergies,
       allergiesDetails: form.allergiesDetails,
-      crawlSpace: form.crawlSpace,
-      crawlSpaceSealed: form.crawlSpace === "yes" ? form.crawlSpaceSealed : undefined,
+      crawlSpace: isCrawlSpace ? "yes" : "no",
+      crawlSpaceSealed: isCrawlSpace ? form.crawlSpaceSealed : undefined,
       landscaping: form.landscaping,
       yearBuilt: form.yearBuilt ? Number(form.yearBuilt) : undefined,
     };
@@ -453,8 +462,16 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
       landscaping: form.landscaping,
       bedrooms: form.bedrooms ? Number(form.bedrooms) : null,
       bathrooms: form.bathrooms || null,
-      finishedBasement: form.finishedBasement,
+      finishedBasement: derivedFinishedBasement,
       poolOrHotTub: form.poolOrHotTub,
+      foundationType: form.foundationType || null,
+      crawlSpaceSealed: isCrawlSpace ? form.crawlSpaceSealed : null,
+      grassType: form.grassType || null,
+      hvacType: form.hvacType || null,
+      roofAgeYear: form.roofAgeYear ? Number(form.roofAgeYear) : null,
+      sidingType: form.sidingType || null,
+      pastPestIssues: form.pastPestIssues || null,
+      pastPestIssuesNotes: form.pastPestIssues === "yes" ? (form.pastPestIssuesNotes || null) : null,
     };
 
     setLoading(true);
@@ -712,21 +729,20 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                       <option value="no">No schedule</option>
                       <option value="not_sure">Not sure</option>
                     </SelectField>
-                    <SelectField label="Crawl Space" id="crawlSpace" value={form.crawlSpace} onChange={(v) => setField("crawlSpace", v)}>
-                      <option value="no">No crawl space</option>
-                      <option value="yes">Yes</option>
+                    <SelectField label="Foundation Type" id="foundationType" value={form.foundationType} onChange={(v) => { setField("foundationType", v); setField("crawlSpaceSealed", "not_sure"); }}>
+                      <option value="">Unknown</option>
+                      <option value="slab">Slab</option>
+                      <option value="crawl_space">Crawl Space</option>
+                      <option value="basement_finished">Basement — Finished</option>
+                      <option value="basement_unfinished">Basement — Unfinished</option>
                     </SelectField>
-                    {form.crawlSpace === "yes" && (
+                    {form.foundationType === "crawl_space" && (
                       <SelectField label="Crawl Space Sealed?" id="crawlSpaceSealed" value={form.crawlSpaceSealed} onChange={(v) => setField("crawlSpaceSealed", v)}>
                         <option value="yes">Yes, sealed</option>
                         <option value="no">No, open/vented</option>
                         <option value="not_sure">Not sure</option>
                       </SelectField>
                     )}
-                    <SelectField label="Finished Basement" id="finishedBasement" value={form.finishedBasement} onChange={(v) => setField("finishedBasement", v)}>
-                      <option value="no">No</option>
-                      <option value="yes">Yes</option>
-                    </SelectField>
                     <SelectField label="Pool / Hot Tub" id="poolOrHotTub" value={form.poolOrHotTub} onChange={(v) => setField("poolOrHotTub", v)}>
                       <option value="no">No</option>
                       <option value="yes">Yes</option>
@@ -749,6 +765,75 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                       </div>
                     )}
                   </div>
+                </div>
+
+                {/* Exterior & Systems (new Maintly-accuracy fields) */}
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Exterior &amp; Systems <span className="font-normal normal-case text-slate-400">(optional — improves AI accuracy)</span></p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <SelectField label="Grass / Lawn Type" id="grassType" value={form.grassType} onChange={(v) => setField("grassType", v)}>
+                      <option value="">Unknown</option>
+                      <option value="fescue">Fescue</option>
+                      <option value="bermuda">Bermuda</option>
+                      <option value="zoysia">Zoysia</option>
+                      <option value="st_augustine">St. Augustine</option>
+                      <option value="kentucky_bluegrass">Kentucky Bluegrass</option>
+                      <option value="centipede">Centipede</option>
+                      <option value="ryegrass">Ryegrass</option>
+                      <option value="no_grass">No grass / Xeriscaped</option>
+                      <option value="other">Other</option>
+                    </SelectField>
+                    <SelectField label="HVAC Type" id="hvacType" value={form.hvacType} onChange={(v) => setField("hvacType", v)}>
+                      <option value="">Unknown</option>
+                      <option value="central_air_gas">Central A/C + Gas</option>
+                      <option value="central_air_electric">Central A/C + Electric</option>
+                      <option value="heat_pump">Heat Pump</option>
+                      <option value="mini_split">Mini-Split</option>
+                      <option value="boiler_radiator">Boiler / Radiator</option>
+                      <option value="window_units">Window Units</option>
+                      <option value="other">Other</option>
+                    </SelectField>
+                    <SelectField label="Siding / Exterior" id="sidingType" value={form.sidingType} onChange={(v) => setField("sidingType", v)}>
+                      <option value="">Unknown</option>
+                      <option value="vinyl">Vinyl Siding</option>
+                      <option value="hardiplank">HardiPlank / Fiber Cement</option>
+                      <option value="wood">Wood / Cedar</option>
+                      <option value="brick">Brick</option>
+                      <option value="stucco">Stucco</option>
+                      <option value="stone">Stone / Veneer</option>
+                      <option value="aluminum">Aluminum</option>
+                      <option value="other">Other / Mixed</option>
+                    </SelectField>
+                    <SelectField label="Past Pest Issues" id="pastPestIssues" value={form.pastPestIssues} onChange={(v) => { setField("pastPestIssues", v); if (v !== "yes") setField("pastPestIssuesNotes", ""); }}>
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </SelectField>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Roof Last Replaced — Year</label>
+                    <input
+                      type="number"
+                      value={form.roofAgeYear}
+                      onChange={(e) => setField("roofAgeYear", e.target.value)}
+                      placeholder={String(new Date().getFullYear() - 10)}
+                      min="1950" max={new Date().getFullYear()}
+                      className="w-full sm:w-48 px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                    />
+                  </div>
+                  {form.pastPestIssues === "yes" && (
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">Pest Issue Details</label>
+                      <input
+                        type="text"
+                        value={form.pastPestIssuesNotes}
+                        onChange={(e) => setField("pastPestIssuesNotes", e.target.value)}
+                        placeholder="e.g. Termite treatment in 2019, rodent exclusion done"
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Documents */}

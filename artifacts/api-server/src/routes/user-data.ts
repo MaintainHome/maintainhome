@@ -169,7 +169,12 @@ router.get("/user/home-profile", requireAuth as any, async (req: AuthRequest, re
 });
 
 router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  const { fullAddress, bedrooms, bathrooms, finishedBasement, poolOrHotTub, lastRenovationYear, yearBuilt, mortgageRate } = req.body;
+  const {
+    fullAddress, bedrooms, bathrooms, finishedBasement, poolOrHotTub,
+    lastRenovationYear, yearBuilt, mortgageRate,
+    grassType, foundationType, crawlSpaceSealed, hvacType, roofAgeYear,
+    sidingType, pastPestIssues, pastPestIssuesNotes,
+  } = req.body;
 
   const values = {
     userId: req.userId!,
@@ -181,6 +186,14 @@ router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, re
     lastRenovationYear: lastRenovationYear != null ? Number(lastRenovationYear) : null,
     yearBuilt: yearBuilt != null ? Number(yearBuilt) : null,
     mortgageRate: mortgageRate ?? null,
+    grassType: grassType ?? null,
+    foundationType: foundationType ?? null,
+    crawlSpaceSealed: crawlSpaceSealed ?? null,
+    hvacType: hvacType ?? null,
+    roofAgeYear: roofAgeYear != null ? Number(roofAgeYear) : null,
+    sidingType: sidingType ?? null,
+    pastPestIssues: pastPestIssues ?? null,
+    pastPestIssuesNotes: pastPestIssuesNotes ?? null,
     updatedAt: new Date(),
   };
 

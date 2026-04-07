@@ -73,6 +73,15 @@ interface HomeProfile {
   yearBuilt: string;
   lastRenovationYear: string;
   mortgageRate: string;
+  // Maintly-accuracy fields
+  grassType: string;
+  foundationType: string;
+  crawlSpaceSealed: string;
+  hvacType: string;
+  roofAgeYear: string;
+  sidingType: string;
+  pastPestIssues: string;
+  pastPestIssuesNotes: string;
 }
 
 const emptyProfile: HomeProfile = {
@@ -84,6 +93,14 @@ const emptyProfile: HomeProfile = {
   yearBuilt: "",
   lastRenovationYear: "",
   mortgageRate: "",
+  grassType: "",
+  foundationType: "",
+  crawlSpaceSealed: "",
+  hvacType: "",
+  roofAgeYear: "",
+  sidingType: "",
+  pastPestIssues: "",
+  pastPestIssuesNotes: "",
 };
 
 // ── Component ─────────────────────────────────────────────────────────────
@@ -212,6 +229,14 @@ export default function HomeProfilePage() {
           yearBuilt: prof.yearBuilt != null ? String(prof.yearBuilt) : "",
           lastRenovationYear: prof.lastRenovationYear != null ? String(prof.lastRenovationYear) : "",
           mortgageRate: prof.mortgageRate ?? "",
+          grassType: prof.grassType ?? "",
+          foundationType: prof.foundationType ?? "",
+          crawlSpaceSealed: prof.crawlSpaceSealed ?? "",
+          hvacType: prof.hvacType ?? "",
+          roofAgeYear: prof.roofAgeYear != null ? String(prof.roofAgeYear) : "",
+          sidingType: prof.sidingType ?? "",
+          pastPestIssues: prof.pastPestIssues ?? "",
+          pastPestIssuesNotes: prof.pastPestIssuesNotes ?? "",
         });
       }
     }).catch(() => {}).finally(() => setLoading(false));
@@ -234,6 +259,14 @@ export default function HomeProfilePage() {
           yearBuilt: profile.yearBuilt ? parseInt(profile.yearBuilt) : null,
           lastRenovationYear: profile.lastRenovationYear ? parseInt(profile.lastRenovationYear) : null,
           mortgageRate: profile.mortgageRate || null,
+          grassType: profile.grassType || null,
+          foundationType: profile.foundationType || null,
+          crawlSpaceSealed: profile.foundationType === "crawl_space" ? (profile.crawlSpaceSealed || null) : null,
+          hvacType: profile.hvacType || null,
+          roofAgeYear: profile.roofAgeYear ? parseInt(profile.roofAgeYear) : null,
+          sidingType: profile.sidingType || null,
+          pastPestIssues: profile.pastPestIssues || null,
+          pastPestIssuesNotes: profile.pastPestIssues === "yes" ? (profile.pastPestIssuesNotes || null) : null,
         }),
       });
       if (!r.ok) throw new Error("Save failed");
@@ -694,6 +727,158 @@ export default function HomeProfilePage() {
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-slate-400 font-semibold">%</span>
               </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-slate-100 pt-1">
+              <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-4">Exterior &amp; Mechanical</p>
+            </div>
+
+            {/* Foundation Type */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Foundation Type <span className="text-slate-400 font-normal">(optional)</span></label>
+              <select
+                value={profile.foundationType}
+                onChange={e => setProfile(p => ({ ...p, foundationType: e.target.value, crawlSpaceSealed: "" }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all bg-white"
+              >
+                <option value="">— Select foundation type —</option>
+                <option value="slab">Slab</option>
+                <option value="crawl_space">Crawl Space</option>
+                <option value="basement_finished">Basement — Finished</option>
+                <option value="basement_unfinished">Basement — Unfinished</option>
+              </select>
+            </div>
+
+            {/* Crawl Space Sealed — conditional */}
+            {profile.foundationType === "crawl_space" && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Is the crawl space sealed / encapsulated?</label>
+                <div className="flex gap-2">
+                  {[
+                    { v: "yes", label: "Yes, sealed" },
+                    { v: "no", label: "No / Open" },
+                    { v: "not_sure", label: "Not sure" },
+                  ].map(({ v, label }) => (
+                    <button
+                      key={v}
+                      onClick={() => setProfile(p => ({ ...p, crawlSpaceSealed: p.crawlSpaceSealed === v ? "" : v }))}
+                      className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                        profile.crawlSpaceSealed === v
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* HVAC Type */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">HVAC / Heating System Type <span className="text-slate-400 font-normal">(optional)</span></label>
+              <select
+                value={profile.hvacType}
+                onChange={e => setProfile(p => ({ ...p, hvacType: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all bg-white"
+              >
+                <option value="">— Select HVAC type —</option>
+                <option value="central_air_gas">Central A/C + Gas Furnace</option>
+                <option value="central_air_electric">Central A/C + Electric Heat</option>
+                <option value="heat_pump">Heat Pump (all-electric)</option>
+                <option value="mini_split">Mini-Split / Ductless</option>
+                <option value="boiler_radiator">Boiler / Radiator</option>
+                <option value="window_units">Window Units</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+
+            {/* Siding / Exterior Material */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Siding / Exterior Material <span className="text-slate-400 font-normal">(optional)</span></label>
+              <select
+                value={profile.sidingType}
+                onChange={e => setProfile(p => ({ ...p, sidingType: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all bg-white"
+              >
+                <option value="">— Select exterior material —</option>
+                <option value="vinyl">Vinyl Siding</option>
+                <option value="hardiplank">HardiPlank / Fiber Cement</option>
+                <option value="wood">Wood / Cedar</option>
+                <option value="brick">Brick</option>
+                <option value="stucco">Stucco</option>
+                <option value="stone">Stone / Veneer</option>
+                <option value="aluminum">Aluminum Siding</option>
+                <option value="other">Other / Mixed</option>
+              </select>
+            </div>
+
+            {/* Roof Age / Last Replaced */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Roof Last Replaced — Year <span className="text-slate-400 font-normal">(optional)</span>
+              </label>
+              <input
+                type="number"
+                min="1950" max={new Date().getFullYear()}
+                value={profile.roofAgeYear}
+                onChange={e => setProfile(p => ({ ...p, roofAgeYear: e.target.value }))}
+                placeholder={String(new Date().getFullYear() - 10)}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all"
+              />
+              <p className="text-[11px] text-slate-400 mt-1 leading-snug">Helps Maintly estimate when your next roof replacement may be needed</p>
+            </div>
+
+            {/* Grass Type */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Grass / Lawn Type <span className="text-slate-400 font-normal">(optional)</span></label>
+              <select
+                value={profile.grassType}
+                onChange={e => setProfile(p => ({ ...p, grassType: e.target.value }))}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all bg-white"
+              >
+                <option value="">— Select grass type —</option>
+                <option value="fescue">Fescue (Tall / Fine)</option>
+                <option value="bermuda">Bermuda</option>
+                <option value="zoysia">Zoysia</option>
+                <option value="st_augustine">St. Augustine</option>
+                <option value="kentucky_bluegrass">Kentucky Bluegrass</option>
+                <option value="centipede">Centipede</option>
+                <option value="ryegrass">Ryegrass</option>
+                <option value="no_grass">No grass / Xeriscaped</option>
+                <option value="other">Other / Unknown</option>
+              </select>
+            </div>
+
+            {/* Past Pest Issues */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Past Termite or Rodent Issues? <span className="text-slate-400 font-normal">(optional)</span></label>
+              <div className="flex gap-2 mb-3">
+                {["yes", "no"].map(v => (
+                  <button
+                    key={v}
+                    onClick={() => setProfile(p => ({ ...p, pastPestIssues: p.pastPestIssues === v ? "" : v, pastPestIssuesNotes: v === "no" ? "" : p.pastPestIssuesNotes }))}
+                    className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                      profile.pastPestIssues === v
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    {v === "yes" ? "Yes" : "No"}
+                  </button>
+                ))}
+              </div>
+              {profile.pastPestIssues === "yes" && (
+                <input
+                  type="text"
+                  value={profile.pastPestIssuesNotes}
+                  onChange={e => setProfile(p => ({ ...p, pastPestIssuesNotes: e.target.value }))}
+                  placeholder="e.g. Termite treatment in 2019, rodent exclusion done"
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all"
+                />
+              )}
             </div>
           </div>
         </motion.div>
