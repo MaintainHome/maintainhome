@@ -1234,17 +1234,18 @@ Click here to get started: ${link}`;
               </span>
             </motion.div>
 
-            {/* Logo + Agent photo — centered */}
+            {/* Logo + Agent photo — side-by-side */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.4 }}
-              className="flex flex-col items-center gap-4 mb-5"
+              className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-5"
             >
+              {/* Logo */}
               {config.logoUrl ? (
                 <div className="bg-white/10 backdrop-blur-sm rounded-2xl px-6 py-4 border border-white/15">
                   <img src={config.logoUrl} alt={config.brokerName}
-                    className="h-16 sm:h-20 max-w-[280px] object-contain" />
+                    className="h-16 sm:h-20 max-w-[240px] object-contain" />
                 </div>
               ) : (
                 <div className="w-20 h-20 rounded-3xl flex items-center justify-center"
@@ -1253,20 +1254,39 @@ Click here to get started: ${link}`;
                 </div>
               )}
 
-              {/* Agent photo + phone row */}
-              {(config.agentPhotoUrl || config.phoneNumber) && (
-                <div className="flex items-center gap-3">
-                  {config.agentPhotoUrl && (
-                    <img src={config.agentPhotoUrl} alt={config.brokerName}
-                      className="w-12 h-12 rounded-full object-cover border-2 border-white/30 shadow-lg" />
-                  )}
+              {/* Vertical divider between logo and headshot (desktop only) */}
+              {config.agentPhotoUrl && (
+                <div className="hidden sm:block w-px self-stretch bg-white/15 mx-1" />
+              )}
+
+              {/* Agent headshot — large and prominent */}
+              {config.agentPhotoUrl && (
+                <div className="flex flex-col items-center gap-2.5">
+                  <img
+                    src={config.agentPhotoUrl}
+                    alt={config.brokerName}
+                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl object-cover shadow-xl"
+                    style={{ border: `2.5px solid ${accent}60` }}
+                  />
                   {config.phoneNumber && (
-                    <a href={`tel:${config.phoneNumber}`}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-sm border border-white/15 hover:bg-white/20 transition-colors">
+                    <a
+                      href={`tel:${config.phoneNumber}`}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-sm border border-white/15 hover:bg-white/20 transition-colors"
+                    >
                       <Phone className="w-3.5 h-3.5" />{config.phoneNumber}
                     </a>
                   )}
                 </div>
+              )}
+
+              {/* Phone only (no headshot) */}
+              {!config.agentPhotoUrl && config.phoneNumber && (
+                <a
+                  href={`tel:${config.phoneNumber}`}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 text-white/70 text-sm border border-white/15 hover:bg-white/20 transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5" />{config.phoneNumber}
+                </a>
               )}
             </motion.div>
 
