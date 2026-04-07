@@ -516,9 +516,12 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
               </p>
             </div>
           </div>
-          <div className="flex items-baseline gap-1 shrink-0">
-            <span className="text-3xl font-black text-slate-900">$36</span>
-            <span className="text-slate-400 text-sm">/client · 13 months Pro</span>
+          <div className="shrink-0 text-right">
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-black text-slate-900">$36</span>
+              <span className="text-slate-400 text-sm">/client</span>
+            </div>
+            <p className="text-xs font-semibold mt-0.5" style={{ color: accent }}>13 months Pro · ~$3/mo · 1 month free</p>
           </div>
         </div>
 
@@ -779,14 +782,14 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                 {/* Price summary */}
                 <div className="rounded-2xl p-4 border"
                   style={{ backgroundColor: accent + "08", borderColor: accent + "30" }}>
-                  <div className="flex items-center justify-between">
-                    <div>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-slate-800">Pre-Created Client Account</p>
                       <ul className="mt-1.5 space-y-0.5">
                         {[
-                          "13 months of Pro access",
+                          "13 months of Pro access (1 month free)",
                           "AI-generated 12-month maintenance calendar",
-                          `${docs.length > 0 ? `${docs.length} document${docs.length > 1 ? "s" : ""} pre-loaded` : "Document storage included"}`,
+                          docs.length > 0 ? `${docs.length} document${docs.length > 1 ? "s" : ""} pre-loaded` : "Document storage included",
                           "Your branding applied to their dashboard",
                           "Secure activation link for client hand-off",
                         ].map((item) => (
@@ -796,8 +799,9 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                         ))}
                       </ul>
                     </div>
-                    <div className="text-right shrink-0 ml-4">
+                    <div className="text-right shrink-0">
                       <p className="text-2xl font-black text-slate-900">$36</p>
+                      <p className="text-xs font-semibold" style={{ color: accent }}>~$3/month</p>
                       <p className="text-xs text-slate-400">one-time</p>
                     </div>
                   </div>
