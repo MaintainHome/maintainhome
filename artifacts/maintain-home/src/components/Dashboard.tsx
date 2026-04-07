@@ -695,8 +695,51 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
         {/* ── Gift code redemption result banner ── */}
         <AnimatePresence>
-          {giftRedemptionResult && (
+          {giftRedemptionResult && giftRedemptionResult.isNewUser && giftRedemptionResult.ok ? (
             <motion.div
+              key="gift-new-user"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 overflow-hidden"
+            >
+              <div className="px-5 py-4 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center shrink-0">
+                  <Gift className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-bold text-emerald-900">Welcome! Your Pro access is active 🎉</p>
+                  <p className="text-xs text-emerald-700 mt-0.5">{giftRedemptionResult.message}</p>
+                  <p className="text-xs text-emerald-600 mt-2 font-medium">
+                    Next step: set up your home profile to generate your personalized 12-month maintenance plan.
+                  </p>
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() => { clearGiftRedemptionResult(); navigate("/quiz"); }}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Set Up My Home
+                    </button>
+                    <button
+                      onClick={clearGiftRedemptionResult}
+                      className="px-3 py-2 rounded-xl text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors"
+                    >
+                      Do it later
+                    </button>
+                  </div>
+                </div>
+                <button
+                  onClick={clearGiftRedemptionResult}
+                  className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-emerald-400 hover:bg-emerald-100 transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </motion.div>
+          ) : giftRedemptionResult ? (
+            <motion.div
+              key="gift-existing"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
@@ -731,7 +774,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <X className="w-3.5 h-3.5" />
               </button>
             </motion.div>
-          )}
+          ) : null}
         </AnimatePresence>
 
         {/* ── Broker role switcher ── only shown if user also has a broker account */}

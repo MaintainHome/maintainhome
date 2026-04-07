@@ -27,7 +27,7 @@ export function isPro(user: AuthUser | null): boolean {
 interface AuthContextType {
   user: AuthUser | null;
   loading: boolean;
-  giftRedemptionResult: { ok: boolean; message: string } | null;
+  giftRedemptionResult: { ok: boolean; message: string; isNewUser?: boolean } | null;
   clearGiftRedemptionResult: () => void;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
@@ -38,7 +38,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [giftRedemptionResult, setGiftRedemptionResult] = useState<{ ok: boolean; message: string } | null>(null);
+  const [giftRedemptionResult, setGiftRedemptionResult] = useState<{ ok: boolean; message: string; isNewUser?: boolean } | null>(null);
 
   const clearGiftRedemptionResult = useCallback(() => setGiftRedemptionResult(null), []);
 
@@ -51,11 +51,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get("gift_applied") === "1") {
+          const isNewUser = urlParams.get("new_user") === "1";
           urlParams.delete("gift_applied");
+          urlParams.delete("new_user");
           const newSearch = urlParams.toString();
           const newUrl = window.location.pathname + (newSearch ? `?${newSearch}` : "");
           window.history.replaceState({}, "", newUrl);
-          setGiftRedemptionResult({ ok: true, message: "Gift code redeemed! You now have 1 year of Pro access." });
+          const message = isNewUser
+            ? "Welcome! Your 1-year Pro access has been activated via gift code."
+            : "Gift code redeemed! You now have 1 year of Pro access.";
+          setGiftRedemptionResult({ ok: true, message, isNewUser });
           localStorage.removeItem("mh_pending_gift");
           return;
         }

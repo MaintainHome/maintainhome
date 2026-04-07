@@ -252,8 +252,12 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
   }
 
   const baseUrl = getBaseUrl(req);
-  const destination = redirectParam === "dashboard" ? "/" : "/quiz";
-  const giftParam = giftApplied ? "?gift_applied=1" : "";
+  const isNewUserFlow = redirectParam !== "dashboard";
+  const goToDashboard = !isNewUserFlow || giftApplied;
+  const destination = goToDashboard ? "/" : "/quiz";
+  const giftParam = giftApplied
+    ? `?gift_applied=1${isNewUserFlow ? "&new_user=1" : ""}`
+    : "";
   res.redirect(`${baseUrl}${destination}${giftParam}`);
 });
 
