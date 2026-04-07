@@ -1,6 +1,6 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
-import { db, whiteLabelConfigsTable } from "@workspace/db";
-import { eq, desc } from "drizzle-orm";
+import { db, whiteLabelConfigsTable, usersTable, sessionsTable, smsLogTable, maintenanceDocumentsTable, maintenanceLogTable, maintenanceNotesTable, homeProfilesTable, stripeTransactionsTable, giftCodesTable, brokerPrecreationsTable, savedCalendarsTable } from "@workspace/db";
+import { eq, desc, inArray, or } from "drizzle-orm";
 
 const router = Router();
 
@@ -114,6 +114,36 @@ router.delete("/admin/broker-requests/:id", requireAdminToken, async (req: Reque
   } catch (err) {
     console.error("[admin] delete error:", err);
     res.status(500).json({ error: "Failed to delete" });
+  }
+});
+
+// TEMPORARY — user purge for testing (remove after use)
+router.delete("/admin/purge-users", requireAdminToken, async (req: Request, res: Response) => {
+  try {
+    const { ids } = req.body as { ids: number[] };
+    if (!Array.isArray(ids) || ids.length === 0) {
+      res.status(400).json({ error: "Provide ids array" });
+      return;
+    }
+    const log: string[] = [];
+    const del = async (label: string, fn: () => Promise<unknown>) => {
+      await fn(); log.push(label);
+    };
+    await del("sessions",             () => db.delete(sessionsTable).where(inArray(sessionsTable.userId, ids)));
+    await del("sms_log",              () => db.delete(smsLogTable).where(inArray(smsLogTable.userId, ids)));
+    await del("maintenance_documents",() => db.delete(maintenanceDocumentsTable).where(inArray(maintenanceDocumentsTable.userId, ids)));
+    await del("maintenance_notes",    () => db.delete(maintenanceNotesTable).where(inArray(maintenanceNotesTable.userId, ids)));
+    await del("maintenance_log",      () => db.delete(maintenanceLogTable).where(inArray(maintenanceLogTable.userId, ids)));
+    await del("home_profiles",        () => db.delete(homeProfilesTable).where(inArray(homeProfilesTable.userId, ids)));
+    await del("stripe_transactions",  () => db.delete(stripeTransactionsTable).where(inArray(stripeTransactionsTable.userId, ids)));
+    await del("gift_codes",           () => db.delete(giftCodesTable).where(or(inArray(giftCodesTable.purchasedByUserId, ids), inArray(giftCodesTable.redeemedByUserId, ids))));
+    await del("broker_precreations",  () => db.delete(brokerPrecreationsTable).where(or(inArray(brokerPrecreationsTable.brokerUserId, ids), inArray(brokerPrecreationsTable.clientUserId, ids))));
+    await del("saved_calendars",      () => db.delete(savedCalendarsTable).where(inArray(savedCalendarsTable.userId, ids)));
+    await del("users",                () => db.delete(usersTable).where(inArray(usersTable.id, ids)));
+    res.json({ message: "Purged", steps: log, ids });
+  } catch (err) {
+    console.error("[admin] purge-users error:", err);
+    res.status(500).json({ error: String(err) });
   }
 });
 
