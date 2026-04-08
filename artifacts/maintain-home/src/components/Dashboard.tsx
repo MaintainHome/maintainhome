@@ -1665,11 +1665,24 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 </div>
               </div>
 
-              {/* Body — on desktop: headshot | logo + contact | message+CTA  /  on mobile: stacked */}
-              <div className="flex flex-col sm:flex-row sm:divide-x sm:divide-slate-100">
+              {/* Body — mobile: logo → headshot → contact → col3  /  desktop: logo+contact | headshot | col3 */}
+              <div className="flex flex-col sm:flex-row">
 
-                {/* Col 1 — Large headshot */}
-                <div className="flex items-center justify-center px-6 py-6 shrink-0">
+                {/* Logo — first on mobile (order-1), first on desktop (sm:order-1) */}
+                <div className="order-1 sm:order-1 flex items-center justify-center px-6 py-5 shrink-0 sm:border-r-0 border-b sm:border-b-0 border-slate-100">
+                  {branding.logoUrl && (
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-center w-full sm:w-auto">
+                      <img
+                        src={branding.logoUrl}
+                        alt={branding.brokerName}
+                        className="h-28 sm:h-20 max-w-[260px] sm:max-w-[200px] object-contain"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Headshot — second on mobile (order-2), third on desktop (sm:order-3) */}
+                <div className="order-2 sm:order-3 flex items-center justify-center px-6 py-6 shrink-0 border-b sm:border-b-0 sm:border-l border-slate-100">
                   {branding.agentPhotoUrl ? (
                     <div className="w-28 h-28 rounded-full overflow-hidden shadow-lg shrink-0"
                       style={{ border: "4px solid #1f9e6e50" }}>
@@ -1683,42 +1696,28 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   )}
                 </div>
 
-                {/* Col 2 — Logo + contact info: stacked on mobile, side-by-side on desktop */}
-                <div className="flex-1 flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-5 px-6 py-5 min-w-0">
-                  {/* Logo */}
-                  {branding.logoUrl && (
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-center shrink-0 w-full sm:w-auto">
-                      <img
-                        src={branding.logoUrl}
-                        alt={branding.brokerName}
-                        className="h-28 sm:h-20 max-w-[260px] sm:max-w-[200px] object-contain"
-                      />
-                    </div>
+                {/* Contact info — third on mobile (order-3), second on desktop (sm:order-2) */}
+                <div className="order-3 sm:order-2 flex-1 flex flex-col gap-2 min-w-0 items-center sm:items-start text-center sm:text-left justify-center px-6 py-5 sm:border-l border-slate-100">
+                  <p className="text-base font-bold text-slate-900 leading-tight">{branding.brokerName}</p>
+                  {branding.phoneNumber && (
+                    <a href={`tel:${branding.phoneNumber}`}
+                      className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline transition-colors"
+                      style={{ color: "#1f9e6e" }}>
+                      <Phone className="w-4 h-4 shrink-0" />{branding.phoneNumber}
+                    </a>
                   )}
-
-                  {/* Contact info stacked below logo on mobile, beside it on desktop */}
-                  <div className="flex flex-col gap-2 min-w-0 items-center sm:items-start text-center sm:text-left">
-                    <p className="text-base font-bold text-slate-900 leading-tight">{branding.brokerName}</p>
-                    {branding.phoneNumber && (
-                      <a href={`tel:${branding.phoneNumber}`}
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline transition-colors"
-                        style={{ color: "#1f9e6e" }}>
-                        <Phone className="w-4 h-4 shrink-0" />{branding.phoneNumber}
-                      </a>
-                    )}
-                    {branding.contactEmail && (
-                      <a
-                        href={`mailto:${branding.contactEmail}?subject=${encodeURIComponent("Home Maintenance Question")}&body=${encodeURIComponent(`Hi ${branding.brokerName},\n\nI have a question about my home maintenance. Could we connect?\n\nThanks!`)}`}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition-all"
-                      >
-                        <Mail className="w-3.5 h-3.5 shrink-0" />Contact My Agent
-                      </a>
-                    )}
-                  </div>
+                  {branding.contactEmail && (
+                    <a
+                      href={`mailto:${branding.contactEmail}?subject=${encodeURIComponent("Home Maintenance Question")}&body=${encodeURIComponent(`Hi ${branding.brokerName},\n\nI have a question about my home maintenance. Could we connect?\n\nThanks!`)}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                    >
+                      <Mail className="w-3.5 h-3.5 shrink-0" />Contact My Agent
+                    </a>
+                  )}
                 </div>
 
-                {/* Col 3 — Resale message + CTA */}
-                <div className="flex flex-col justify-center gap-3 px-6 py-5 sm:w-64 shrink-0 bg-slate-50/60">
+                {/* Col 3 — Resale message + CTA (last on both mobile and desktop) */}
+                <div className="order-4 sm:order-4 flex flex-col justify-center gap-3 px-6 py-5 sm:w-64 shrink-0 bg-slate-50/60 sm:border-l border-slate-100">
                   <div className="rounded-xl px-4 py-3" style={{ backgroundColor: "#1f9e6e0d", border: "1px solid #1f9e6e25" }}>
                     <p className="text-xs text-slate-600 leading-relaxed">
                       When you're ready to move, we can export your maintenance history — streamlining the listing process.
