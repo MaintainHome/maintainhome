@@ -1653,11 +1653,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <h2 className="text-sm font-bold text-slate-900">Your Home Support</h2>
               </div>
 
-              {/* Body — three columns on desktop, stacked on mobile */}
+              {/* Body — on desktop: headshot | logo + contact | message+CTA  /  on mobile: stacked */}
               <div className="flex flex-col sm:flex-row sm:divide-x sm:divide-slate-100">
 
                 {/* Col 1 — Large headshot */}
-                <div className="flex items-center justify-center px-6 py-6 sm:py-7 shrink-0">
+                <div className="flex items-center justify-center px-6 py-6 shrink-0">
                   {branding.agentPhotoUrl ? (
                     <div className="w-28 h-28 rounded-full overflow-hidden shadow-lg shrink-0"
                       style={{ border: "4px solid #1f9e6e50" }}>
@@ -1671,35 +1671,38 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   )}
                 </div>
 
-                {/* Col 2 — Logo + name + contact */}
-                <div className="flex-1 flex flex-col justify-center gap-3 px-6 py-5 min-w-0">
+                {/* Col 2 — Logo (left) + contact info (right), side-by-side */}
+                <div className="flex-1 flex flex-row items-center gap-5 px-6 py-5 min-w-0">
+                  {/* Logo */}
                   {branding.logoUrl && (
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 inline-flex items-center self-start">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-center shrink-0">
                       <img
                         src={branding.logoUrl}
                         alt={branding.brokerName}
-                        className="h-16 max-w-[220px] object-contain"
+                        className="h-20 max-w-[180px] object-contain"
                       />
                     </div>
                   )}
-                  <div>
-                    <p className="text-base font-bold text-slate-900 leading-tight mb-1">{branding.brokerName}</p>
+
+                  {/* Contact info stacked beside logo */}
+                  <div className="flex flex-col gap-2 min-w-0">
+                    <p className="text-base font-bold text-slate-900 leading-tight">{branding.brokerName}</p>
                     {branding.phoneNumber && (
                       <a href={`tel:${branding.phoneNumber}`}
                         className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline transition-colors"
                         style={{ color: "#1f9e6e" }}>
-                        <Phone className="w-4 h-4" />{branding.phoneNumber}
+                        <Phone className="w-4 h-4 shrink-0" />{branding.phoneNumber}
+                      </a>
+                    )}
+                    {branding.contactEmail && (
+                      <a
+                        href={`mailto:${branding.contactEmail}?subject=${encodeURIComponent("Home Maintenance Question")}&body=${encodeURIComponent(`Hi ${branding.brokerName},\n\nI have a question about my home maintenance. Could we connect?\n\nThanks!`)}`}
+                        className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                      >
+                        <Mail className="w-3.5 h-3.5 shrink-0" />Contact My Agent
                       </a>
                     )}
                   </div>
-                  {branding.contactEmail && (
-                    <a
-                      href={`mailto:${branding.contactEmail}?subject=${encodeURIComponent("Home Maintenance Question")}&body=${encodeURIComponent(`Hi ${branding.brokerName},\n\nI have a question about my home maintenance. Could we connect?\n\nThanks!`)}`}
-                      className="self-start inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition-all"
-                    >
-                      <Mail className="w-3.5 h-3.5" />Contact My Agent
-                    </a>
-                  )}
                 </div>
 
                 {/* Col 3 — Resale message + CTA */}
