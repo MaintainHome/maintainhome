@@ -846,11 +846,23 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <div className="shrink-0 flex flex-col items-center justify-center gap-1 pl-3 sm:pl-5 border-l border-white/10 self-stretch">
               {userIsPro ? (
                 <>
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/20 flex items-center justify-center">
-                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <div className="relative">
+                    <div
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center"
+                      style={{
+                        background: "linear-gradient(135deg, #4ade80 0%, #16a34a 100%)",
+                        boxShadow: "0 0 18px rgba(74,222,128,0.55), 0 2px 8px rgba(0,0,0,0.3)",
+                      }}
+                    >
+                      <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="white" />
+                    </div>
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 to-transparent pointer-events-none" />
                   </div>
-                  <span className="text-[10px] font-black text-primary text-center leading-tight whitespace-nowrap">Pro Member</span>
-                  <span className="text-[9px] text-slate-400 text-center">Full access ✓</span>
+                  <span
+                    className="text-[11px] sm:text-xs font-black text-center leading-tight whitespace-nowrap tracking-tight"
+                    style={{ color: "#4ade80", textShadow: "0 0 10px rgba(74,222,128,0.55)" }}
+                  >Pro Member</span>
+                  <span className="text-[10px] font-semibold text-center" style={{ color: "rgba(74,222,128,0.65)" }}>Full access ✓</span>
                 </>
               ) : (
                 <button
