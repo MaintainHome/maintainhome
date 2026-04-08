@@ -892,7 +892,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <button
               ref={tourRef1}
               onClick={onOpenAIChat}
-              className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group overflow-hidden"
+              className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group overflow-hidden"
+              onMouseEnter={e => { const el = e.currentTarget; el.style.background = "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)"; el.style.borderColor = "transparent"; }}
+              onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
             >
               <div className="w-14 h-16 overflow-hidden shrink-0">
                 <img
@@ -936,7 +938,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           <button
             ref={tourRef2}
             onClick={() => navigate("/history")}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
+            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
+            onMouseEnter={e => { const el = e.currentTarget; el.style.background = "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)"; el.style.borderColor = "transparent"; }}
+            onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
               <ClipboardList className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
@@ -951,7 +955,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           <button
             ref={tourRef3}
             onClick={scrollToThisMonth}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
+            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
+            onMouseEnter={e => { const el = e.currentTarget; el.style.background = "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)"; el.style.borderColor = "transparent"; }}
+            onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
               <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
@@ -966,7 +972,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           <button
             ref={tourRef4}
             onClick={() => navigate("/home-profile")}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:bg-primary hover:border-primary hover:shadow-md hover:shadow-primary/25 transition-all text-left group"
+            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
+            onMouseEnter={e => { const el = e.currentTarget; el.style.background = "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)"; el.style.borderColor = "transparent"; }}
+            onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
           >
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
               <HomeIcon className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
