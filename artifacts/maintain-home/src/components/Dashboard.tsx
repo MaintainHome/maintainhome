@@ -5,7 +5,7 @@ import {
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
   Send, Loader2, User, TrendingDown, TrendingUp, Shield, ChevronDown, ChevronUp,
-  Clock, TriangleAlert, Paperclip, FileText, Phone, Building2, Gift,
+  Clock, TriangleAlert, Paperclip, FileText, Phone, Building2, Gift, Mail, UserCheck,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -1687,16 +1687,24 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 </div>
               </div>
 
-              {/* 1/4 — dark background: headline + CTA */}
-              <div className="sm:flex-[1] min-w-0 flex flex-col items-center justify-center px-5 py-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-                <h2 className="text-sm font-bold text-white text-center mb-2 leading-snug">Preparing For What's Next</h2>
-                <p className="text-xs text-white/55 leading-relaxed text-center mb-4">
-                  We can export your full maintenance history to streamline the listing process.
-                </p>
+              {/* 1/4 — dark background: headline + CTAs */}
+              <div className="sm:flex-[1] min-w-0 flex flex-col items-center justify-center gap-2.5 px-5 py-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+                <h2 className="text-sm font-bold text-white text-center mb-1 leading-snug">Your Broker</h2>
+
+                {branding.contactEmail && (
+                  <a
+                    href={`mailto:${branding.contactEmail}?subject=${encodeURIComponent("Home Maintenance Question")}&body=${encodeURIComponent(`Hi ${branding.brokerName},\n\nI have a question about my home maintenance. Could we connect?\n\nThanks!`)}`}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
+                    style={{ backgroundColor: "#1f9e6e", boxShadow: "0 0 16px rgba(31,158,110,0.4)" }}
+                  >
+                    <Mail className="w-3.5 h-3.5 shrink-0" />
+                    Contact My Agent
+                  </a>
+                )}
+
                 <button
                   onClick={() => navigate("/history")}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
-                  style={{ backgroundColor: "#1f9e6e", boxShadow: "0 0 16px rgba(31,158,110,0.4)" }}
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 border border-white/15 hover:bg-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <ClipboardList className="w-3.5 h-3.5 shrink-0" />
                   View History
@@ -1705,24 +1713,40 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               </div>
             </div>
           ) : (
-            /* ── Regular (non-white-label) version ── */
-            <div className="flex items-start gap-4 px-5 py-5">
-              <div className="w-11 h-11 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
-                <ClipboardList className="w-5 h-5 text-emerald-600" />
+            /* ── Regular (non-white-label) version — "Talk to a MaintainHome Trusted Local Agent" ── */
+            <div className="flex flex-col sm:flex-row sm:items-stretch gap-0">
+              {/* Left — agent connect */}
+              <div className="sm:flex-[3] flex items-start gap-4 px-5 py-5">
+                <div className="w-11 h-11 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
+                  <UserCheck className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-sm font-bold text-slate-900 mb-1">Talk to a MaintainHome Trusted Local Agent</h2>
+                  <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                    Have questions about your home's value, maintenance costs, or preparing to sell? Connect with a trusted local agent who can help.
+                  </p>
+                  <a
+                    href={`mailto:consultingjohnwalker@gmail.com?subject=${encodeURIComponent("I'd like to connect with a trusted local agent")}&body=${encodeURIComponent("Hi,\n\nI'd like to speak with a trusted local agent about my home. Could we connect?\n\nThanks!")}`}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20"
+                    style={{ backgroundColor: "#1f9e6e" }}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Connect with a Local Agent
+                  </a>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <h2 className="text-sm font-bold text-slate-900 mb-1">Preparing For What's Next</h2>
-                <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                  Your complete maintenance history is saved here. Keep track of everything you've done for your home.
-                </p>
+
+              {/* Right — maintenance history */}
+              <div className="sm:flex-[1] min-w-0 flex flex-col items-center justify-center gap-2 px-5 py-5 border-t sm:border-t-0 sm:border-l border-slate-100 bg-slate-50/50">
+                <p className="text-xs font-semibold text-slate-500 text-center mb-1">Preparing For What's Next</p>
                 <button
                   onClick={() => navigate("/history")}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20"
+                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
                   style={{ backgroundColor: "#1f9e6e" }}
                 >
-                  <ClipboardList className="w-4 h-4" />
-                  View Full Maintenance History
-                  <ChevronRight className="w-4 h-4" />
+                  <ClipboardList className="w-3.5 h-3.5 shrink-0" />
+                  View History
+                  <ChevronRight className="w-3.5 h-3.5 shrink-0" />
                 </button>
               </div>
             </div>

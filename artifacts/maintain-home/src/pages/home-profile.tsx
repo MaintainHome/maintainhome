@@ -5,9 +5,10 @@ import {
   Home, Save, CheckCircle2, AlertCircle, Edit2,
   MapPin, Bed, Bath, Layers, Waves, Calendar, Percent,
   TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2, Shield,
-  ExternalLink, MessageSquare, Phone, Bell, BellOff, ToggleLeft, ToggleRight, Gift, Loader2,
+  ExternalLink, MessageSquare, Phone, Bell, BellOff, ToggleLeft, ToggleRight, Gift, Loader2, Mail,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
+import { useBranding } from "@/contexts/BrandingContext";
 import { PricingSection } from "@/components/PricingSection";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
 import { HomeDocumentsSection } from "@/components/HomeDocumentsWidget";
@@ -106,6 +107,7 @@ const emptyProfile: HomeProfile = {
 // ── Component ─────────────────────────────────────────────────────────────
 export default function HomeProfilePage() {
   const { user, refreshUser } = useAuth();
+  const { branding } = useBranding();
   const [, navigate] = useLocation();
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string> | null>(null);
   const [profile, setProfile] = useState<HomeProfile>(emptyProfile);
@@ -1013,12 +1015,17 @@ export default function HomeProfilePage() {
           function makeZillowUrl(a: string) {
             return `https://www.zillow.com/homes/${encodeURIComponent(a)}_rb/`;
           }
-          function makeRedfinUrl(a: string) {
-            return `https://www.redfin.com/query-location?location=${encodeURIComponent(a)}`;
-          }
           function makeRealtorUrl(a: string) {
             return `https://www.realtor.com/realestateandhomes-search/${encodeURIComponent(a)}`;
           }
+
+          const marketUpdateEmail = branding?.contactEmail ?? "consultingjohnwalker@gmail.com";
+          const marketUpdateSubject = addr
+            ? `Market Update Request — ${addr}`
+            : "Market Update Request for My Home";
+          const marketUpdateBody = addr
+            ? `Hi,\n\nI'd like to request a market update for my home at ${addr}. Could you help?\n\nThanks!`
+            : "Hi,\n\nI'd like to request a market update for my home. Could you help?\n\nThanks!";
 
           const sites: {
             label: string;
@@ -1035,14 +1042,6 @@ export default function HomeProfilePage() {
               bg: "hover:bg-blue-50",
               border: "border-blue-200 hover:border-blue-400",
               href: addr ? makeZillowUrl(addr) : "https://www.zillow.com",
-            },
-            {
-              label: "Redfin",
-              sub: "Real-time estimate",
-              color: "text-[#d93025]",
-              bg: "hover:bg-red-50",
-              border: "border-red-200 hover:border-red-400",
-              href: addr ? makeRedfinUrl(addr) : "https://www.redfin.com",
             },
             {
               label: "Realtor.com",
@@ -1123,6 +1122,26 @@ export default function HomeProfilePage() {
                     These are live estimates from major real estate sites. They update regularly and can be useful for tracking your home's value over time.
                     {" "}<span className="font-semibold text-slate-600">This is not financial advice.</span>
                   </p>
+                </div>
+
+                {/* Request Market Update From My Agent */}
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3.5">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-slate-800">Request Market Update From My Agent</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      {branding?.contactEmail
+                        ? `Get a personalized market update from ${branding.brokerName}.`
+                        : "Get a personalized market update from a trusted local agent."}
+                    </p>
+                  </div>
+                  <a
+                    href={`mailto:${marketUpdateEmail}?subject=${encodeURIComponent(marketUpdateSubject)}&body=${encodeURIComponent(marketUpdateBody)}`}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white whitespace-nowrap transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20 shrink-0"
+                    style={{ backgroundColor: "#1f9e6e" }}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Request Update
+                  </a>
                 </div>
               </div>
 

@@ -9,6 +9,7 @@ export interface BrandingConfig {
   tagline: string | null;
   welcomeMessage: string | null;
   type: "individual_agent" | "team_leader";
+  contactEmail: string | null;
 }
 
 interface BrandingContextType {

@@ -60,6 +60,7 @@ router.get("/branding", async (req: Request, res: Response) => {
         tagline: config.tagline,
         welcomeMessage: config.welcomeMessage,
         type: config.type,
+        contactEmail: config.contactEmail,
       },
     });
   } catch (err) {
