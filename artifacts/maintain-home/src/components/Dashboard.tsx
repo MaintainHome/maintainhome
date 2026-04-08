@@ -1683,21 +1683,21 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   )}
                 </div>
 
-                {/* Col 2 — Logo (left) + contact info (right), side-by-side */}
-                <div className="flex-1 flex flex-row items-center gap-5 px-6 py-5 min-w-0">
+                {/* Col 2 — Logo + contact info: stacked on mobile, side-by-side on desktop */}
+                <div className="flex-1 flex flex-col sm:flex-row items-center sm:items-center gap-4 sm:gap-5 px-6 py-5 min-w-0">
                   {/* Logo */}
                   {branding.logoUrl && (
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-center shrink-0">
+                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 flex items-center justify-center shrink-0 w-full sm:w-auto">
                       <img
                         src={branding.logoUrl}
                         alt={branding.brokerName}
-                        className="h-20 max-w-[180px] object-contain"
+                        className="h-14 sm:h-20 max-w-[200px] object-contain"
                       />
                     </div>
                   )}
 
-                  {/* Contact info stacked beside logo */}
-                  <div className="flex flex-col gap-2 min-w-0">
+                  {/* Contact info stacked below logo on mobile, beside it on desktop */}
+                  <div className="flex flex-col gap-2 min-w-0 items-center sm:items-start text-center sm:text-left">
                     <p className="text-base font-bold text-slate-900 leading-tight">{branding.brokerName}</p>
                     {branding.phoneNumber && (
                       <a href={`tel:${branding.phoneNumber}`}
@@ -1709,7 +1709,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                     {branding.contactEmail && (
                       <a
                         href={`mailto:${branding.contactEmail}?subject=${encodeURIComponent("Home Maintenance Question")}&body=${encodeURIComponent(`Hi ${branding.brokerName},\n\nI have a question about my home maintenance. Could we connect?\n\nThanks!`)}`}
-                        className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:border-slate-300 hover:bg-slate-50 transition-all"
                       >
                         <Mail className="w-3.5 h-3.5 shrink-0" />Contact My Agent
                       </a>
