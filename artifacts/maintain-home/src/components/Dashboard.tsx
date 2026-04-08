@@ -1635,7 +1635,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           )}
         </motion.div>
 
-        {/* ── Preparing For What's Next ── */}
+        {/* ── Your Home Support ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -1643,116 +1643,125 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
         >
           {branding ? (
-            /* ── White-label version ── */
-            <div className="flex flex-col sm:flex-row sm:items-stretch gap-0">
-              {/* 3/4 — white background: logo | headshot+info */}
-              <div className="sm:flex-[3] bg-white flex flex-col sm:flex-row items-stretch">
-                {/* Logo half */}
-                <div className="flex-1 flex items-center justify-center px-6 py-6 border-b sm:border-b-0 sm:border-r border-slate-100">
-                  {branding.logoUrl ? (
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-3 w-full flex items-center justify-center">
-                      <img
-                        src={branding.logoUrl}
-                        alt={branding.brokerName}
-                        className="h-32 max-w-[210px] w-full object-contain"
-                      />
+            /* ── White-label: branded agent card ── */
+            <div>
+              {/* Header strip with subtle brand accent */}
+              <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#1f9e6e20" }}>
+                  <HomeIcon className="w-3.5 h-3.5" style={{ color: "#1f9e6e" }} />
+                </div>
+                <h2 className="text-sm font-bold text-slate-900">Your Home Support</h2>
+              </div>
+
+              <div className="px-5 py-5 flex flex-col sm:flex-row gap-5 sm:gap-8 items-start">
+                {/* Left: agent identity */}
+                <div className="flex flex-col items-center gap-3 sm:items-start sm:flex-row sm:gap-4 flex-1 min-w-0">
+                  {/* Headshot */}
+                  {branding.agentPhotoUrl ? (
+                    <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] shadow-md shrink-0"
+                      style={{ borderColor: "#1f9e6e60" }}>
+                      <img src={branding.agentPhotoUrl} alt={branding.brokerName} className="w-full h-full object-cover" />
                     </div>
                   ) : (
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                      style={{ backgroundColor: "#1f9e6e22", border: "2px solid #1f9e6e55" }}>
+                    <div className="w-20 h-20 rounded-full flex items-center justify-center shrink-0 shadow-md"
+                      style={{ backgroundColor: "#1f9e6e18", border: "3px solid #1f9e6e40" }}>
                       <span className="text-2xl font-black" style={{ color: "#1f9e6e" }}>{branding.brokerName[0]}</span>
                     </div>
                   )}
-                </div>
 
-                {/* Headshot + name + phone half */}
-                <div className="flex-1 flex flex-col items-center justify-center gap-3 px-6 py-7">
-                  {branding.agentPhotoUrl && (
-                    <div className="relative">
-                      <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] shadow-lg shadow-black/10"
-                        style={{ borderColor: "#1f9e6e99" }}>
-                        <img src={branding.agentPhotoUrl} alt={branding.brokerName} className="w-full h-full object-cover" />
+                  {/* Name, logo, phone */}
+                  <div className="flex flex-col gap-2 min-w-0">
+                    {branding.logoUrl && (
+                      <div className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 inline-flex items-center justify-center mb-1">
+                        <img src={branding.logoUrl} alt={branding.brokerName} className="h-10 max-w-[160px] object-contain" />
                       </div>
-                      <div className="absolute inset-0 rounded-full pointer-events-none"
-                        style={{ boxShadow: "0 0 0 4px rgba(31,158,110,0.12)" }} />
-                    </div>
-                  )}
-                  <div className="text-center">
-                    <p className="text-slate-900 text-sm font-bold leading-snug">{branding.brokerName}</p>
+                    )}
+                    <p className="text-base font-bold text-slate-900 leading-tight">{branding.brokerName}</p>
                     {branding.phoneNumber && (
-                      <a
-                        href={`tel:${branding.phoneNumber}`}
-                        className="inline-flex items-center gap-2 mt-2 text-sm font-semibold hover:underline transition-colors"
-                        style={{ color: "#1f9e6e" }}
-                      >
+                      <a href={`tel:${branding.phoneNumber}`}
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold hover:underline transition-colors"
+                        style={{ color: "#1f9e6e" }}>
                         <Phone className="w-4 h-4" />{branding.phoneNumber}
+                      </a>
+                    )}
+                    {branding.contactEmail && (
+                      <a
+                        href={`mailto:${branding.contactEmail}?subject=${encodeURIComponent("Home Maintenance Question")}&body=${encodeURIComponent(`Hi ${branding.brokerName},\n\nI have a question about my home maintenance. Could we connect?\n\nThanks!`)}`}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold hover:underline transition-colors text-slate-500 hover:text-slate-700"
+                      >
+                        <Mail className="w-3.5 h-3.5" />Contact My Agent
                       </a>
                     )}
                   </div>
                 </div>
-              </div>
 
-              {/* 1/4 — dark background: headline + CTAs */}
-              <div className="sm:flex-[1] min-w-0 flex flex-col items-center justify-center gap-2.5 px-5 py-6 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-                <h2 className="text-sm font-bold text-white text-center mb-1 leading-snug">Your Broker</h2>
-
-                {branding.contactEmail && (
-                  <a
-                    href={`mailto:${branding.contactEmail}?subject=${encodeURIComponent("Home Maintenance Question")}&body=${encodeURIComponent(`Hi ${branding.brokerName},\n\nI have a question about my home maintenance. Could we connect?\n\nThanks!`)}`}
-                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
-                    style={{ backgroundColor: "#1f9e6e", boxShadow: "0 0 16px rgba(31,158,110,0.4)" }}
+                {/* Right: message + CTA */}
+                <div className="flex flex-col gap-3 sm:w-60 shrink-0">
+                  <div className="rounded-xl px-4 py-3" style={{ backgroundColor: "#1f9e6e0d", border: "1px solid #1f9e6e25" }}>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      When you're ready to move, we can export your maintenance history — streamlining the listing process.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate("/history")}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                    style={{ backgroundColor: "#1f9e6e", boxShadow: "0 2px 12px rgba(31,158,110,0.3)" }}
                   >
-                    <Mail className="w-3.5 h-3.5 shrink-0" />
-                    Contact My Agent
-                  </a>
-                )}
-
-                <button
-                  onClick={() => navigate("/history")}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-semibold text-white/70 border border-white/15 hover:bg-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <ClipboardList className="w-3.5 h-3.5 shrink-0" />
-                  View History
-                  <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-                </button>
+                    <ClipboardList className="w-4 h-4 shrink-0" />
+                    View Full Maintenance History
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
-            /* ── Regular (non-white-label) version — "Talk to a MaintainHome Trusted Local Agent" ── */
-            <div className="flex flex-col sm:flex-row sm:items-stretch gap-0">
-              {/* Left — agent connect */}
-              <div className="sm:flex-[3] flex items-start gap-4 px-5 py-5">
-                <div className="w-11 h-11 rounded-2xl bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
-                  <UserCheck className="w-5 h-5 text-emerald-600" />
+            /* ── Regular: generic Maintly version ── */
+            <div>
+              <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
+                  <ClipboardList className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h2 className="text-sm font-bold text-slate-900 mb-1">Talk to a MaintainHome Trusted Local Agent</h2>
-                  <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                    Have questions about your home's value, maintenance costs, or preparing to sell? Connect with a trusted local agent who can help.
-                  </p>
-                  <a
-                    href={`mailto:consultingjohnwalker@gmail.com?subject=${encodeURIComponent("I'd like to connect with a trusted local agent")}&body=${encodeURIComponent("Hi,\n\nI'd like to speak with a trusted local agent about my home. Could we connect?\n\nThanks!")}`}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/20"
-                    style={{ backgroundColor: "#1f9e6e" }}
-                  >
-                    <Mail className="w-4 h-4" />
-                    Connect with a Local Agent
-                  </a>
-                </div>
+                <h2 className="text-sm font-bold text-slate-900">Your Home Support</h2>
               </div>
 
-              {/* Right — maintenance history */}
-              <div className="sm:flex-[1] min-w-0 flex flex-col items-center justify-center gap-2 px-5 py-5 border-t sm:border-t-0 sm:border-l border-slate-100 bg-slate-50/50">
-                <p className="text-xs font-semibold text-slate-500 text-center mb-1">Preparing For What's Next</p>
-                <button
-                  onClick={() => navigate("/history")}
-                  className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold text-white transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
-                  style={{ backgroundColor: "#1f9e6e" }}
-                >
-                  <ClipboardList className="w-3.5 h-3.5 shrink-0" />
-                  View History
-                  <ChevronRight className="w-3.5 h-3.5 shrink-0" />
-                </button>
+              <div className="px-5 py-5 flex flex-col sm:flex-row items-center gap-5">
+                {/* Maintly avatar */}
+                <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-primary/30 shadow-md shrink-0">
+                  <img
+                    src={`${import.meta.env.BASE_URL}images/maintly-avatar.png`}
+                    alt="Maintly"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      el.style.display = "none";
+                      const parent = el.parentElement;
+                      if (parent) {
+                        parent.style.background = "linear-gradient(135deg, #1f9e6e20, #1f9e6e40)";
+                        parent.style.display = "flex";
+                        parent.style.alignItems = "center";
+                        parent.style.justifyContent = "center";
+                        parent.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1f9e6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* Message + CTA */}
+                <div className="flex flex-col gap-3 flex-1 min-w-0">
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 mb-1">Your Maintenance History</p>
+                    <p className="text-sm text-slate-500 leading-relaxed">
+                      Your complete maintenance history is saved here. Keep track of everything you've done for your home.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => navigate("/history")}
+                    className="self-start inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-primary/20"
+                    style={{ backgroundColor: "#1f9e6e" }}
+                  >
+                    <ClipboardList className="w-4 h-4 shrink-0" />
+                    View Full Maintenance History
+                  </button>
+                </div>
               </div>
             </div>
           )}
