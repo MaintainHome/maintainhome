@@ -1691,7 +1691,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                       <img
                         src={branding.logoUrl}
                         alt={branding.brokerName}
-                        className="h-20 sm:h-20 max-w-[220px] object-contain"
+                        className="h-28 sm:h-20 max-w-[260px] sm:max-w-[200px] object-contain"
                       />
                     </div>
                   )}
