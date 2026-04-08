@@ -814,54 +814,54 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-blue-600/10 pointer-events-none" />
-          <div className="relative flex flex-row items-center gap-3 sm:gap-6 p-4 sm:p-8">
+          <div className="relative flex flex-row items-center gap-3 sm:gap-5 px-4 py-3 sm:px-6 sm:py-4">
             <img
               src={`${BASE}images/maintly_thumb.png`}
               alt="Maintly"
-              className="w-16 sm:w-28 h-auto object-contain shrink-0 drop-shadow-xl self-center"
+              className="w-14 sm:w-20 h-auto object-contain shrink-0 drop-shadow-xl self-center"
             />
-            <div className="flex-1 min-w-0 py-2">
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-primary" />
-                <span className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-wider">Your Dashboard</span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Sparkles className="w-3 h-3 text-primary" />
+                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Your Dashboard</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-display font-black text-white leading-tight">
+              <h1 className="text-xl sm:text-2xl font-display font-black text-white leading-tight">
                 Welcome back, {firstName}!
               </h1>
-              <p className="text-slate-200 mt-1 text-sm sm:text-base leading-snug font-medium">
+              <p className="text-slate-200 mt-0.5 text-xs sm:text-sm leading-snug font-medium">
                 {state
                   ? <>Your plan for <span className="text-primary font-bold">{state}</span>.</>
                   : "Your personalized maintenance plan."}
               </p>
               {branding?.tagline ? (
-                <p className="text-primary text-xs sm:text-sm mt-1 leading-snug font-semibold">
+                <p className="text-primary text-xs mt-0.5 leading-snug font-semibold">
                   {branding.tagline}
                 </p>
               ) : (
-                <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-snug hidden sm:block">
-                  Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's Ai guidance</span>.
+                <p className="text-slate-400 text-xs mt-0.5 leading-snug hidden sm:block">
+                  Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's AI guidance</span>.
                 </p>
               )}
             </div>
-            <div className="shrink-0 flex flex-col items-center justify-center gap-1.5 pl-3 sm:pl-6 border-l border-white/10 self-stretch">
+            <div className="shrink-0 flex flex-col items-center justify-center gap-1 pl-3 sm:pl-5 border-l border-white/10 self-stretch">
               {userIsPro ? (
                 <>
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-primary/20 flex items-center justify-center">
-                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   </div>
-                  <span className="text-[11px] sm:text-xs font-black text-primary text-center leading-tight whitespace-nowrap">Pro Member</span>
-                  <span className="text-[10px] text-slate-400 text-center">Full access ✓</span>
+                  <span className="text-[10px] font-black text-primary text-center leading-tight whitespace-nowrap">Pro Member</span>
+                  <span className="text-[9px] text-slate-400 text-center">Full access ✓</span>
                 </>
               ) : (
                 <button
                   onClick={() => navigate("/home-profile")}
-                  className="flex flex-col items-center gap-1.5 group"
+                  className="flex flex-col items-center gap-1 group"
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-amber-500/20 group-hover:bg-amber-500/30 flex items-center justify-center transition-colors">
-                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-amber-400" />
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/20 group-hover:bg-amber-500/30 flex items-center justify-center transition-colors">
+                    <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
                   </div>
-                  <span className="text-[11px] sm:text-xs font-black text-amber-400 text-center leading-tight whitespace-nowrap">Upgrade</span>
-                  <span className="text-[10px] text-amber-500/70 text-center whitespace-nowrap">to Pro</span>
+                  <span className="text-[10px] font-black text-amber-400 text-center leading-tight whitespace-nowrap">Upgrade</span>
+                  <span className="text-[9px] text-amber-500/70 text-center whitespace-nowrap">to Pro</span>
                 </button>
               )}
             </div>
