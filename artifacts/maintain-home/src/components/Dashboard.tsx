@@ -1646,11 +1646,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             /* ── White-label: branded agent card ── */
             <div>
               {/* Header strip */}
-              <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: "#1f9e6e20" }}>
-                  <HomeIcon className="w-3.5 h-3.5" style={{ color: "#1f9e6e" }} />
+              <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
+                <div className="flex items-center gap-2">
+                  <HomeIcon className="w-4 h-4 text-white/70" />
+                  <h2 className="text-base font-bold text-white">Your Home Support</h2>
                 </div>
-                <h2 className="text-sm font-bold text-slate-900">Your Home Support</h2>
               </div>
 
               {/* Body — on desktop: headshot | logo + contact | message+CTA  /  on mobile: stacked */}
@@ -1726,11 +1726,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           ) : (
             /* ── Regular: generic Maintly version ── */
             <div>
-              <div className="px-5 pt-5 pb-4 border-b border-slate-100 flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10">
-                  <ClipboardList className="w-3.5 h-3.5 text-primary" />
+              <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
+                <div className="flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4 text-white/70" />
+                  <h2 className="text-base font-bold text-white">Your Home Support</h2>
                 </div>
-                <h2 className="text-sm font-bold text-slate-900">Your Home Support</h2>
               </div>
 
               <div className="px-5 py-5 flex flex-col sm:flex-row items-center gap-5">
@@ -1825,12 +1825,12 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             transition={{ duration: 0.45, delay: 0.17 }}
             className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
           >
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
+            <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-primary" />
-                <h2 className="text-base font-bold text-slate-900">Future Big-Ticket Items</h2>
+                <Clock className="w-4 h-4 text-white/70" />
+                <h2 className="text-base font-bold text-white">Future Big-Ticket Items</h2>
               </div>
-              <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded-full uppercase tracking-wide">Pro</span>
+              <span className="text-[10px] font-bold text-emerald-400 bg-white/10 px-2 py-1 rounded-full uppercase tracking-wide">Pro</span>
             </div>
 
             {!yearBuiltNum ? (
