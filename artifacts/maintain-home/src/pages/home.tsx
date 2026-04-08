@@ -158,7 +158,8 @@ export default function Home() {
                   <button
                     onClick={() => setShowAIChat(true)}
                     title="Ask Maintly"
-                    className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors shadow-sm"
+                    className="w-9 h-9 rounded-full text-white flex items-center justify-center hover:opacity-90 transition-opacity shadow-sm"
+                    style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)" }}
                   >
                     <MessageCircle className="w-4 h-4" />
                   </button>
@@ -239,7 +240,8 @@ export default function Home() {
                 {userIsPro && (
                   <button
                     onClick={() => setShowAIChat(true)}
-                    className="flex items-center gap-1.5 text-sm font-semibold text-white bg-primary hover:bg-primary/90 px-3 py-2 rounded-xl transition-colors shadow-sm"
+                    className="flex items-center gap-1.5 text-sm font-semibold text-white px-3 py-2 rounded-xl hover:opacity-90 transition-opacity shadow-sm"
+                    style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)" }}
                   >
                     <MessageCircle className="w-4 h-4" />
                     Ask Maintly

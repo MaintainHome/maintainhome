@@ -794,7 +794,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             animate={{ opacity: 1, y: 0 }}
             onClick={() => { setPreviewSubdomain(null); sessionStorage.setItem("mh_active_role", "broker"); navigate("/broker-dashboard"); }}
             className="w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white hover:opacity-90 active:scale-[0.99] transition-all"
-            style={{ background: "linear-gradient(90deg, #0f5939 0%, #1f9e6e 100%)" }}
+            style={{ background: "linear-gradient(90deg, #1f9e6e 0%, #3b82f6 100%)" }}
           >
             <div className="flex items-center gap-2">
               <Building2 className="w-4 h-4 shrink-0" />
@@ -850,8 +850,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                     <div
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center"
                       style={{
-                        background: "linear-gradient(135deg, #4ade80 0%, #16a34a 100%)",
-                        boxShadow: "0 0 18px rgba(74,222,128,0.55), 0 2px 8px rgba(0,0,0,0.3)",
+                        background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                        boxShadow: "0 0 16px rgba(31,158,110,0.45), 0 0 10px rgba(59,130,246,0.3), 0 2px 8px rgba(0,0,0,0.3)",
                       }}
                     >
                       <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="white" />
