@@ -222,14 +222,17 @@ interface ForecastResult extends BigTicketItem {
   urgency: "imminent" | "soon" | "planning";
 }
 
-function computeForecasts(yearBuilt: number, currentYear: number, roofType?: string): ForecastResult[] {
+function computeForecasts(yearBuilt: number, currentYear: number, roofType?: string, recentUpgrades: string[] = []): ForecastResult[] {
   return BIG_TICKET_ITEMS.map(item => {
     let life = item.avgLife;
     if (item.key === "roof" && roofType) {
       if (roofType === "metal" || roofType === "tile") life = 50;
       else if (roofType === "flat") life = 15;
     }
-    const dueYear = yearBuilt + life;
+    let dueYear = yearBuilt + life;
+    if (recentUpgrades.includes(item.key)) {
+      dueYear = Math.max(dueYear, currentYear + 7);
+    }
     const yearsLeft = dueYear - currentYear;
     const urgency: ForecastResult["urgency"] =
       yearsLeft <= 1 ? "imminent" :
@@ -675,8 +678,10 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const currentYear = new Date().getFullYear();
   const yearBuiltNum = homeProfile?.yearBuilt ? parseInt(homeProfile.yearBuilt) : null;
   const roofType = savedCalendar?.quizAnswers?.roofType ?? undefined;
+  const recentUpgradesRaw: string = savedCalendar?.quizAnswers?.recentUpgrades ?? "";
+  const recentUpgradesArr = recentUpgradesRaw ? recentUpgradesRaw.split(",").filter(Boolean) : [];
   const allForecasts: ForecastResult[] = yearBuiltNum
-    ? computeForecasts(yearBuiltNum, currentYear, roofType)
+    ? computeForecasts(yearBuiltNum, currentYear, roofType, recentUpgradesArr)
     : [];
   const [resolvedKeys, setResolvedKeys] = useState<Set<string>>(new Set());
   const [resolvingKey, setResolvingKey] = useState<string | null>(null);
@@ -1835,6 +1840,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                     {roofType && roofType !== "asphalt" && (
                       <span> Roof lifespan adjusted for <span className="font-semibold text-slate-700">{roofType}</span> material.</span>
                     )}
+                    {recentUpgradesArr.length > 0 && (
+                      <span> Forecasts adjusted for recently upgraded systems.</span>
+                    )}
                   </p>
                 </div>
 
@@ -1879,6 +1887,13 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                             {" "}(±3 yrs) · <span className="font-semibold">{item.costRange}</span>
                           </p>
                         </div>
+                        {recentUpgradesArr.includes(item.key) && (
+                          <div className="mt-1">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                              ✓ Recently upgraded · forecast adjusted
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1 mt-2 text-[10px] text-slate-500">
                           <span className={`text-[10px] font-medium ${yearColor}`}>{yearsLabel}</span>
                         </div>
@@ -1915,7 +1930,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                           ) : (
                             <CheckCircle2 className="w-3 h-3" />
                           )}
-                          I've already handled this
+                          Mark as recently replaced / not due
                         </button>
                       </div>
                     );

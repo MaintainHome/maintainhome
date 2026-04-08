@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ArrowRight, ArrowLeft, Sparkles } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Sparkles, CheckSquare, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,7 @@ interface QuizAnswers {
   crawlSpace: string;
   crawlSpaceSealed: string;
   landscaping: string;
+  recentUpgrades: string;
 }
 
 // Step index constants
@@ -33,8 +34,9 @@ const S_PEST = 6;
 const S_SQFT = 7;
 const S_ALLERGIES = 8;
 const S_CRAWL_SPACE = 9;
-const S_CRAWL_SEALED = 10; // conditional
+const S_CRAWL_SEALED = 10;
 const S_LANDSCAPING = 11;
+const S_UPGRADES = 12;
 
 const STEP_TITLES: Record<number, string> = {
   [S_ZIP]: "What's your ZIP code?",
@@ -49,12 +51,33 @@ const STEP_TITLES: Record<number, string> = {
   [S_CRAWL_SPACE]: "Does the home have a crawl space?",
   [S_CRAWL_SEALED]: "Is the crawl space sealed / encapsulated?",
   [S_LANDSCAPING]: "What's your lawn / landscaping like?",
+  [S_UPGRADES]: "One last question about your home's history",
 };
 
-function getActiveSteps(answers: QuizAnswers): number[] {
+const UPGRADE_OPTIONS: { key: string; label: string }[] = [
+  { key: "roof", label: "Roof" },
+  { key: "hvac", label: "HVAC System" },
+  { key: "water", label: "Water Heater" },
+  { key: "windows", label: "Windows" },
+  { key: "paint", label: "Exterior Paint" },
+  { key: "panel", label: "Electrical Panel" },
+  { key: "garage", label: "Garage Door" },
+  { key: "appliances", label: "Major Appliances" },
+  { key: "other", label: "Other" },
+];
+
+function isOlderHome(answers: QuizAnswers, homeProfileYearBuilt?: number | null): boolean {
+  if (homeProfileYearBuilt) {
+    return (new Date().getFullYear() - homeProfileYearBuilt) > 40;
+  }
+  return answers.homeAge === "resale_old";
+}
+
+function getActiveSteps(answers: QuizAnswers, homeProfileYearBuilt?: number | null): number[] {
   const steps = [S_ZIP, S_HOME_AGE, S_HOME_TYPE, S_ROOF_TYPE, S_WATER_SOURCE, S_SEWER, S_PEST, S_SQFT, S_ALLERGIES, S_CRAWL_SPACE];
   if (answers.crawlSpace === "yes") steps.push(S_CRAWL_SEALED);
   steps.push(S_LANDSCAPING);
+  if (isOlderHome(answers, homeProfileYearBuilt)) steps.push(S_UPGRADES);
   return steps;
 }
 
@@ -96,6 +119,7 @@ const DEFAULT_ANSWERS: QuizAnswers = {
   crawlSpace: "",
   crawlSpaceSealed: "",
   landscaping: "",
+  recentUpgrades: "",
 };
 
 export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile }: { initialData?: { quizAnswers: QuizAnswers; calendarData: any } | null; onOpenAuth?: () => void; onCalendarReady?: (data: any, answers: QuizAnswers) => void; homeProfile?: Record<string, unknown> | null }) {
@@ -106,8 +130,22 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
   const [results, setResults] = useState<any>(initialData?.calendarData ?? null);
   const [direction, setDirection] = useState<1 | -1>(1);
 
+  const homeProfileYearBuilt = homeProfile?.yearBuilt as number | null | undefined ?? null;
+
   const set = (key: keyof QuizAnswers, value: string) =>
     setAnswers((prev) => ({ ...prev, [key]: value }));
+
+  const toggleUpgrade = (key: string) => {
+    const current = new Set(answers.recentUpgrades ? answers.recentUpgrades.split(",").filter(Boolean) : []);
+    if (current.has(key)) {
+      current.delete(key);
+    } else {
+      current.add(key);
+    }
+    set("recentUpgrades", [...current].join(","));
+  };
+
+  const upgradesSet = new Set(answers.recentUpgrades ? answers.recentUpgrades.split(",").filter(Boolean) : []);
 
   const canProceed = () => {
     switch (step) {
@@ -123,13 +161,14 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
       case S_CRAWL_SPACE:  return !!answers.crawlSpace;
       case S_CRAWL_SEALED: return !!answers.crawlSpaceSealed;
       case S_LANDSCAPING:  return !!answers.landscaping;
+      case S_UPGRADES:     return true;
       default:             return false;
     }
   };
 
   const next = () => {
     if (!canProceed()) return;
-    const activeSteps = getActiveSteps(answers);
+    const activeSteps = getActiveSteps(answers, homeProfileYearBuilt);
     const currentIndex = activeSteps.indexOf(step);
     if (currentIndex === activeSteps.length - 1) {
       submit();
@@ -140,7 +179,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
   };
 
   const back = () => {
-    const activeSteps = getActiveSteps(answers);
+    const activeSteps = getActiveSteps(answers, homeProfileYearBuilt);
     const currentIndex = activeSteps.indexOf(step);
     if (currentIndex > 0) {
       setDirection(-1);
@@ -181,6 +220,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
       waterSource: "", sewerSystem: "", pestSchedule: "",
       sqft: "", allergies: "", allergiesDetails: "",
       crawlSpace: "", crawlSpaceSealed: "", landscaping: "",
+      recentUpgrades: "",
     });
   };
 
@@ -188,7 +228,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
     return <CalendarResults data={results} onReset={reset} quizAnswers={answers} onOpenAuth={onOpenAuth} />;
   }
 
-  const activeSteps = getActiveSteps(answers);
+  const activeSteps = getActiveSteps(answers, homeProfileYearBuilt);
   const currentIndex = activeSteps.indexOf(step);
   const totalSteps = activeSteps.length;
 
@@ -283,7 +323,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
                 </div>
               )}
 
-              {/* Roof Type (NEW) */}
+              {/* Roof Type */}
               {step === S_ROOF_TYPE && (
                 <div className="space-y-3">
                   {[
@@ -300,7 +340,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
                 </div>
               )}
 
-              {/* Water Source (NEW) */}
+              {/* Water Source */}
               {step === S_WATER_SOURCE && (
                 <div className="space-y-3">
                   {[
@@ -314,7 +354,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
                 </div>
               )}
 
-              {/* Sewer System (NEW) */}
+              {/* Sewer System */}
               {step === S_SEWER && (
                 <div className="space-y-3">
                   {[
@@ -328,7 +368,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
                 </div>
               )}
 
-              {/* Pest Schedule (NEW) */}
+              {/* Pest Schedule */}
               {step === S_PEST && (
                 <div className="space-y-3">
                   {[
@@ -406,7 +446,7 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
                 </div>
               )}
 
-              {/* Crawl Space Sealed — conditional, only appears if crawlSpace === "yes" */}
+              {/* Crawl Space Sealed */}
               {step === S_CRAWL_SEALED && (
                 <div className="space-y-3">
                   {[
@@ -434,6 +474,41 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
                       {opt.label}
                     </OptionButton>
                   ))}
+                </div>
+              )}
+
+              {/* Recent Upgrades — conditional, only for older homes */}
+              {step === S_UPGRADES && (
+                <div className="space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                    <p className="text-sm text-amber-800 leading-relaxed">
+                      For older homes, we'd love to know if any major systems have been upgraded within the last 6–10 years. This helps us give you more accurate alerts.
+                    </p>
+                  </div>
+                  <p className="text-xs text-slate-500">Check all that apply <span className="text-slate-400">(optional — skip if not sure)</span></p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {UPGRADE_OPTIONS.map((opt) => {
+                      const checked = upgradesSet.has(opt.key);
+                      return (
+                        <button
+                          key={opt.key}
+                          type="button"
+                          onClick={() => toggleUpgrade(opt.key)}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 text-sm font-medium text-left transition-all duration-150 ${
+                            checked
+                              ? "border-primary bg-primary/10 text-primary"
+                              : "border-slate-200 bg-white hover:border-primary/40 hover:bg-slate-50 text-slate-700"
+                          }`}
+                        >
+                          {checked
+                            ? <CheckSquare className="w-4 h-4 shrink-0" />
+                            : <Square className="w-4 h-4 shrink-0 text-slate-300" />
+                          }
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -470,6 +545,11 @@ export function DemoQuiz({ initialData, onOpenAuth, onCalendarReady, homeProfile
                 Building your calendar…
               </>
             ) : isLastStep ? (
+              <>
+                <Sparkles className="mr-2 w-4 h-4" />
+                Generate My Calendar
+              </>
+            ) : step === S_UPGRADES ? (
               <>
                 <Sparkles className="mr-2 w-4 h-4" />
                 Generate My Calendar

@@ -62,10 +62,13 @@ const BIG_TICKET_ITEMS_BROKER = [
   { key: "appliances", name: "Major Appliances", avgLife: 12, costRange: "$1,000–$3,000 ea" },
 ];
 
-function computeImminentForecasts(yearBuilt: number, currentYear: number): string[] {
+function computeImminentForecasts(yearBuilt: number, currentYear: number, recentUpgrades: string[] = []): string[] {
   return BIG_TICKET_ITEMS_BROKER
     .map((item) => {
-      const dueYear = yearBuilt + item.avgLife;
+      let dueYear = yearBuilt + item.avgLife;
+      if (recentUpgrades.includes(item.key)) {
+        dueYear = Math.max(dueYear, currentYear + 7);
+      }
       const yearsLeft = dueYear - currentYear;
       return { ...item, dueYear, yearsLeft };
     })
@@ -109,7 +112,7 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
 
     const [calendarRows, logRows, precreationRows, homeProfileRows] = await Promise.all([
       db
-        .select({ userId: savedCalendarsTable.userId, calendarData: savedCalendarsTable.calendarData })
+        .select({ userId: savedCalendarsTable.userId, calendarData: savedCalendarsTable.calendarData, quizAnswers: savedCalendarsTable.quizAnswers })
         .from(savedCalendarsTable)
         .where(inArray(savedCalendarsTable.userId, userIds)),
       db
@@ -130,7 +133,7 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         .where(inArray(homeProfilesTable.userId, userIds)),
     ]);
 
-    const calendarMap = new Map(calendarRows.map((r) => [r.userId, r.calendarData]));
+    const calendarMap = new Map(calendarRows.map((r) => [r.userId, { calendarData: r.calendarData, quizAnswers: r.quizAnswers }]));
     const logCountMap = new Map(logRows.map((r) => [r.userId, r.count]));
     const precreationMap = new Map(
       precreationRows
@@ -141,7 +144,9 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
     const currentYear = new Date().getFullYear();
 
     const clients = rawClients.map((c) => {
-      const calData = calendarMap.get(c.id) as Record<string, unknown> | undefined;
+      const calEntry = calendarMap.get(c.id);
+      const calData = calEntry?.calendarData as Record<string, unknown> | undefined;
+      const quizAnswers = calEntry?.quizAnswers as Record<string, unknown> | undefined;
       const hasCalendar = !!calData;
       const logCount = logCountMap.get(c.id) ?? 0;
       const activityScore = Math.min((hasCalendar ? 60 : 0) + Math.min(logCount * 8, 40), 100);
@@ -152,7 +157,9 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
       const activationToken = isPrecreated && !isActivated ? precreation?.activationToken ?? null : null;
 
       const yearBuilt = homeProfileMap.get(c.id);
-      const imminentAlerts: string[] = yearBuilt ? computeImminentForecasts(yearBuilt, currentYear) : [];
+      const recentUpgradesRaw: string = (quizAnswers?.recentUpgrades as string) ?? "";
+      const recentUpgradesArr = recentUpgradesRaw ? recentUpgradesRaw.split(",").filter(Boolean) : [];
+      const imminentAlerts: string[] = yearBuilt ? computeImminentForecasts(yearBuilt, currentYear, recentUpgradesArr) : [];
       const imminentAlertCount = imminentAlerts.length;
 
       return {
