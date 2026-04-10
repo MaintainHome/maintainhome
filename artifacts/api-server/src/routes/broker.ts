@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { db, whiteLabelConfigsTable, usersTable, savedCalendarsTable, maintenanceLogTable, brokerPrecreationsTable, maintenanceDocumentsTable, homeProfilesTable } from "@workspace/db";
+import { db, whiteLabelConfigsTable, usersTable, savedCalendarsTable, maintenanceLogTable, brokerPrecreationsTable, maintenanceDocumentsTable, homeProfilesTable, brokerServiceProvidersTable } from "@workspace/db";
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 import { getStripeClient } from "../stripeClient";
@@ -586,5 +586,82 @@ export async function processBrokerPrecreation(
 
   return { ok: true, activationLink, clientEmail, clientName };
 }
+
+// ── GET /api/broker/providers ─────────────────────────────────────────────────
+router.get("/broker/providers", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const config = await getBrokerConfig(req.userEmail!);
+  if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+  const providers = await db.select().from(brokerServiceProvidersTable)
+    .where(eq(brokerServiceProvidersTable.brokerSubdomain, config.subdomain))
+    .orderBy(brokerServiceProvidersTable.category, brokerServiceProvidersTable.companyName);
+  res.json({ providers });
+});
+
+// ── POST /api/broker/providers ────────────────────────────────────────────────
+router.post("/broker/providers", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const config = await getBrokerConfig(req.userEmail!);
+  if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+  const { category, companyName, contactName, phone, email, website, note } = req.body as {
+    category?: string; companyName?: string; contactName?: string;
+    phone?: string; email?: string; website?: string; note?: string;
+  };
+  if (!category?.trim() || !companyName?.trim()) {
+    res.status(400).json({ error: "Category and company name are required" }); return;
+  }
+  const [created] = await db.insert(brokerServiceProvidersTable).values({
+    brokerSubdomain: config.subdomain,
+    category: category.trim(),
+    companyName: companyName.trim(),
+    contactName: contactName?.trim() || null,
+    phone: phone?.trim() || null,
+    email: email?.trim() || null,
+    website: website?.trim() || null,
+    note: note?.trim() || null,
+  }).returning();
+  res.status(201).json({ provider: created });
+});
+
+// ── PUT /api/broker/providers/:id ─────────────────────────────────────────────
+router.put("/broker/providers/:id", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const config = await getBrokerConfig(req.userEmail!);
+  if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  const { category, companyName, contactName, phone, email, website, note } = req.body as {
+    category?: string; companyName?: string; contactName?: string;
+    phone?: string; email?: string; website?: string; note?: string;
+  };
+  if (!category?.trim() || !companyName?.trim()) {
+    res.status(400).json({ error: "Category and company name are required" }); return;
+  }
+  const [updated] = await db.update(brokerServiceProvidersTable).set({
+    category: category.trim(),
+    companyName: companyName.trim(),
+    contactName: contactName?.trim() || null,
+    phone: phone?.trim() || null,
+    email: email?.trim() || null,
+    website: website?.trim() || null,
+    note: note?.trim() || null,
+    updatedAt: new Date(),
+  }).where(and(
+    eq(brokerServiceProvidersTable.id, id),
+    eq(brokerServiceProvidersTable.brokerSubdomain, config.subdomain),
+  )).returning();
+  if (!updated) { res.status(404).json({ error: "Provider not found" }); return; }
+  res.json({ provider: updated });
+});
+
+// ── DELETE /api/broker/providers/:id ─────────────────────────────────────────
+router.delete("/broker/providers/:id", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const config = await getBrokerConfig(req.userEmail!);
+  if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+  const id = parseInt(req.params.id);
+  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+  await db.delete(brokerServiceProvidersTable).where(and(
+    eq(brokerServiceProvidersTable.id, id),
+    eq(brokerServiceProvidersTable.brokerSubdomain, config.subdomain),
+  ));
+  res.json({ ok: true });
+});
 
 export default router;

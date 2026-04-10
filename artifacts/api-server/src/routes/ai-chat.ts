@@ -1,7 +1,7 @@
 import { Router, type Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import multer from "multer";
-import { db, usersTable, homeProfilesTable, maintenanceDocumentsTable } from "@workspace/db";
+import { db, usersTable, homeProfilesTable, maintenanceDocumentsTable, brokerServiceProvidersTable, whiteLabelConfigsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 import type { DocumentData } from "./documents";
@@ -166,12 +166,28 @@ function buildDocumentContext(documents: { displayName: string | null; docType: 
   return `\nHome documents on file:\n${sections}\nReference these documents when the user asks about warranties, insurance, HOA rules, property records, or any of the specific items above. Provide accurate, personalized guidance based on the details stored.`;
 }
 
+interface BrokerProviderContext {
+  brokerName: string;
+  providers: { category: string; companyName: string; contactName: string | null; phone: string | null; email: string | null; note: string | null }[];
+}
+
+function buildProviderContext(ctx: BrokerProviderContext | null): string {
+  if (!ctx || !ctx.providers.length) return "";
+  const lines = ctx.providers.map(p => {
+    const contact = [p.contactName, p.phone, p.email].filter(Boolean).join(" | ");
+    const note = p.note ? ` — "${p.note}"` : "";
+    return `  - ${p.category}: ${p.companyName}${contact ? ` (${contact})` : ""}${note}`;
+  });
+  return `\nBroker-recommended service providers (from ${ctx.brokerName}):\n${lines.join("\n")}\nWhen the user asks about a home maintenance task and a matching provider exists above, say: "You have full autonomy to choose any service provider you like. Your broker ${ctx.brokerName} recommends [Company Name] for this type of work." Then share their contact info naturally. Only mention this if a provider is listed for the relevant category. Never be pushy — mention it once and move on to your advice.\n`;
+}
+
 function buildSystemPrompt(
   userZip: string | null,
   state: string | null,
   qa: Record<string, string>,
   homeProfile?: HomeProfileData | null,
   documents?: { displayName: string | null; docType: string; warrantyData: unknown }[],
+  brokerContext?: BrokerProviderContext | null,
 ): string {
   const location = state ? `${state}${userZip ? ` (ZIP ${userZip})` : ""}` : userZip ?? "Unknown";
   const hasProfile = Object.keys(qa).length > 0;
@@ -200,6 +216,7 @@ function buildSystemPrompt(
 
   const forecastContext = buildForecastContext(homeProfile?.yearBuilt, currentYear, qa.roofType);
   const warrantyContext = documents?.length ? buildDocumentContext(documents) : "";
+  const providerContext = buildProviderContext(brokerContext ?? null);
 
   const profileSection = hasProfile
     ? `User profile:
@@ -218,7 +235,7 @@ function buildSystemPrompt(
   return `You are Maintly, a friendly, practical, and experienced home maintenance assistant.
 You speak like a trusted, knowledgeable handyman who is helpful, clear, and safety-conscious.
 
-${profileSection}${forecastContext}${warrantyContext}
+${profileSection}${forecastContext}${warrantyContext}${providerContext}
 
 Tone guidelines:
 - Warm and approachable, but professional
@@ -239,7 +256,7 @@ Start most responses with something like "Hey there, it's Maintly." or "Good que
 router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Response) => {
   // Verify user has Pro subscription first (before API key check)
   const [user] = await db
-    .select({ subscriptionStatus: usersTable.subscriptionStatus, zipCode: usersTable.zipCode })
+    .select({ subscriptionStatus: usersTable.subscriptionStatus, zipCode: usersTable.zipCode, referralSubdomain: usersTable.referralSubdomain })
     .from(usersTable)
     .where(eq(usersTable.id, req.userId!))
     .limit(1);
@@ -276,19 +293,37 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
   const zip = quizAnswers.zip ?? user.zipCode ?? null;
   const state = zip ? await getStateFromZip(zip) : null;
 
-  // Fetch home profile and all home documents for richer context
+  // Fetch home profile, documents, and broker service providers in parallel
   const [homeProfile] = await db
     .select()
     .from(homeProfilesTable)
     .where(eq(homeProfilesTable.userId, req.userId!))
     .limit(1);
 
-  const homeDocs = await db
-    .select({ displayName: maintenanceDocumentsTable.displayName, docType: maintenanceDocumentsTable.docType, warrantyData: maintenanceDocumentsTable.warrantyData })
-    .from(maintenanceDocumentsTable)
-    .where(eq(maintenanceDocumentsTable.userId, req.userId!));
+  const [homeDocs, brokerContext] = await Promise.all([
+    db.select({ displayName: maintenanceDocumentsTable.displayName, docType: maintenanceDocumentsTable.docType, warrantyData: maintenanceDocumentsTable.warrantyData })
+      .from(maintenanceDocumentsTable)
+      .where(eq(maintenanceDocumentsTable.userId, req.userId!)),
+    (async (): Promise<BrokerProviderContext | null> => {
+      const sub = user.referralSubdomain;
+      if (!sub) return null;
+      const [brokerConfig] = await db.select({ brokerName: whiteLabelConfigsTable.brokerName })
+        .from(whiteLabelConfigsTable).where(eq(whiteLabelConfigsTable.subdomain, sub)).limit(1);
+      if (!brokerConfig) return null;
+      const providers = await db.select({
+        category: brokerServiceProvidersTable.category,
+        companyName: brokerServiceProvidersTable.companyName,
+        contactName: brokerServiceProvidersTable.contactName,
+        phone: brokerServiceProvidersTable.phone,
+        email: brokerServiceProvidersTable.email,
+        note: brokerServiceProvidersTable.note,
+      }).from(brokerServiceProvidersTable)
+        .where(eq(brokerServiceProvidersTable.brokerSubdomain, sub));
+      return providers.length ? { brokerName: brokerConfig.brokerName, providers } : null;
+    })(),
+  ]);
 
-  const systemPrompt = buildSystemPrompt(zip, state, quizAnswers, homeProfile ?? null, homeDocs);
+  const systemPrompt = buildSystemPrompt(zip, state, quizAnswers, homeProfile ?? null, homeDocs, brokerContext);
 
   // Build messages array (keep last 10 turns for context)
   const contextHistory = history.slice(-10);

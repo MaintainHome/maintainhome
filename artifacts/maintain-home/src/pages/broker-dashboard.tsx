@@ -6,7 +6,7 @@ import {
   ShieldCheck, Gift, CreditCard, Calendar, TrendingUp,
   AlertTriangle, ArrowUpRight, Star, Phone, Camera,
   Pencil, X, Upload, CheckCircle2, HomeIcon, PlusCircle,
-  FileText, Trash2, UserPlus, Key, Clock,
+  FileText, Trash2, UserPlus, Key, Clock, Wrench, Plus, ChevronDown, ChevronUp, Mail, Globe,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -348,6 +348,327 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
           )}
         </div>
       )}
+    </motion.div>
+  );
+}
+
+/* ─── Trusted Service Providers Panel ────────────────────────────── */
+const SERVICE_CATEGORIES = [
+  "HVAC", "Plumbing", "Electrical", "Roofing", "Landscaping", "Pest Control",
+  "Cleaning", "Handyman", "Painting", "Flooring", "Windows & Doors",
+  "Appliances", "Pool & Spa", "Foundation & Waterproofing", "Moving & Storage", "Other",
+];
+
+interface ServiceProvider {
+  id: number;
+  brokerSubdomain: string;
+  category: string;
+  companyName: string;
+  contactName: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  note: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ProviderFormState {
+  category: string;
+  companyName: string;
+  contactName: string;
+  phone: string;
+  email: string;
+  website: string;
+  note: string;
+}
+
+const emptyProviderForm = (): ProviderFormState => ({
+  category: SERVICE_CATEGORIES[0],
+  companyName: "",
+  contactName: "",
+  phone: "",
+  email: "",
+  website: "",
+  note: "",
+});
+
+function TrustedServiceProvidersPanel({ accent }: { accent: string }) {
+  const [open, setOpen] = useState(false);
+  const [providers, setProviders] = useState<ServiceProvider[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [form, setForm] = useState<ProviderFormState>(emptyProviderForm());
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  const loadProviders = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/broker/providers`, { credentials: "include" });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error ?? "Failed to load");
+      setProviders(data.providers ?? []);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) loadProviders();
+  }, [open, loadProviders]);
+
+  function startAdd() {
+    setEditId(null);
+    setForm(emptyProviderForm());
+    setShowForm(true);
+    setError(null);
+  }
+
+  function startEdit(p: ServiceProvider) {
+    setEditId(p.id);
+    setForm({
+      category: p.category,
+      companyName: p.companyName,
+      contactName: p.contactName ?? "",
+      phone: p.phone ?? "",
+      email: p.email ?? "",
+      website: p.website ?? "",
+      note: p.note ?? "",
+    });
+    setShowForm(true);
+    setError(null);
+  }
+
+  function cancelForm() {
+    setShowForm(false);
+    setEditId(null);
+    setError(null);
+  }
+
+  async function saveProvider() {
+    if (!form.companyName.trim()) { setError("Company name is required."); return; }
+    setSaving(true);
+    setError(null);
+    try {
+      const url = editId ? `${API_BASE}/api/broker/providers/${editId}` : `${API_BASE}/api/broker/providers`;
+      const method = editId ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(form),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error ?? "Failed to save");
+      await loadProviders();
+      setShowForm(false);
+      setEditId(null);
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteProvider(id: number) {
+    setDeletingId(id);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/broker/providers/${id}`, { method: "DELETE", credentials: "include" });
+      if (!res.ok) { const d = await safeJson(res); throw new Error(d.error ?? "Failed to delete"); }
+      setProviders(prev => prev.filter(p => p.id !== id));
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  const grouped = SERVICE_CATEGORIES.reduce<Record<string, ServiceProvider[]>>((acc, cat) => {
+    const list = providers.filter(p => p.category === cat);
+    if (list.length) acc[cat] = list;
+    return acc;
+  }, {});
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.09 }}
+      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden mb-6">
+      <button onClick={() => setOpen(o => !o)} className="w-full flex items-center justify-between p-6 text-left hover:bg-slate-50 transition-colors">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${accent}18` }}>
+            <Wrench className="w-5 h-5" style={{ color: accent }} />
+          </div>
+          <div>
+            <h2 className="font-bold text-slate-900">My Trusted Service Providers</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Add local vendors your clients can rely on — Maintly will recommend them during AI chats when relevant
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0 ml-4">
+          {providers.length > 0 && !open && (
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full text-white" style={{ background: accent }}>{providers.length}</span>
+          )}
+          {open ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
+        </div>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div key="body" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3 }} className="overflow-hidden">
+            <div className="px-6 pb-6 border-t border-slate-100 pt-4">
+
+              {/* Info callout */}
+              <div className="flex items-start gap-3 p-4 rounded-xl mb-5" style={{ background: `${accent}0d`, border: `1px solid ${accent}30` }}>
+                <Wrench className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accent }} />
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  When one of your clients asks Maintly about a home maintenance task — like finding an HVAC technician or a roofer — Maintly will mention your recommended provider for that category. It's always framed as a helpful suggestion, never a hard sell.
+                </p>
+              </div>
+
+              {loading && (
+                <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>
+              )}
+
+              {error && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-xl mb-4 text-sm text-red-700">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  {error}
+                </div>
+              )}
+
+              {/* Provider list */}
+              {!loading && providers.length === 0 && !showForm && (
+                <p className="text-sm text-slate-400 text-center py-4">No providers yet. Add your first trusted vendor below.</p>
+              )}
+
+              {!loading && Object.keys(grouped).length > 0 && (
+                <div className="space-y-3 mb-5">
+                  {Object.entries(grouped).map(([cat, list]) => (
+                    <div key={cat} className="rounded-xl border border-slate-200 overflow-hidden">
+                      <div className="px-4 py-2 bg-slate-50 border-b border-slate-200">
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{cat}</span>
+                      </div>
+                      <div className="divide-y divide-slate-100">
+                        {list.map(p => (
+                          <div key={p.id} className="px-4 py-3 flex items-start justify-between gap-3">
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm text-slate-900">{p.companyName}</p>
+                              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                                {p.contactName && (
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <User className="w-3 h-3" />{p.contactName}
+                                  </span>
+                                )}
+                                {p.phone && (
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <Phone className="w-3 h-3" />{p.phone}
+                                  </span>
+                                )}
+                                {p.email && (
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <Mail className="w-3 h-3" />{p.email}
+                                  </span>
+                                )}
+                                {p.website && (
+                                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                                    <Globe className="w-3 h-3" />{p.website}
+                                  </span>
+                                )}
+                              </div>
+                              {p.note && <p className="text-xs text-slate-400 italic mt-1">"{p.note}"</p>}
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              <button onClick={() => startEdit(p)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button onClick={() => deleteProvider(p.id)} disabled={deletingId === p.id}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                {deletingId === p.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add/Edit form */}
+              {showForm && (
+                <div className="border border-slate-200 rounded-xl p-5 mb-5 bg-slate-50/50">
+                  <p className="text-sm font-bold text-slate-800 mb-4">{editId ? "Edit Provider" : "Add New Provider"}</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Category *</label>
+                      <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                        className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 bg-white focus:outline-none focus:ring-2" style={{ "--tw-ring-color": accent } as any}>
+                        {SERVICE_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Company Name *</label>
+                      <input type="text" value={form.companyName} onChange={e => setForm(f => ({ ...f, companyName: e.target.value }))}
+                        placeholder="e.g. Sunrise HVAC Co." className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": accent } as any} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Contact Name</label>
+                      <input type="text" value={form.contactName} onChange={e => setForm(f => ({ ...f, contactName: e.target.value }))}
+                        placeholder="e.g. Mike Johnson" className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": accent } as any} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Phone</label>
+                      <input type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                        placeholder="e.g. (555) 123-4567" className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": accent } as any} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Email</label>
+                      <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                        placeholder="e.g. mike@sunrisehvac.com" className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": accent } as any} />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Website</label>
+                      <input type="url" value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))}
+                        placeholder="e.g. https://sunrisehvac.com" className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": accent } as any} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-semibold text-slate-600 mb-1">Note <span className="font-normal text-slate-400">(optional — shown to Maintly as context)</span></label>
+                      <input type="text" value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
+                        placeholder='e.g. "Ask for the senior discount" or "Preferred partner — always answers same day"' className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2" style={{ "--tw-ring-color": accent } as any} />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-3 mt-4">
+                    <button onClick={cancelForm} className="text-sm text-slate-500 hover:text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-100 transition-colors">Cancel</button>
+                    <button onClick={saveProvider} disabled={saving}
+                      className="text-sm font-semibold text-white px-5 py-2 rounded-lg flex items-center gap-2 transition-opacity hover:opacity-90"
+                      style={{ background: accent }}>
+                      {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                      {editId ? "Save Changes" : "Add Provider"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Add button */}
+              {!showForm && (
+                <button onClick={startAdd}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ borderColor: `${accent}50`, color: accent }}>
+                  <Plus className="w-4 h-4" />
+                  Add Trusted Provider
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -1495,6 +1816,9 @@ Click here to get started: ${link}`;
 
         {/* ── Buy Gift Codes ───────────────────────────────────────── */}
         <GiftCodePurchasePanel accent={accent} />
+
+        {/* ── Trusted Service Providers ────────────────────────────── */}
+        <TrustedServiceProvidersPanel accent={accent} />
 
         {/* ── Invite + Agent Profile row ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -122,6 +122,20 @@ export const brokerPrecreationsTable = pgTable("broker_precreations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const brokerServiceProvidersTable = pgTable("broker_service_providers", {
+  id: serial("id").primaryKey(),
+  brokerSubdomain: text("broker_subdomain").notNull(),
+  category: text("category").notNull(),
+  companyName: text("company_name").notNull(),
+  contactName: text("contact_name"),
+  phone: text("phone"),
+  email: text("email"),
+  website: text("website"),
+  note: text("note"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export type SavedCalendar = typeof savedCalendarsTable.$inferSelect;
 export type MaintenanceLogEntry = typeof maintenanceLogTable.$inferSelect;
 export type MaintenanceNote = typeof maintenanceNotesTable.$inferSelect;
@@ -131,3 +145,4 @@ export type SmsLog = typeof smsLogTable.$inferSelect;
 export type GiftCode = typeof giftCodesTable.$inferSelect;
 export type StripeTransaction = typeof stripeTransactionsTable.$inferSelect;
 export type BrokerPrecreation = typeof brokerPrecreationsTable.$inferSelect;
+export type BrokerServiceProvider = typeof brokerServiceProvidersTable.$inferSelect;
