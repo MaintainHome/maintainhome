@@ -1854,15 +1854,17 @@ Click here to get started: ${link}`;
         {/* ── How-to guide ──────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.26 }}
           className="rounded-2xl p-6 sm:p-8 text-white bg-slate-900">
-          <div className="flex items-center gap-2 mb-5">
-            <BarChart2 className="w-5 h-5" style={{ color: accent }} />
-            <h2 className="font-bold">How to Share Your Branded Experience</h2>
+          <div className="mb-5">
+            <h2 className="font-extrabold text-lg sm:text-xl"
+              style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              Invite or Gift Your Way — Retain Your Clients For Life
+            </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             {[
               { step: "1", title: "Copy your invite link", desc: "Share via email, text, or your website. Clients instantly see your brand." },
-              { step: "2", title: "Client signs up", desc: "They see your logo and photo. Your welcome message greets them on first login." },
-              { step: "3", title: "They build their plan", desc: "Clients complete the home quiz, get their AI maintenance calendar, and track tasks — all under your brand." },
+              { step: "2", title: "Client signs up or receives your gift", desc: "They see your logo, photo, and welcome message on first login — whether they sign up themselves or you pre-build their account as a closing gift." },
+              { step: "3", title: "They build their plan", desc: "Clients complete the home quiz, get their AI maintenance calendar, and track everything about their most important investment — all under your brand." },
             ].map((item) => (
               <div key={item.step} className="flex gap-3">
                 <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
