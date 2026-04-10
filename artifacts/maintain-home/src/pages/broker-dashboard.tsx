@@ -365,6 +365,7 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [docUploading, setDocUploading] = useState(false);
+  const [duration, setDuration] = useState<"1year" | "3years">("1year");
 
   const [form, setForm] = useState({
     clientEmail: "",
@@ -486,6 +487,7 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
           propertyData,
           quizAnswers,
           documentPaths: docs,
+          duration,
         }),
       });
       const data = await safeJson(res);
@@ -533,23 +535,54 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
               </p>
             </div>
           </div>
-          <div className="shrink-0 text-right">
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-black text-slate-900">$36</span>
-              <span className="text-slate-400 text-sm">/client</span>
-            </div>
-            <p className="text-xs font-semibold mt-0.5" style={{ color: accent }}>13 months Pro · ~$3/mo · 1 month free</p>
-          </div>
         </div>
 
-        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+        {/* ── Duration selector ── */}
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* 1-Year option */}
+          <button
+            type="button"
+            onClick={() => setDuration("1year")}
+            className={`relative flex flex-col gap-1 p-4 rounded-xl border-2 text-left transition-all ${duration === "1year" ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+          >
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-black text-slate-900">$36</span>
+              <span className="text-slate-400 text-sm">/ 1 year</span>
+            </div>
+            <p className="text-xs font-semibold" style={{ color: accent }}>13 months Pro · ~$3/mo · 1 month free</p>
+            {duration === "1year" && (
+              <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-emerald-500 text-white text-[10px] font-black">✓</span>
+            )}
+          </button>
+
+          {/* 3-Year option */}
+          <button
+            type="button"
+            onClick={() => setDuration("3years")}
+            className={`relative flex flex-col gap-1 p-4 rounded-xl border-2 text-left transition-all ${duration === "3years" ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+          >
+            <div className="flex items-center gap-2">
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-black text-slate-900">$99</span>
+                <span className="text-slate-400 text-sm">/ 3 years</span>
+              </div>
+              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-500 text-white uppercase tracking-wide">Best Value</span>
+            </div>
+            <p className="text-xs font-semibold text-blue-600">37 months Pro · ~$33/yr · 1 month free</p>
+            {duration === "3years" && (
+              <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-blue-500 text-white text-[10px] font-black">✓</span>
+            )}
+          </button>
+        </div>
+
+        <div className="mt-3 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setOpen(true)}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
             style={{ backgroundColor: accent }}
           >
             <PlusCircle className="w-4 h-4" />
-            Create Client Account
+            Create Client Account · {duration === "3years" ? "$99" : "$36"}
           </button>
           <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -869,10 +902,12 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                   style={{ backgroundColor: accent + "08", borderColor: accent + "30" }}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-800">Pre-Created Client Account</p>
+                      <p className="text-sm font-bold text-slate-800">
+                        Pre-Created Client Account · {duration === "3years" ? "3 Years" : "1 Year"}
+                      </p>
                       <ul className="mt-1.5 space-y-0.5">
                         {[
-                          "13 months of Pro access (1 month free)",
+                          duration === "3years" ? "37 months of Pro access (1 month free)" : "13 months of Pro access (1 month free)",
                           "AI-generated 12-month maintenance calendar",
                           docs.length > 0 ? `${docs.length} document${docs.length > 1 ? "s" : ""} pre-loaded` : "Document storage included",
                           "Your branding applied to their dashboard",
@@ -885,8 +920,8 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                       </ul>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-2xl font-black text-slate-900">$36</p>
-                      <p className="text-xs font-semibold" style={{ color: accent }}>~$3/month</p>
+                      <p className="text-2xl font-black text-slate-900">{duration === "3years" ? "$99" : "$36"}</p>
+                      <p className="text-xs font-semibold" style={{ color: accent }}>{duration === "3years" ? "~$33/yr" : "~$3/mo"}</p>
                       <p className="text-xs text-slate-400">one-time</p>
                     </div>
                   </div>
@@ -907,7 +942,7 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                     style={{ backgroundColor: accent }}
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-                    {loading ? "Starting checkout…" : "Pay $36 & Create Account"}
+                    {loading ? "Starting checkout…" : `Pay ${duration === "3years" ? "$99" : "$36"} & Create Account`}
                   </button>
                   <button onClick={() => setOpen(false)}
                     className="px-5 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
@@ -936,6 +971,7 @@ export default function BrokerDashboard() {
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [renewingClientId, setRenewingClientId] = useState<number | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [messageCopied, setMessageCopied] = useState(false);
 
@@ -974,6 +1010,22 @@ export default function BrokerDashboard() {
     } catch { setError("Network error. Please refresh."); }
     finally { setLoading(false); }
   }, []);
+
+  async function renewClient(clientId: number, clientEmail: string) {
+    setRenewingClientId(clientId);
+    try {
+      const res = await fetch(`${API_BASE}/api/broker/client-renew-checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ clientUserId: clientId, clientEmail }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) { alert(data.error ?? "Could not start renewal checkout."); return; }
+      if (data.url) window.location.href = data.url;
+    } catch { alert("Network error. Please try again."); }
+    finally { setRenewingClientId(null); }
+  }
 
   function copyInviteLink() {
     if (!config) return;
@@ -1607,12 +1659,13 @@ Click here to get started: ${link}`;
             <>
               {/* Desktop column headers */}
               <div className="hidden md:grid gap-3 px-6 py-2.5 bg-slate-50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider"
-                style={{ gridTemplateColumns: "2fr 90px 95px 120px 90px 44px" }}>
+                style={{ gridTemplateColumns: "2fr 90px 95px 120px 90px 110px 44px" }}>
                 <span>Client</span>
                 <span>Joined</span>
                 <span>Plan</span>
                 <span>Health Score</span>
                 <span>Last Active</span>
+                <span>Renew</span>
                 <span />
               </div>
 
@@ -1649,12 +1702,23 @@ Click here to get started: ${link}`;
                               ? <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${expiry.expired ? "bg-red-50 text-red-500" : "bg-amber-50 text-amber-600"}`}>Gift</span>
                               : <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Free</span>
                           }
+                          <button
+                            onClick={() => renewClient(client.id, client.email)}
+                            disabled={renewingClientId === client.id}
+                            className="flex items-center gap-1 px-2 py-1 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition-all disabled:opacity-50"
+                            title="Renew 1 year Pro for this client"
+                          >
+                            {renewingClientId === client.id
+                              ? <Loader2 className="w-3 h-3 animate-spin" />
+                              : <RefreshCw className="w-3 h-3" />}
+                            $36
+                          </button>
                         </div>
                       </div>
 
                       {/* ─ Desktop row ─ */}
                       <div className="hidden md:grid gap-3 px-6 py-4 hover:bg-slate-50/80 transition-colors items-center"
-                        style={{ gridTemplateColumns: "2fr 90px 95px 120px 90px 44px" }}>
+                        style={{ gridTemplateColumns: "2fr 90px 95px 120px 90px 110px 44px" }}>
 
                         {/* Client */}
                         <div className="flex items-center gap-3 min-w-0">
@@ -1715,6 +1779,19 @@ Click here to get started: ${link}`;
 
                         {/* Last Active */}
                         <span className="text-xs text-slate-400">{relativeDate(client.lastActiveAt)}</span>
+
+                        {/* Renew button */}
+                        <button
+                          onClick={() => renewClient(client.id, client.email)}
+                          disabled={renewingClientId === client.id}
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-bold hover:bg-emerald-100 hover:border-emerald-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                          title="Renew 1 year Pro for this client"
+                        >
+                          {renewingClientId === client.id
+                            ? <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                            : <RefreshCw className="w-3 h-3 shrink-0" />}
+                          Renew · $36
+                        </button>
 
                         {/* View button */}
                         <button

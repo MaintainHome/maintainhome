@@ -325,6 +325,7 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
   if (meta.type === "broker_precreate") {
     const precreationId = Number(meta.precreationId);
     const brokerSubdomain = meta.brokerSubdomain ?? "";
+    const proMonths = Number(meta.proMonths ?? 13);
 
     await db.update(stripeTransactionsTable)
       .set({ status: "paid" })
@@ -333,7 +334,7 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
 
     try {
       const base = getBaseUrl(req);
-      const result = await processBrokerPrecreation(precreationId, brokerSubdomain, base);
+      const result = await processBrokerPrecreation(precreationId, brokerSubdomain, base, proMonths);
       await autoLoginUser(res, userId, https);
       res.json({
         status: "ok",
@@ -350,6 +351,61 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
         status: "ok",
         type: "broker_precreate_error",
         message: `Payment received but account setup failed: ${err.message}. Please contact support.`,
+      });
+    }
+    return;
+  }
+
+  // ── Handle broker client renewal ──────────────────────────────────────────
+  if (meta.type === "broker_client_renew") {
+    const clientUserIdStr = meta.clientUserId;
+    const clientEmailStr = meta.clientEmail;
+
+    await db.update(stripeTransactionsTable)
+      .set({ status: "paid" })
+      .where(eq(stripeTransactionsTable.stripeSessionId, session_id))
+      .catch(() => {});
+
+    try {
+      let clientUser: { id: number; proExpiresAt: Date | null } | undefined;
+      if (clientUserIdStr) {
+        const [u] = await db.select({ id: usersTable.id, proExpiresAt: usersTable.proExpiresAt })
+          .from(usersTable).where(eq(usersTable.id, Number(clientUserIdStr))).limit(1);
+        clientUser = u;
+      }
+      if (!clientUser && clientEmailStr) {
+        const [u] = await db.select({ id: usersTable.id, proExpiresAt: usersTable.proExpiresAt })
+          .from(usersTable).where(eq(usersTable.email, clientEmailStr)).limit(1);
+        clientUser = u;
+      }
+
+      if (!clientUser) throw new Error("Client not found");
+
+      // Extend from the later of now or current expiry
+      const base = new Date(Math.max(Date.now(), clientUser.proExpiresAt?.getTime() ?? 0));
+      base.setMonth(base.getMonth() + 13);
+      const newExpiry = base;
+
+      await db.update(usersTable).set({
+        subscriptionStatus: "pro_annual",
+        fullAccess: true,
+        proExpiresAt: newExpiry,
+        updatedAt: new Date(),
+      }).where(eq(usersTable.id, clientUser.id));
+
+      await autoLoginUser(res, userId, https);
+      res.json({
+        status: "ok",
+        type: "broker_client_renew",
+        message: `Client renewed! Pro access extended to ${newExpiry.toLocaleDateString()}.`,
+      });
+    } catch (err: any) {
+      console.error("[stripe] broker_client_renew error:", err);
+      await autoLoginUser(res, userId, https);
+      res.json({
+        status: "ok",
+        type: "broker_client_renew_error",
+        message: `Payment received but renewal failed: ${err.message}. Please contact support.`,
       });
     }
     return;
@@ -432,14 +488,45 @@ router.post(
       if (meta.type === "broker_precreate") {
         const precreationId = Number(meta.precreationId);
         const brokerSubdomain = meta.brokerSubdomain ?? "";
+        const proMonths = Number(meta.proMonths ?? 13);
         if (precreationId) {
-          const proto = "https";
           const host = (session as any).success_url?.match(/^(https?:\/\/[^/]+)/)?.[1] ?? "";
           const base = host || "https://maintainhome.ai";
-          processBrokerPrecreation(precreationId, brokerSubdomain, base).catch((err) => {
+          processBrokerPrecreation(precreationId, brokerSubdomain, base, proMonths).catch((err) => {
             console.error("[webhook] broker_precreate processing error:", err);
           });
         }
+      }
+
+      if (meta.type === "broker_client_renew") {
+        const clientUserIdStr = meta.clientUserId;
+        const clientEmailStr = meta.clientEmail;
+        (async () => {
+          try {
+            let clientUser: { id: number; proExpiresAt: Date | null } | undefined;
+            if (clientUserIdStr) {
+              const [u] = await db.select({ id: usersTable.id, proExpiresAt: usersTable.proExpiresAt })
+                .from(usersTable).where(eq(usersTable.id, Number(clientUserIdStr))).limit(1);
+              clientUser = u;
+            }
+            if (!clientUser && clientEmailStr) {
+              const [u] = await db.select({ id: usersTable.id, proExpiresAt: usersTable.proExpiresAt })
+                .from(usersTable).where(eq(usersTable.email, clientEmailStr)).limit(1);
+              clientUser = u;
+            }
+            if (!clientUser) throw new Error("Client not found");
+            const base = new Date(Math.max(Date.now(), clientUser.proExpiresAt?.getTime() ?? 0));
+            base.setMonth(base.getMonth() + 13);
+            await db.update(usersTable).set({
+              subscriptionStatus: "pro_annual",
+              fullAccess: true,
+              proExpiresAt: base,
+              updatedAt: new Date(),
+            }).where(eq(usersTable.id, clientUser.id));
+          } catch (err) {
+            console.error("[webhook] broker_client_renew error:", err);
+          }
+        })();
       }
     }
 

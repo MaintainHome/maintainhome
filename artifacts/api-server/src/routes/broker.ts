@@ -245,7 +245,7 @@ router.post(
 );
 
 // ── POST /api/broker/precreate-checkout ──────────────────────────────────────
-// Creates a Stripe checkout session ($36, one-time) + pending precreation record.
+// Creates a Stripe checkout session ($36 1yr / $99 3yr) + pending precreation record.
 router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
     const config = await getBrokerConfig(req.userEmail!);
@@ -258,12 +258,14 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       clientEmail, clientName,
       propertyData, quizAnswers,
       documentPaths,
+      duration = "1year",
     } = req.body as {
       clientEmail?: string;
       clientName?: string;
       propertyData?: Record<string, unknown>;
       quizAnswers?: QuizAnswers;
       documentPaths?: Array<{ objectPath: string; fileName: string; contentType: string; fileSizeBytes?: number; displayName?: string }>;
+      duration?: "1year" | "3years";
     };
 
     if (!clientEmail?.trim()) {
@@ -279,6 +281,10 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       .from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
     if (!brokerUser) { res.status(401).json({ error: "User not found" }); return; }
 
+    const is3Year = duration === "3years";
+    const priceCents = is3Year ? 9900 : 3600;
+    const proMonths = is3Year ? 37 : 13;
+
     const [pending] = await db.insert(brokerPrecreationsTable).values({
       brokerUserId: req.userId!,
       clientEmail: clientEmail.trim().toLowerCase(),
@@ -287,7 +293,7 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       quizAnswers: quizAnswers ?? null,
       documentPaths: documentPaths ?? null,
       status: "pending_payment",
-      priceCents: 3600,
+      priceCents,
     }).returning();
 
     const stripe = getStripeClient();
@@ -309,10 +315,14 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       line_items: [{
         price_data: {
           currency: "usd",
-          unit_amount: 3600,
+          unit_amount: priceCents,
           product_data: {
-            name: "MaintainHome Pre-Created Client Account",
-            description: `13 months Pro access for ${clientEmail.trim()} — pre-configured by broker`,
+            name: is3Year
+              ? "MaintainHome 3-Year Client Account"
+              : "MaintainHome Pre-Created Client Account",
+            description: is3Year
+              ? `37 months Pro access for ${clientEmail.trim()} — pre-configured by broker`
+              : `13 months Pro access for ${clientEmail.trim()} — pre-configured by broker`,
           },
         },
         quantity: 1,
@@ -324,6 +334,8 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
         type: "broker_precreate",
         precreationId: String(pending.id),
         brokerSubdomain: config.subdomain,
+        duration,
+        proMonths: String(proMonths),
       },
       success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/broker-dashboard`,
@@ -337,6 +349,67 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
   } catch (err) {
     console.error("[broker] precreate-checkout error:", err);
     res.status(500).json({ error: "Failed to start checkout" });
+  }
+});
+
+// ── POST /api/broker/client-renew-checkout ────────────────────────────────────
+// Creates a $36 Stripe session to renew a specific client's Pro by 13 months.
+router.post("/broker/client-renew-checkout", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const config = await getBrokerConfig(req.userEmail!);
+    if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+
+    const { clientUserId, clientEmail } = req.body as { clientUserId?: number; clientEmail?: string };
+    if (!clientUserId && !clientEmail) {
+      res.status(400).json({ error: "clientUserId or clientEmail required" });
+      return;
+    }
+
+    const [brokerUser] = await db.select({ id: usersTable.id, email: usersTable.email, stripeCustomerId: usersTable.stripeCustomerId })
+      .from(usersTable).where(eq(usersTable.id, req.userId!)).limit(1);
+    if (!brokerUser) { res.status(401).json({ error: "User not found" }); return; }
+
+    const stripe = getStripeClient();
+    const base = getBaseUrl(req);
+
+    let customerId = brokerUser.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe.customers.create({ email: brokerUser.email, metadata: { userId: String(brokerUser.id) } });
+      customerId = customer.id;
+      await db.update(usersTable).set({ stripeCustomerId: customerId }).where(eq(usersTable.id, brokerUser.id));
+    }
+
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      payment_method_types: ["card"],
+      line_items: [{
+        price_data: {
+          currency: "usd",
+          unit_amount: 3600,
+          product_data: {
+            name: "MaintainHome Client Pro Renewal",
+            description: `1-year Pro renewal for ${clientEmail ?? `client #${clientUserId}`}`,
+          },
+        },
+        quantity: 1,
+      }],
+      mode: "payment",
+      metadata: {
+        userId: String(brokerUser.id),
+        email: brokerUser.email,
+        type: "broker_client_renew",
+        clientUserId: String(clientUserId ?? ""),
+        clientEmail: clientEmail ?? "",
+        brokerSubdomain: config.subdomain,
+      },
+      success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${base}/broker-dashboard`,
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error("[broker] client-renew-checkout error:", err);
+    res.status(500).json({ error: "Failed to start renewal checkout" });
   }
 });
 
@@ -367,6 +440,7 @@ export async function processBrokerPrecreation(
   precreationId: number,
   brokerSubdomain: string,
   baseUrl: string,
+  proMonths: number = 13,
 ): Promise<{ ok: boolean; activationLink: string; clientEmail: string; clientName: string | null }> {
   const [precreation] = await db
     .select()
@@ -392,7 +466,7 @@ export async function processBrokerPrecreation(
   const clientEmail = precreation.clientEmail;
   const clientName = precreation.clientName;
   const proExpiresAt = new Date();
-  proExpiresAt.setMonth(proExpiresAt.getMonth() + 13);
+  proExpiresAt.setMonth(proExpiresAt.getMonth() + proMonths);
 
   let clientUserId: number;
 
