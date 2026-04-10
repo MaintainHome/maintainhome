@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useLocation } from "wouter";
+import { NewConstructionSection, NewConstructionCheckbox, emptyNewConstruction, type NewConstructionData } from "@/components/NewConstructionSection";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 const BASE = import.meta.env.BASE_URL;
@@ -399,6 +400,9 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
   const [docs, setDocs] = useState<DocEntry[]>([]);
   const docInputRef = useRef<HTMLInputElement>(null);
 
+  const [isNewConstruction, setIsNewConstruction] = useState(false);
+  const [newConstructionData, setNewConstructionData] = useState<NewConstructionData>(emptyNewConstruction);
+
   function setField(key: string, val: string) {
     setForm((f) => ({ ...f, [key]: val }));
   }
@@ -488,6 +492,7 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
           quizAnswers,
           documentPaths: docs,
           duration,
+          newConstructionData: isNewConstruction ? newConstructionData : null,
         }),
       });
       const data = await safeJson(res);
@@ -866,6 +871,23 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                         style={{ "--tw-ring-color": accent } as React.CSSProperties}
                       />
                     </div>
+                  )}
+                </div>
+
+                {/* New Construction */}
+                <div className="space-y-3">
+                  <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">New Construction Details <span className="font-normal normal-case text-slate-400">(optional)</span></p>
+                  <NewConstructionCheckbox
+                    checked={isNewConstruction}
+                    onChange={setIsNewConstruction}
+                    accent={accent}
+                  />
+                  {isNewConstruction && (
+                    <NewConstructionSection
+                      data={newConstructionData}
+                      onChange={setNewConstructionData}
+                      accent={accent}
+                    />
                   )}
                 </div>
 

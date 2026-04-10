@@ -232,6 +232,7 @@ router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, re
     lastRenovationYear, yearBuilt, mortgageRate,
     grassType, foundationType, crawlSpaceSealed, hvacType, roofAgeYear,
     sidingType, pastPestIssues, pastPestIssuesNotes,
+    newConstructionData,
   } = req.body;
 
   const values = {
@@ -252,6 +253,7 @@ router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, re
     sidingType: sidingType ?? null,
     pastPestIssues: pastPestIssues ?? null,
     pastPestIssuesNotes: pastPestIssuesNotes ?? null,
+    newConstructionData: newConstructionData ?? null,
     updatedAt: new Date(),
   };
 

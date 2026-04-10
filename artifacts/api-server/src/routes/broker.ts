@@ -259,6 +259,7 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       propertyData, quizAnswers,
       documentPaths,
       duration = "1year",
+      newConstructionData,
     } = req.body as {
       clientEmail?: string;
       clientName?: string;
@@ -266,6 +267,7 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       quizAnswers?: QuizAnswers;
       documentPaths?: Array<{ objectPath: string; fileName: string; contentType: string; fileSizeBytes?: number; displayName?: string }>;
       duration?: "1year" | "3years";
+      newConstructionData?: Record<string, unknown> | null;
     };
 
     if (!clientEmail?.trim()) {
@@ -292,6 +294,7 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       propertyData: propertyData ?? null,
       quizAnswers: quizAnswers ?? null,
       documentPaths: documentPaths ?? null,
+      newConstructionData: newConstructionData ?? null,
       status: "pending_payment",
       priceCents,
     }).returning();
@@ -518,26 +521,29 @@ export async function processBrokerPrecreation(
         calendarData,
       }).onConflictDoNothing();
 
-      if (propData) {
+      const ncData = precreation.newConstructionData as Record<string, unknown> | null;
+      if (propData || ncData) {
         await db.insert(homeProfilesTable).values({
           userId: clientUserId,
-          fullAddress: (propData.fullAddress as string) || null,
-          yearBuilt: (propData.yearBuilt as number) || null,
-          bedrooms: (propData.bedrooms as number) || null,
-          bathrooms: (propData.bathrooms as string) || null,
-          finishedBasement: (propData.finishedBasement as string) || null,
-          poolOrHotTub: (propData.poolOrHotTub as string) || null,
-          lastRenovationYear: (propData.lastRenovationYear as number) || null,
+          fullAddress: (propData?.fullAddress as string) || null,
+          yearBuilt: (propData?.yearBuilt as number) || null,
+          bedrooms: (propData?.bedrooms as number) || null,
+          bathrooms: (propData?.bathrooms as string) || null,
+          finishedBasement: (propData?.finishedBasement as string) || null,
+          poolOrHotTub: (propData?.poolOrHotTub as string) || null,
+          lastRenovationYear: (propData?.lastRenovationYear as number) || null,
+          newConstructionData: ncData ?? null,
         }).onConflictDoUpdate({
           target: homeProfilesTable.userId,
           set: {
-            fullAddress: (propData.fullAddress as string) || null,
-            yearBuilt: (propData.yearBuilt as number) || null,
-            bedrooms: (propData.bedrooms as number) || null,
-            bathrooms: (propData.bathrooms as string) || null,
-            finishedBasement: (propData.finishedBasement as string) || null,
-            poolOrHotTub: (propData.poolOrHotTub as string) || null,
-            lastRenovationYear: (propData.lastRenovationYear as number) || null,
+            fullAddress: (propData?.fullAddress as string) || null,
+            yearBuilt: (propData?.yearBuilt as number) || null,
+            bedrooms: (propData?.bedrooms as number) || null,
+            bathrooms: (propData?.bathrooms as string) || null,
+            finishedBasement: (propData?.finishedBasement as string) || null,
+            poolOrHotTub: (propData?.poolOrHotTub as string) || null,
+            lastRenovationYear: (propData?.lastRenovationYear as number) || null,
+            newConstructionData: ncData ?? null,
             updatedAt: new Date(),
           },
         });

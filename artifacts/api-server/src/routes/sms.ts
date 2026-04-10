@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { db, usersTable, savedCalendarsTable, smsLogTable } from "@workspace/db";
+import { db, usersTable, savedCalendarsTable, smsLogTable, homeProfilesTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 
@@ -165,8 +165,32 @@ router.post("/sms/trigger-check", requireAuth as any, async (req: AuthRequest, r
 
   const criticalTasks = monthData.tasks.filter((t) => isCriticalTask(t.task));
 
-  if (!criticalTasks.length) {
-    res.json({ skipped: true, reason: "No critical tasks this month" });
+  // Check for upcoming builder warranty expirations (within 60 days)
+  const warrantyReminders: string[] = [];
+  try {
+    const [profile] = await db
+      .select({ newConstructionData: homeProfilesTable.newConstructionData })
+      .from(homeProfilesTable)
+      .where(eq(homeProfilesTable.userId, req.userId!))
+      .limit(1);
+
+    const ncData = profile?.newConstructionData as { warrantyDates?: { label: string; date: string }[] } | null;
+    if (ncData?.warrantyDates) {
+      const cutoff = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000); // 60 days from now
+      for (const w of ncData.warrantyDates) {
+        if (!w.date) continue;
+        const expiry = new Date(w.date);
+        if (expiry >= now && expiry <= cutoff) {
+          const label = w.label || "Builder Warranty";
+          const dateStr = expiry.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+          warrantyReminders.push(`• ${label} expires ${dateStr}`);
+        }
+      }
+    }
+  } catch { /* non-fatal */ }
+
+  if (!criticalTasks.length && !warrantyReminders.length) {
+    res.json({ skipped: true, reason: "No critical tasks or warranty reminders this month" });
     return;
   }
 
@@ -175,28 +199,38 @@ router.post("/sms/trigger-check", requireAuth as any, async (req: AuthRequest, r
     .map((t) => `• ${t.task}`)
     .join("\n");
 
-  const message = [
+  const messageParts = [
     `🏠 MaintainHome.ai — ${currentMonth} Reminders`,
     "",
-    "Your critical home tasks this month:",
-    taskBullets,
-    "",
-    "View your full plan at maintainhome.ai",
-    "Msg & data rates may apply. Reply STOP to opt out.",
-  ].join("\n");
+  ];
+  if (criticalTasks.length) {
+    messageParts.push("Your critical home tasks this month:", taskBullets);
+  }
+  if (warrantyReminders.length) {
+    if (criticalTasks.length) messageParts.push("");
+    messageParts.push("Upcoming warranty expirations:", ...warrantyReminders);
+  }
+  messageParts.push("", "View your full plan at maintainhome.ai", "Msg & data rates may apply. Reply STOP to opt out.");
+
+  const message = messageParts.join("\n");
 
   const result = await sendTwilioSms(user.smsPhone, message);
+
+  const allTaskNames = [
+    ...criticalTasks.map((t) => t.task),
+    ...warrantyReminders,
+  ].join(", ");
 
   await db.insert(smsLogTable).values({
     userId: req.userId!,
     phone: user.smsPhone,
-    taskNames: criticalTasks.map((t) => t.task).join(", "),
+    taskNames: allTaskNames,
     month: currentMonth,
     status: result.ok ? "sent" : "failed",
   });
 
   if (result.ok) {
-    res.json({ sent: true, taskCount: criticalTasks.length, month: currentMonth });
+    res.json({ sent: true, taskCount: criticalTasks.length + warrantyReminders.length, month: currentMonth });
   } else {
     res.json({ sent: false, reason: result.error });
   }

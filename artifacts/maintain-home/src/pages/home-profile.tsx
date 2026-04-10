@@ -12,6 +12,7 @@ import { useBranding } from "@/contexts/BrandingContext";
 import { PricingSection } from "@/components/PricingSection";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
 import { HomeDocumentsSection } from "@/components/HomeDocumentsWidget";
+import { NewConstructionSection, NewConstructionCheckbox, emptyNewConstruction, type NewConstructionData } from "@/components/NewConstructionSection";
 
 // ── Label maps (mirrors quiz + ai-chat server) ─────────────────────────────
 const HOME_AGE_LABELS: Record<string, string> = {
@@ -123,6 +124,9 @@ export default function HomeProfilePage() {
   const [giftCodeInput, setGiftCodeInput] = useState("");
   const [giftCodeLoading, setGiftCodeLoading] = useState(false);
   const [giftCodeResult, setGiftCodeResult] = useState<{ ok: boolean; message: string } | null>(null);
+
+  const [isNewConstruction, setIsNewConstruction] = useState(false);
+  const [newConstructionData, setNewConstructionData] = useState<NewConstructionData>(emptyNewConstruction);
 
   const userIsPro = isPro(user);
 
@@ -240,6 +244,10 @@ export default function HomeProfilePage() {
           pastPestIssues: prof.pastPestIssues ?? "",
           pastPestIssuesNotes: prof.pastPestIssuesNotes ?? "",
         });
+        if (prof.newConstructionData) {
+          setIsNewConstruction(true);
+          setNewConstructionData({ ...emptyNewConstruction, ...(prof.newConstructionData as Partial<NewConstructionData>) });
+        }
       }
     }).catch(() => {}).finally(() => setLoading(false));
   }, [user?.id]);
@@ -269,6 +277,7 @@ export default function HomeProfilePage() {
           sidingType: profile.sidingType || null,
           pastPestIssues: profile.pastPestIssues || null,
           pastPestIssuesNotes: profile.pastPestIssues === "yes" ? (profile.pastPestIssuesNotes || null) : null,
+          newConstructionData: isNewConstruction ? newConstructionData : null,
         }),
       });
       if (!r.ok) throw new Error("Save failed");
@@ -572,6 +581,45 @@ export default function HomeProfilePage() {
               to generate your maintenance calendar.
             </div>
           )}
+        </motion.div>
+
+        {/* ── New Construction ───────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+        >
+          <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-white">New Construction</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Track builder specs, finishes, and warranty dates</p>
+            </div>
+          </div>
+          <div className="px-5 py-4 space-y-4">
+            <NewConstructionCheckbox
+              checked={isNewConstruction}
+              onChange={setIsNewConstruction}
+              accent={branding.accentColor ?? "#1f9e6e"}
+            />
+            {isNewConstruction && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.25 }}
+              >
+                <NewConstructionSection
+                  data={newConstructionData}
+                  onChange={setNewConstructionData}
+                  accent={branding.accentColor ?? "#1f9e6e"}
+                  onDocumentLinkClick={() => {
+                    document.getElementById("home-documents-section")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                />
+              </motion.div>
+            )}
+          </div>
         </motion.div>
 
         {/* ── Additional Home Details ────────────────────────────────── */}
@@ -1304,6 +1352,7 @@ export default function HomeProfilePage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.19 }}
+          id="home-documents-section"
         >
           <HomeDocumentsSection />
         </motion.div>

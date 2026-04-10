@@ -65,6 +65,7 @@ export const homeProfilesTable = pgTable("home_profiles", {
   pastPestIssues: text("past_pest_issues"),
   pastPestIssuesNotes: text("past_pest_issues_notes"),
   resolvedBigTicketKeys: jsonb("resolved_big_ticket_keys").default([]),
+  newConstructionData: jsonb("new_construction_data"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -117,6 +118,7 @@ export const brokerPrecreationsTable = pgTable("broker_precreations", {
   activatedAt: timestamp("activated_at"),
   status: text("status").notNull().default("pending_payment"),
   priceCents: integer("price_cents").notNull().default(3600),
+  newConstructionData: jsonb("new_construction_data"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
