@@ -4,7 +4,7 @@ import {
   FolderOpen, Upload, Loader2, Trash2,
   CalendarDays, Tag, Hash, CheckCircle2, AlertTriangle, Clock,
   FileText, X, Shield, Building2, Home, BookOpen, MoreHorizontal,
-  Lock, Sparkles, Info, Eye, MessageSquare, Bot,
+  Lock, Sparkles, Info, Eye, MessageSquare, Bot, Download, ZoomIn, ZoomOut,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { AIChatModal } from "@/components/AIChatModal";
@@ -40,6 +40,7 @@ export interface HomeDoc {
   displayName: string | null;
   contentType: string;
   fileSizeBytes: number | null;
+  objectPath: string;
   docType: string;
   warrantyData: DocumentData | null;
   uploadedAt: string;
@@ -132,16 +133,225 @@ export function ExpiryBadge({ label, dateStr }: { label?: string; dateStr: strin
   );
 }
 
+// ── Doc Viewer Modal ──────────────────────────────────────────────────────────
+
+export function DocViewerModal({
+  doc,
+  onClose,
+}: {
+  doc: HomeDoc;
+  onClose: () => void;
+}) {
+  const [imageScale, setImageScale] = useState(1);
+  const [downloading, setDownloading] = useState(false);
+  const [iframeError, setIframeError] = useState(false);
+
+  const fileUrl = `${API_BASE}${doc.objectPath}`;
+  const isPdf = doc.contentType === "application/pdf";
+  const isImage = doc.contentType.startsWith("image/");
+
+  const d = doc.warrantyData;
+  const cat = getCatConfig(doc.docType);
+  const name = d?.documentTypeName ?? d?.productName ?? doc.displayName ?? doc.fileName;
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  async function handleDownload() {
+    setDownloading(true);
+    try {
+      const res = await fetch(fileUrl, { credentials: "include" });
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = doc.fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      window.open(fileUrl, "_blank", "noopener");
+    } finally {
+      setDownloading(false);
+    }
+  }
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[60] bg-black/85 flex items-center justify-center p-2 sm:p-4"
+        onClick={(e) => e.target === e.currentTarget && onClose()}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, y: 16 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.96, y: 16 }}
+          transition={{ type: "spring", stiffness: 340, damping: 28 }}
+          className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          style={{ maxHeight: "calc(100dvh - 2rem)" }}
+        >
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 sm:px-5 py-3.5 border-b border-slate-200 shrink-0 bg-slate-50">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              doc.docType === "warranty" ? "bg-emerald-100" :
+              doc.docType === "hoa" ? "bg-blue-100" :
+              doc.docType === "insurance" ? "bg-violet-100" :
+              doc.docType === "deed" ? "bg-amber-100" :
+              doc.docType === "manual" ? "bg-cyan-100" : "bg-slate-100"
+            }`}>
+              <span className={cat.color}>{cat.icon}</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide leading-none mb-0.5">{cat.label}</p>
+              <h2 className="font-bold text-slate-900 text-sm leading-tight truncate">{name}</h2>
+              <p className="text-[11px] text-slate-400 truncate hidden sm:block">
+                {doc.fileName} · Uploaded {fmt(doc.uploadedAt)}
+                {doc.fileSizeBytes ? ` · ${(doc.fileSizeBytes / 1024).toFixed(0)} KB` : ""}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {isImage && (
+                <div className="hidden sm:flex items-center gap-1 bg-slate-200/70 rounded-xl p-1">
+                  <button
+                    onClick={() => setImageScale(s => Math.max(0.5, s - 0.25))}
+                    className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm transition-all text-slate-500"
+                    title="Zoom out"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-xs font-semibold text-slate-500 px-1 min-w-[3rem] text-center">
+                    {Math.round(imageScale * 100)}%
+                  </span>
+                  <button
+                    onClick={() => setImageScale(s => Math.min(3, s + 0.25))}
+                    className="p-1.5 rounded-lg hover:bg-white hover:shadow-sm transition-all text-slate-500"
+                    title="Zoom in"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
+              <button
+                onClick={handleDownload}
+                disabled={downloading}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all disabled:opacity-60"
+              >
+                {downloading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+                <span className="hidden sm:inline">Download</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Viewer body */}
+          <div className="flex-1 min-h-0 bg-slate-100 relative overflow-auto">
+            {isPdf && !iframeError && (
+              <iframe
+                src={fileUrl}
+                className="w-full border-0"
+                style={{ height: "calc(100dvh - 14rem)", minHeight: "400px" }}
+                title={name}
+                onError={() => setIframeError(true)}
+              />
+            )}
+            {isPdf && iframeError && (
+              <div className="flex flex-col items-center justify-center min-h-[300px] gap-4 p-8 text-center">
+                <FileText className="w-14 h-14 text-slate-300" />
+                <div>
+                  <p className="font-semibold text-slate-700 mb-1">PDF preview unavailable</p>
+                  <p className="text-sm text-slate-500">Your browser couldn't display the PDF inline.</p>
+                </div>
+                <button onClick={handleDownload} disabled={downloading}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 transition-colors disabled:opacity-60">
+                  <Download className="w-4 h-4" />Download PDF
+                </button>
+              </div>
+            )}
+            {isImage && (
+              <div className="flex items-center justify-center min-h-full p-4 sm:p-8 overflow-auto">
+                <div style={{ transform: `scale(${imageScale})`, transformOrigin: "center top", transition: "transform 0.2s ease" }}>
+                  <img
+                    src={fileUrl}
+                    alt={name}
+                    className="max-w-full rounded-lg shadow-xl"
+                    style={{ maxHeight: imageScale === 1 ? "calc(100dvh - 18rem)" : "none" }}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display = "none";
+                      const parent = (e.currentTarget as HTMLImageElement).parentElement;
+                      if (parent) parent.innerHTML = `<div class="text-slate-500 text-sm p-8 text-center"><p class="font-semibold mb-2">Image could not be loaded</p><p>Try downloading it directly.</p></div>`;
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            {!isPdf && !isImage && (
+              <div className="flex flex-col items-center justify-center min-h-[300px] gap-5 p-8 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-slate-200 flex items-center justify-center">
+                  <FileText className="w-8 h-8 text-slate-400" />
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-700 mb-1">Preview not available</p>
+                  <p className="text-sm text-slate-500 max-w-sm">
+                    This file type ({doc.contentType || "unknown"}) can't be previewed in the browser. Use the download button to open it on your device.
+                  </p>
+                </div>
+                <button onClick={handleDownload} disabled={downloading}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 transition-colors disabled:opacity-60">
+                  <Download className="w-4 h-4" />
+                  {downloading ? "Downloading…" : "Download Original"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Compact key info footer */}
+          {d && (d.issuer || d.policyNumber || d.expiryDate || d.renewalDate || d.coverageAmount) && (
+            <div className="shrink-0 px-4 sm:px-5 py-2.5 border-t border-slate-200 bg-slate-50 flex items-center gap-3 flex-wrap">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide shrink-0">Key Info</span>
+              {d.issuer && (
+                <span className="text-xs text-slate-600 font-medium">{d.issuer}</span>
+              )}
+              {d.policyNumber && (
+                <span className="text-xs text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded">#{d.policyNumber}</span>
+              )}
+              {d.coverageAmount && (
+                <span className="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded">{d.coverageAmount}</span>
+              )}
+              {(d.expiryDate || d.renewalDate) && (
+                <ExpiryBadge label={d.expiryDate ? "Expires" : "Renews"} dateStr={d.expiryDate ?? d.renewalDate} />
+              )}
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 // ── Doc Details Modal ─────────────────────────────────────────────────────────
 
 export function DocDetailsModal({
   doc,
   onClose,
   onDelete,
+  onViewFile,
 }: {
   doc: HomeDoc;
   onClose: () => void;
   onDelete: (id: number) => void;
+  onViewFile?: (doc: HomeDoc) => void;
 }) {
   const [deleting, setDeleting] = useState(false);
   const d = doc.warrantyData;
@@ -340,7 +550,7 @@ export function DocDetailsModal({
           </div>
 
           {/* Footer actions */}
-          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0 bg-slate-50">
+          <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0 bg-slate-50 flex-wrap">
             <button
               onClick={handleDelete}
               disabled={deleting}
@@ -349,12 +559,23 @@ export function DocDetailsModal({
               {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
               Remove
             </button>
-            <button
-              onClick={onClose}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors"
-            >
-              Done
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              {onViewFile && (
+                <button
+                  onClick={() => onViewFile(doc)}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-primary/40 text-primary hover:bg-primary/8 hover:border-primary font-semibold text-sm transition-colors"
+                >
+                  <Eye className="w-4 h-4" />
+                  View Full Document
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm transition-colors"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </motion.div>
       </motion.div>
@@ -367,11 +588,13 @@ export function DocDetailsModal({
 function DarkDocCard({
   doc,
   onViewDetails,
+  onViewFile,
   onAskMaintly,
   userIsPro,
 }: {
   doc: HomeDoc;
   onViewDetails: (doc: HomeDoc) => void;
+  onViewFile: (doc: HomeDoc) => void;
   onAskMaintly?: (message: string) => void;
   userIsPro: boolean;
 }) {
@@ -433,6 +656,13 @@ function DarkDocCard({
                 <Eye className="w-4 h-4" />
                 View Details
               </button>
+              <button
+                onClick={() => onViewFile(doc)}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-300 border border-slate-600/60 hover:bg-slate-700/60 hover:border-slate-500 active:scale-[0.97] transition-all"
+              >
+                <FileText className="w-4 h-4" />
+                View File
+              </button>
               {userIsPro ? (
                 <button
                   onClick={() => onAskMaintly?.(buildAskMessage(doc))}
@@ -466,11 +696,13 @@ function DarkDocCard({
 export function LightDocRow({
   doc,
   onViewDetails,
+  onViewFile,
   onAskMaintly,
   userIsPro,
 }: {
   doc: HomeDoc;
   onViewDetails: (doc: HomeDoc) => void;
+  onViewFile: (doc: HomeDoc) => void;
   onAskMaintly?: (message: string) => void;
   userIsPro: boolean;
 }) {
@@ -513,6 +745,14 @@ export function LightDocRow({
           <Eye className="w-4 h-4" />
           <span className="hidden sm:inline">View Details</span>
           <span className="sm:hidden">Details</span>
+        </button>
+        <button
+          onClick={() => onViewFile(doc)}
+          title="View full document"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.97] transition-all"
+        >
+          <FileText className="w-4 h-4" />
+          <span className="hidden sm:inline">View File</span>
         </button>
         {userIsPro ? (
           <button
@@ -607,6 +847,7 @@ export function HomeDocumentsWidget({ onAskMaintly }: { onAskMaintly?: (message:
   const [activeTab, setActiveTab] = useState<DocCategory | "all">("all");
   const [dragOver, setDragOver] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<HomeDoc | null>(null);
+  const [viewerDoc, setViewerDoc] = useState<HomeDoc | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
@@ -830,6 +1071,7 @@ export function HomeDocumentsWidget({ onAskMaintly }: { onAskMaintly?: (message:
                     key={doc.id}
                     doc={doc}
                     onViewDetails={setSelectedDoc}
+                    onViewFile={setViewerDoc}
                     onAskMaintly={onAskMaintly}
                     userIsPro={userIsPro}
                   />
@@ -850,6 +1092,15 @@ export function HomeDocumentsWidget({ onAskMaintly }: { onAskMaintly?: (message:
           doc={selectedDoc}
           onClose={() => setSelectedDoc(null)}
           onDelete={(id) => { removeDoc(id); setSelectedDoc(null); }}
+          onViewFile={(doc) => { setSelectedDoc(null); setViewerDoc(doc); }}
+        />
+      )}
+
+      {/* File viewer modal */}
+      {viewerDoc && (
+        <DocViewerModal
+          doc={viewerDoc}
+          onClose={() => setViewerDoc(null)}
         />
       )}
     </>
@@ -869,6 +1120,7 @@ export function HomeDocumentsSection() {
   const [activeTab, setActiveTab] = useState<DocCategory | "all">("all");
   const [dragOver, setDragOver] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<HomeDoc | null>(null);
+  const [viewerDoc, setViewerDoc] = useState<HomeDoc | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMessage, setChatMessage] = useState<string>("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -1105,6 +1357,7 @@ export function HomeDocumentsSection() {
                 key={doc.id}
                 doc={doc}
                 onViewDetails={setSelectedDoc}
+                onViewFile={setViewerDoc}
                 onAskMaintly={handleAskMaintly}
                 userIsPro={userIsPro}
               />
@@ -1128,6 +1381,15 @@ export function HomeDocumentsSection() {
           doc={selectedDoc}
           onClose={() => setSelectedDoc(null)}
           onDelete={(id) => { removeDoc(id); setSelectedDoc(null); }}
+          onViewFile={(doc) => { setSelectedDoc(null); setViewerDoc(doc); }}
+        />
+      )}
+
+      {/* File viewer modal */}
+      {viewerDoc && (
+        <DocViewerModal
+          doc={viewerDoc}
+          onClose={() => setViewerDoc(null)}
         />
       )}
 
