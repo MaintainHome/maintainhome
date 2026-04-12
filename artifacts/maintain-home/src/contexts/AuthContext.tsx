@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
+import { clearAllBranding } from "./BrandingContext";
 
 export type SubscriptionStatus = "free" | "pro_monthly" | "pro_annual" | "promo_pro";
 
@@ -104,6 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
     }
     sessionStorage.removeItem("mh_active_role");
+    clearAllBranding();
     setUser(null);
   }, []);
 

@@ -22,8 +22,12 @@ interface BrandingContextType {
 
 const BrandingContext = createContext<BrandingContextType | null>(null);
 
-const PREVIEW_KEY = "mh_preview_subdomain";
-const REFERRAL_KEY = "mh_referral_sub";
+export const PREVIEW_KEY = "mh_preview_subdomain";
+export const REFERRAL_KEY = "mh_referral_sub";
+
+// Module-level callback registered by BrandingProvider so AuthContext can
+// trigger a state reset without creating a circular import/hook dependency.
+let _onClearBranding: (() => void) | null = null;
 
 function detectSubdomain(): string | null {
   const hostname = window.location.hostname;
@@ -59,6 +63,17 @@ export function clearReferralSubdomain() {
   localStorage.removeItem(REFERRAL_KEY);
 }
 
+/**
+ * Called on logout. Wipes all white-label storage and resets the
+ * BrandingProvider's internal state so no broker branding lingers
+ * on the main domain after sign-out.
+ */
+export function clearAllBranding() {
+  localStorage.removeItem(REFERRAL_KEY);
+  sessionStorage.removeItem(PREVIEW_KEY);
+  _onClearBranding?.();
+}
+
 export function BrandingProvider({ children }: { children: ReactNode }) {
   const [branding, setBranding] = useState<BrandingConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,9 +97,25 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     setForcedReferral(sub);
   }, []);
 
+  // Register the module-level callback so clearAllBranding() can reset state.
   useEffect(() => {
-    const referral = detectReferralParam();
-    const subdomain = previewSubdomain || detectSubdomain() || forcedReferral || referral;
+    _onClearBranding = () => {
+      setForcedReferral(null);
+      setPreviewSubdomainState(null);
+      setBranding(null);
+      setLoading(false);
+    };
+    return () => {
+      _onClearBranding = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Only read localStorage referral if we are NOT on a real subdomain
+    // and there is no forced referral already in state.
+    const sub = detectSubdomain();
+    const referral = sub ? null : detectReferralParam();
+    const subdomain = previewSubdomain || sub || forcedReferral || referral;
 
     if (!subdomain) {
       setBranding(null);
