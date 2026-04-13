@@ -600,7 +600,7 @@ export default function HomeProfilePage() {
             <NewConstructionCheckbox
               checked={isNewConstruction}
               onChange={setIsNewConstruction}
-              accent={branding.accentColor ?? "#1f9e6e"}
+              accent={branding?.accentColor ?? "#1f9e6e"}
             />
             {isNewConstruction && (
               <motion.div
@@ -612,7 +612,7 @@ export default function HomeProfilePage() {
                 <NewConstructionSection
                   data={newConstructionData}
                   onChange={setNewConstructionData}
-                  accent={branding.accentColor ?? "#1f9e6e"}
+                  accent={branding?.accentColor ?? "#1f9e6e"}
                   onDocumentLinkClick={() => {
                     document.getElementById("home-documents-section")?.scrollIntoView({ behavior: "smooth" });
                   }}

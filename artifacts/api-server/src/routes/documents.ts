@@ -44,6 +44,13 @@ export interface DocumentData {
   importantTerms: string | null;
   nextActions: string[];
   confidence: "high" | "medium" | "low";
+  // Insurance-specific fields (null for non-insurance docs)
+  dwellingCoverage: string | null;
+  personalPropertyCoverage: string | null;
+  liabilityCoverage: string | null;
+  deductible: string | null;
+  agentName: string | null;
+  agentPhone: string | null;
 }
 
 const DOCUMENT_EXTRACTION_PROMPT = `You are Maintly, an AI home ownership assistant. Analyze this home document or photo and extract key information. Respond ONLY with raw JSON (no markdown, no code blocks, just valid JSON).
@@ -63,17 +70,23 @@ Required JSON structure:
   "productName": "product/appliance name for warranties/manuals, or document subject, or null",
   "modelNumber": "model or part number if visible, or null",
   "serialNumber": "serial number if visible, or null",
-  "issuer": "company/organization issuing the document (insurance co, HOA name, manufacturer), or null",
+  "issuer": "insurance company or organization issuing the document, or null",
   "policyNumber": "policy, account, or reference number if present, or null",
   "purchaseDate": "YYYY-MM-DD if found, or null",
   "effectiveDate": "YYYY-MM-DD when coverage/agreement starts, or null",
-  "expiryDate": "YYYY-MM-DD when coverage/warranty expires, or null",
+  "expiryDate": "YYYY-MM-DD when coverage/warranty/policy expires, or null",
   "renewalDate": "YYYY-MM-DD next renewal/review date, or null",
-  "coverageAmount": "dollar amount of coverage for insurance, or null",
+  "coverageAmount": "total insured value or coverage limit (e.g. '$350,000'), or null",
   "coverageDetails": "2-3 sentence summary of what this document covers or its key purpose",
   "importantTerms": "1-2 sentences of any critical terms, exclusions, or things the homeowner must know",
   "nextActions": ["specific action 1", "specific action 2"],
-  "confidence": "high" | "medium" | "low"
+  "confidence": "high" | "medium" | "low",
+  "dwellingCoverage": "Coverage A dwelling amount (e.g. '$300,000') — insurance docs only, else null",
+  "personalPropertyCoverage": "Coverage C personal property amount (e.g. '$100,000') — insurance docs only, else null",
+  "liabilityCoverage": "Coverage E liability amount (e.g. '$100,000') — insurance docs only, else null",
+  "deductible": "policy deductible amount (e.g. '$1,000') — insurance docs only, else null",
+  "agentName": "insurance agent or broker name if visible — insurance docs only, else null",
+  "agentPhone": "insurance agent phone number if visible — insurance docs only, else null"
 }
 
 Rules:
@@ -81,7 +94,8 @@ Rules:
 - Use null (not empty string) for unknown values
 - Format all dates as YYYY-MM-DD
 - nextActions: 1-3 practical steps the homeowner should take (e.g. "Register product at manufacturer website", "Pay HOA dues by March 1", "File claim if damage occurs")
-- confidence: high = fully legible, all key fields visible; medium = partially legible; low = hard to read or uncertain`;
+- confidence: high = fully legible, all key fields visible; medium = partially legible; low = hard to read or uncertain
+- For non-insurance documents, set dwellingCoverage, personalPropertyCoverage, liabilityCoverage, deductible, agentName, agentPhone all to null`;
 
 // ── POST /api/documents/analyze ──────────────────────────────────────────────
 router.post(

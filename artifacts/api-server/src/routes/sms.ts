@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { db, usersTable, savedCalendarsTable, smsLogTable, homeProfilesTable } from "@workspace/db";
+import { db, usersTable, savedCalendarsTable, smsLogTable, homeProfilesTable, maintenanceDocumentsTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 
@@ -185,6 +185,29 @@ router.post("/sms/trigger-check", requireAuth as any, async (req: AuthRequest, r
           const dateStr = expiry.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
           warrantyReminders.push(`• ${label} expires ${dateStr}`);
         }
+      }
+    }
+  } catch { /* non-fatal */ }
+
+  // Check for upcoming homeowners insurance policy expirations (within 60 days)
+  try {
+    const cutoff = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+    const insuranceDocs = await db
+      .select({ warrantyData: maintenanceDocumentsTable.warrantyData, displayName: maintenanceDocumentsTable.displayName })
+      .from(maintenanceDocumentsTable)
+      .where(and(
+        eq(maintenanceDocumentsTable.userId, req.userId!),
+        eq(maintenanceDocumentsTable.docType, "insurance"),
+      ));
+
+    for (const doc of insuranceDocs) {
+      const data = doc.warrantyData as { expiryDate?: string; issuer?: string } | null;
+      if (!data?.expiryDate) continue;
+      const expiry = new Date(data.expiryDate);
+      if (expiry >= now && expiry <= cutoff) {
+        const name = data.issuer || doc.displayName || "Insurance Policy";
+        const dateStr = expiry.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        warrantyReminders.push(`• ${name} policy expires ${dateStr} — renew now`);
       }
     }
   } catch { /* non-fatal */ }

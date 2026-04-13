@@ -5,6 +5,7 @@ import {
   CalendarDays, Tag, Hash, CheckCircle2, AlertTriangle, Clock,
   FileText, X, Shield, Building2, Home, BookOpen, MoreHorizontal,
   Lock, Sparkles, Info, Eye, MessageSquare, Bot, Download, ZoomIn, ZoomOut,
+  Phone, User, ChevronRight,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { AIChatModal } from "@/components/AIChatModal";
@@ -32,6 +33,13 @@ export interface DocumentData {
   importantTerms: string | null;
   nextActions: string[];
   confidence: "high" | "medium" | "low";
+  // Insurance-specific fields
+  dwellingCoverage: string | null;
+  personalPropertyCoverage: string | null;
+  liabilityCoverage: string | null;
+  deductible: string | null;
+  agentName: string | null;
+  agentPhone: string | null;
 }
 
 export interface HomeDoc {
@@ -96,6 +104,229 @@ export function buildAskMessage(doc: HomeDoc): string {
   }
   msg += " What should I know or do next?";
   return msg;
+}
+
+// ── Insurance Policy Section ─────────────────────────────────────────────────
+
+function InsurancePolicySection({
+  docs,
+  userIsPro,
+  uploading,
+  onUploadClick,
+  onViewFile,
+  onAskMaintly,
+}: {
+  docs: HomeDoc[];
+  userIsPro: boolean;
+  uploading: boolean;
+  onUploadClick: () => void;
+  onViewFile: (doc: HomeDoc) => void;
+  onAskMaintly: (msg: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const insuranceDocs = docs.filter((d) => d.docType === "insurance");
+  const doc = insuranceDocs[0] ?? null;
+  const d = doc?.warrantyData ?? null;
+
+  const expiryDays = daysUntil(d?.expiryDate ?? null);
+  const isExpired = expiryDays !== null && expiryDays < 0;
+  const isExpiringSoon = expiryDays !== null && expiryDays >= 0 && expiryDays <= 60;
+
+  const coverageItems = doc ? [
+    { label: "Dwelling", value: d?.dwellingCoverage ?? d?.coverageAmount ?? null, icon: <Home className="w-3.5 h-3.5" /> },
+    { label: "Personal Property", value: d?.personalPropertyCoverage ?? null, icon: <Shield className="w-3.5 h-3.5" /> },
+    { label: "Liability", value: d?.liabilityCoverage ?? null, icon: <Shield className="w-3.5 h-3.5" /> },
+    { label: "Deductible", value: d?.deductible ?? null, icon: <Hash className="w-3.5 h-3.5" /> },
+  ].filter((c) => c.value) : [];
+
+  return (
+    <div className="mx-5 mt-4 mb-2 rounded-2xl border border-violet-200 bg-violet-50/60 overflow-hidden">
+      {/* Section header */}
+      <button
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center gap-2.5 px-4 py-3 text-left hover:bg-violet-50 transition-colors"
+      >
+        <div className="w-7 h-7 rounded-xl bg-violet-100 flex items-center justify-center shrink-0">
+          <Shield className="w-3.5 h-3.5 text-violet-600" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-slate-800">Homeowners Insurance</span>
+            {doc && (isExpired || isExpiringSoon) && (
+              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                isExpired ? "bg-red-100 text-red-600 border border-red-200" : "bg-amber-100 text-amber-700 border border-amber-200"
+              }`}>
+                {isExpired ? "Expired" : `Expires in ${expiryDays}d`}
+              </span>
+            )}
+            {doc && !isExpired && !isExpiringSoon && (
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 border border-emerald-200">
+                Active
+              </span>
+            )}
+            {!doc && (
+              <span className="text-[10px] font-medium text-violet-500 bg-violet-100 px-1.5 py-0.5 rounded-full">Optional</span>
+            )}
+          </div>
+          {doc && d?.issuer && (
+            <p className="text-xs text-slate-500 truncate">{d.issuer}{d.policyNumber ? ` · #${d.policyNumber}` : ""}</p>
+          )}
+          {!doc && (
+            <p className="text-xs text-slate-500">Upload your policy to track coverage & expiration</p>
+          )}
+        </div>
+        <ChevronRight className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`} />
+      </button>
+
+      <AnimatePresence initial={false}>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="border-t border-violet-200/70">
+              {/* Empty state — no insurance doc uploaded yet */}
+              {!doc && (
+                <div className="px-4 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-slate-600 leading-relaxed">
+                      Upload your homeowners insurance declarations page and Maintly will extract your coverage amounts,
+                      deductible, expiration date, and agent contact info automatically.
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1.5">PDF up to 8MB · Images up to 5MB · Optional</p>
+                  </div>
+                  {userIsPro ? (
+                    <button
+                      onClick={onUploadClick}
+                      disabled={uploading}
+                      className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-violet-600 hover:bg-violet-700 active:scale-[0.97] transition-all disabled:opacity-60 shadow-sm"
+                    >
+                      {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      Upload Insurance Policy
+                    </button>
+                  ) : (
+                    <a
+                      href="/#pricing"
+                      className="shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 transition-colors"
+                    >
+                      <Lock className="w-4 h-4" />
+                      Pro Feature
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Insurance doc present — show summary */}
+              {doc && (
+                <div className="px-4 py-4 space-y-3">
+                  {/* Expiry warning banner */}
+                  {(isExpired || isExpiringSoon) && (
+                    <div className={`flex items-start gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium ${
+                      isExpired ? "bg-red-50 border border-red-200 text-red-700" : "bg-amber-50 border border-amber-200 text-amber-800"
+                    }`}>
+                      <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                      <span>
+                        {isExpired
+                          ? `Your policy expired ${fmt(d?.expiryDate ?? null)}. Contact your insurer to renew immediately.`
+                          : `Policy expires ${fmt(d?.expiryDate ?? null)} (${expiryDays} days). Time to start renewal process.`}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Key dates */}
+                  <div className="flex flex-wrap gap-2">
+                    {d?.expiryDate && <ExpiryBadge label="Policy expires" dateStr={d.expiryDate} />}
+                    {d?.effectiveDate && (
+                      <span className="inline-flex items-center gap-1 text-xs text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded-full">
+                        <CalendarDays className="w-3 h-3" />Effective {fmt(d.effectiveDate)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Coverage grid */}
+                  {coverageItems.length > 0 && (
+                    <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100 overflow-hidden">
+                      {coverageItems.map((item) => (
+                        <div key={item.label} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <span className="text-slate-400">{item.icon}</span>
+                            {item.label}
+                          </div>
+                          <span className="text-sm font-bold text-slate-800">{item.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Agent contact */}
+                  {(d?.agentName || d?.agentPhone) && (
+                    <div className="flex items-center gap-4 px-1">
+                      {d.agentName && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                          <User className="w-3.5 h-3.5 text-slate-400" />
+                          <span>{d.agentName}</span>
+                        </div>
+                      )}
+                      {d.agentPhone && (
+                        <a
+                          href={`tel:${d.agentPhone}`}
+                          className="flex items-center gap-1.5 text-xs text-violet-600 hover:text-violet-700 font-medium transition-colors"
+                        >
+                          <Phone className="w-3.5 h-3.5" />
+                          {d.agentPhone}
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  <div className="flex items-center gap-2 flex-wrap pt-1">
+                    <button
+                      onClick={() => onViewFile(doc)}
+                      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-violet-700 bg-violet-100 hover:bg-violet-200 active:scale-[0.97] transition-all"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      View Full Policy
+                    </button>
+                    {userIsPro ? (
+                      <button
+                        onClick={() => onAskMaintly(buildAskMessage(doc))}
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-[#1f9e6e] to-[#3b82f6] hover:opacity-90 active:scale-[0.97] transition-all"
+                      >
+                        <Bot className="w-3.5 h-3.5" />
+                        Ask Maintly About This Policy
+                      </button>
+                    ) : (
+                      <a
+                        href="/#pricing"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 transition-colors"
+                      >
+                        <Lock className="w-3 h-3" />
+                        Ask Maintly (Pro)
+                      </a>
+                    )}
+                    {insuranceDocs.length > 1 && (
+                      <span className="text-xs text-slate-400 ml-1">+{insuranceDocs.length - 1} more in Insurance tab</span>
+                    )}
+                  </div>
+
+                  {/* Replace/update notice */}
+                  {userIsPro && (
+                    <p className="text-[11px] text-slate-400 pt-0.5">
+                      To update your policy, upload a new version — it'll appear in the Insurance tab.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 // ── Expiry badge ─────────────────────────────────────────────────────────────
@@ -1256,9 +1487,21 @@ export function HomeDocumentsSection() {
           )}
         </AnimatePresence>
 
+        {/* Homeowners Insurance section */}
+        {!loading && !uploading && (
+          <InsurancePolicySection
+            docs={docs}
+            userIsPro={userIsPro}
+            uploading={uploading}
+            onUploadClick={() => fileRef.current?.click()}
+            onViewFile={setViewerDoc}
+            onAskMaintly={handleAskMaintly}
+          />
+        )}
+
         {/* Category tabs */}
         {docs.length > 0 && (
-          <div className="px-5 pt-4 pb-2">
+          <div className="px-5 pt-2 pb-2">
             <div className="flex gap-1 flex-wrap">
               {CATEGORIES.map((cat) => {
                 const count = counts[cat.id] ?? 0;
