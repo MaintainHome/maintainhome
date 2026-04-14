@@ -113,7 +113,7 @@ function TaskCard({ task, taskKey, isCompleted, completionNote, onMarkDone, onUn
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className={`font-bold text-sm sm:text-base leading-snug mb-1.5 ${
+          <p className={`font-bold text-base leading-snug mb-1.5 ${
             isCompleted ? "line-through text-slate-400" : "text-slate-900"
           }`}>
             {task.task}
@@ -195,7 +195,7 @@ function TaskCard({ task, taskKey, isCompleted, completionNote, onMarkDone, onUn
               {showMarkDone && !isCompleted && !marking && (
                 <button
                   onClick={() => setMarking(true)}
-                  className="flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:text-emerald-800 transition-colors mt-1"
+                  className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-emerald-700 hover:text-emerald-800 transition-colors mt-2 sm:mt-1 py-1 sm:py-0"
                 >
                   <Check className="w-4 h-4" />
                   Mark as Done
@@ -215,14 +215,14 @@ function TaskCard({ task, taskKey, isCompleted, completionNote, onMarkDone, onUn
                   <div className="flex gap-2">
                     <button
                       onClick={handleConfirm}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-base sm:text-sm font-semibold transition-colors"
                     >
                       <Check className="w-3.5 h-3.5" />
                       Confirm
                     </button>
                     <button
                       onClick={handleCancel}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-sm font-medium transition-colors"
+                      className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3 sm:py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 text-base sm:text-sm font-medium transition-colors"
                     >
                       <X className="w-3.5 h-3.5" />
                       Cancel

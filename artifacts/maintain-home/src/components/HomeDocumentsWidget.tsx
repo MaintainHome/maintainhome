@@ -847,9 +847,9 @@ function DarkDocCard({
         isUrgent ? "border-red-800/60" : "border-slate-700/60"
       }`}
     >
-      <div className="p-4">
+      <div className="p-5 sm:p-4">
         <div className="flex items-start gap-3">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+          <div className={`w-10 h-10 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
             doc.docType === "warranty" ? "bg-emerald-900/40" :
             doc.docType === "hoa" ? "bg-blue-900/40" :
             doc.docType === "insurance" ? "bg-violet-900/40" :
@@ -860,7 +860,7 @@ function DarkDocCard({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <span className="font-semibold text-white text-sm leading-tight">{name}</span>
+              <span className="font-semibold text-white text-base sm:text-sm leading-tight">{name}</span>
               {d?.confidence === "low" && (
                 <span className="text-[10px] font-medium text-amber-400 bg-amber-950/40 border border-amber-800/50 px-1.5 py-0.5 rounded">
                   Low confidence
@@ -882,14 +882,14 @@ function DarkDocCard({
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => onViewDetails(doc)}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
+                className="flex items-center gap-2 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
               >
                 <Eye className="w-4 h-4" />
                 View Details
               </button>
               <button
                 onClick={() => onViewFile(doc)}
-                className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-300 border border-slate-600/60 hover:bg-slate-700/60 hover:border-slate-500 active:scale-[0.97] transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-slate-300 border border-slate-600/60 hover:bg-slate-700/60 hover:border-slate-500 active:scale-[0.97] transition-all"
               >
                 <FileText className="w-4 h-4" />
                 View File
@@ -897,7 +897,7 @@ function DarkDocCard({
               {userIsPro ? (
                 <button
                   onClick={() => onAskMaintly?.(buildAskMessage(doc))}
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-primary border border-primary/40 hover:bg-primary/10 hover:border-primary active:scale-[0.97] transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-primary border border-primary/40 hover:bg-primary/10 hover:border-primary active:scale-[0.97] transition-all"
                   title="Ask Maintly about this document"
                 >
                   <MessageSquare className="w-4 h-4" />
@@ -907,7 +907,7 @@ function DarkDocCard({
                 <button
                   disabled
                   title="Upgrade to Pro to ask Maintly about your documents"
-                  className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-500 border border-slate-700/60 cursor-not-allowed opacity-50"
+                  className="flex items-center gap-2 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-slate-500 border border-slate-700/60 cursor-not-allowed opacity-50"
                 >
                   <MessageSquare className="w-4 h-4" />
                   Ask Maintly
@@ -957,7 +957,7 @@ export function LightDocRow({
         <span className={cat.color}>{cat.icon}</span>
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-slate-800 truncate">{name}</p>
+        <p className="text-base sm:text-sm font-semibold text-slate-800 truncate">{name}</p>
         <div className="flex items-center gap-2 flex-wrap mt-0.5">
           <span className="text-xs text-slate-400">{cat.label}</span>
           {primaryDate && (
@@ -971,7 +971,7 @@ export function LightDocRow({
       <div className="shrink-0 flex items-center gap-2">
         <button
           onClick={() => onViewDetails(doc)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
+          className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
         >
           <Eye className="w-4 h-4" />
           <span className="hidden sm:inline">View Details</span>
@@ -980,7 +980,7 @@ export function LightDocRow({
         <button
           onClick={() => onViewFile(doc)}
           title="View full document"
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.97] transition-all"
+          className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.97] transition-all"
         >
           <FileText className="w-4 h-4" />
           <span className="hidden sm:inline">View File</span>
@@ -989,7 +989,7 @@ export function LightDocRow({
           <button
             onClick={() => onAskMaintly?.(buildAskMessage(doc))}
             title="Ask Maintly about this document"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-primary border border-primary/30 hover:bg-primary/8 hover:border-primary/60 active:scale-[0.97] transition-all"
+            className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-primary border border-primary/30 hover:bg-primary/8 hover:border-primary/60 active:scale-[0.97] transition-all"
           >
             <MessageSquare className="w-4 h-4" />
             <span className="hidden sm:inline">Ask Maintly</span>
@@ -999,7 +999,7 @@ export function LightDocRow({
           <button
             disabled
             title="Upgrade to Pro to ask Maintly about your documents"
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-400 border border-slate-200 cursor-not-allowed opacity-60"
+            className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-slate-400 border border-slate-200 cursor-not-allowed opacity-60"
           >
             <MessageSquare className="w-4 h-4" />
             <span className="hidden sm:inline">Ask Maintly</span>
@@ -1278,10 +1278,10 @@ export function HomeDocumentsWidget({ onAskMaintly }: { onAskMaintly?: (message:
                 <Upload className="w-6 h-6 text-slate-500" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-300">
+                <p className="text-base sm:text-sm font-medium text-slate-300">
                   {activeTab === "all" ? "No documents uploaded yet" : `No ${CATEGORIES.find(c => c.id === activeTab)?.label ?? "documents"} yet`}
                 </p>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-sm sm:text-xs text-slate-500 mt-1">
                   Drop a PDF or photo here, or click to browse<br />
                   <span className="text-slate-600">Maintly auto-extracts type, dates & coverage</span>
                 </p>

@@ -430,8 +430,8 @@ export default function HomeProfilePage() {
           className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
         >
           <div className="px-5 py-4 border-b border-slate-800 bg-slate-900">
-            <h2 className="text-base font-bold text-white">Current Plan</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Your active subscription and access level</p>
+            <h2 className="text-lg sm:text-base font-bold text-white">Current Plan</h2>
+            <p className="text-sm sm:text-xs text-slate-400 mt-0.5">Your active subscription and access level</p>
           </div>
           <div className="px-5 py-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -448,7 +448,7 @@ export default function HomeProfilePage() {
                   {user?.subscriptionStatus === "promo_pro" && "Pro — Promo (Beta)"}
                   {(!user?.subscriptionStatus || user?.subscriptionStatus === "free") && "Free Plan"}
                 </p>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-sm sm:text-xs text-slate-400 mt-0.5">
                   {userIsPro
                     ? "Full access — 12-month calendar, AI chat, history & more"
                     : "Limited to 2 months · Upgrade for full access"}
@@ -479,8 +479,8 @@ export default function HomeProfilePage() {
             <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center gap-3">
               <Gift className="w-4 h-4 text-green-400 shrink-0" />
               <div>
-                <h2 className="text-base font-bold text-white">Redeem a Gift Code</h2>
-                <p className="text-xs text-slate-400 mt-0.5">Have a gift code from a broker or realtor? Enter it here.</p>
+                <h2 className="text-lg sm:text-base font-bold text-white">Redeem a Gift Code</h2>
+                <p className="text-sm sm:text-xs text-slate-400 mt-0.5">Have a gift code from a broker or realtor? Enter it here.</p>
               </div>
             </div>
             <div className="px-5 py-4">
@@ -538,8 +538,8 @@ export default function HomeProfilePage() {
         >
           <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-white">Home Setup Answers</h2>
-              <p className="text-xs text-slate-400 mt-0.5">From your original quiz — these power your calendar</p>
+              <h2 className="text-lg sm:text-base font-bold text-white">Home Setup Answers</h2>
+              <p className="text-sm sm:text-xs text-slate-400 mt-0.5">From your original quiz — these power your calendar</p>
             </div>
             <button
               onClick={() => navigate("/quiz")}
@@ -568,9 +568,9 @@ export default function HomeProfilePage() {
                 { label: "Allergies / Pets", value: quizAnswers.allergies === "yes" ? `Yes${quizAnswers.allergiesDetails ? ` — ${quizAnswers.allergiesDetails}` : ""}` : "No" },
                 { label: "Crawl Space", value: quizAnswers.crawlSpace === "yes" ? `Yes (${CRAWL_SEALED_LABELS[quizAnswers.crawlSpaceSealed] ?? "status unknown"})` : quizAnswers.crawlSpace === "no" ? "No" : "—" },
               ].map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between px-5 py-3">
-                  <span className="text-sm text-slate-500 font-medium">{label}</span>
-                  <span className="text-sm font-semibold text-slate-800 text-right max-w-[55%]">{value}</span>
+                <div key={label} className="flex items-center justify-between px-5 py-4 sm:py-3">
+                  <span className="text-base sm:text-sm text-slate-500 font-medium">{label}</span>
+                  <span className="text-base sm:text-sm font-semibold text-slate-800 text-right max-w-[55%]">{value}</span>
                 </div>
               ))}
             </div>
@@ -592,8 +592,8 @@ export default function HomeProfilePage() {
         >
           <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-white">New Construction</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Track builder specs, finishes, and warranty dates</p>
+              <h2 className="text-lg sm:text-base font-bold text-white">New Construction</h2>
+              <p className="text-sm sm:text-xs text-slate-400 mt-0.5">Track builder specs, finishes, and warranty dates</p>
             </div>
           </div>
           <div className="px-5 py-4 space-y-4">
@@ -630,13 +630,13 @@ export default function HomeProfilePage() {
           className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
         >
           <div className="px-5 py-4 border-b border-slate-800 bg-slate-900">
-            <h2 className="text-base font-bold text-white">Additional Home Details</h2>
-            <p className="text-xs text-slate-400 mt-0.5">Optional — fills in extra context for Maintly and your calendar</p>
+            <h2 className="text-lg sm:text-base font-bold text-white">Additional Home Details</h2>
+            <p className="text-sm sm:text-xs text-slate-400 mt-0.5">Optional — fills in extra context for Maintly and your calendar</p>
           </div>
           <div className="px-5 py-4 space-y-5">
             {/* Full Address */}
             <div>
-              <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                 <MapPin className="w-4 h-4 text-slate-400" />
                 Full Address <span className="text-slate-400 font-normal">(optional)</span>
               </label>
@@ -652,7 +652,7 @@ export default function HomeProfilePage() {
             {/* Bedrooms + Bathrooms */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                   <Bed className="w-4 h-4 text-slate-400" />
                   Bedrooms
                 </label>
@@ -666,7 +666,7 @@ export default function HomeProfilePage() {
                 />
               </div>
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                   <Bath className="w-4 h-4 text-slate-400" />
                   Bathrooms
                 </label>
@@ -683,7 +683,7 @@ export default function HomeProfilePage() {
             {/* Finished Basement + Pool */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                   <Layers className="w-4 h-4 text-slate-400" />
                   Finished Basement?
                 </label>
@@ -704,7 +704,7 @@ export default function HomeProfilePage() {
                 </div>
               </div>
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                   <Waves className="w-4 h-4 text-slate-400" />
                   Pool or Hot Tub?
                 </label>
@@ -729,7 +729,7 @@ export default function HomeProfilePage() {
             {/* Year Built + Last Renovation Year */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                   <Calendar className="w-4 h-4 text-slate-400" />
                   Year Built <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
@@ -744,7 +744,7 @@ export default function HomeProfilePage() {
                 <p className="text-[11px] text-slate-400 mt-1 leading-snug">Used for precise roof, HVAC &amp; appliance lifespan estimates</p>
               </div>
               <div>
-                <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                   <Calendar className="w-4 h-4 text-slate-400" />
                   Last Major Renovation <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
@@ -762,7 +762,7 @@ export default function HomeProfilePage() {
 
             {/* Mortgage Rate */}
             <div>
-              <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                 <Percent className="w-4 h-4 text-slate-400" />
                 Current Mortgage Interest Rate <span className="text-slate-400 font-normal">(optional)</span>
               </label>
@@ -786,7 +786,7 @@ export default function HomeProfilePage() {
 
             {/* Foundation Type */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Foundation Type <span className="text-slate-400 font-normal">(optional)</span></label>
+              <label className="block text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">Foundation Type <span className="text-slate-400 font-normal">(optional)</span></label>
               <select
                 value={profile.foundationType}
                 onChange={e => setProfile(p => ({ ...p, foundationType: e.target.value, crawlSpaceSealed: "" }))}
@@ -803,7 +803,7 @@ export default function HomeProfilePage() {
             {/* Crawl Space Sealed — conditional */}
             {profile.foundationType === "crawl_space" && (
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Is the crawl space sealed / encapsulated?</label>
+                <label className="block text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">Is the crawl space sealed / encapsulated?</label>
                 <div className="flex gap-2">
                   {[
                     { v: "yes", label: "Yes, sealed" },
@@ -828,7 +828,7 @@ export default function HomeProfilePage() {
 
             {/* HVAC Type */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">HVAC / Heating System Type <span className="text-slate-400 font-normal">(optional)</span></label>
+              <label className="block text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">HVAC / Heating System Type <span className="text-slate-400 font-normal">(optional)</span></label>
               <select
                 value={profile.hvacType}
                 onChange={e => setProfile(p => ({ ...p, hvacType: e.target.value }))}
@@ -847,7 +847,7 @@ export default function HomeProfilePage() {
 
             {/* Siding / Exterior Material */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Siding / Exterior Material <span className="text-slate-400 font-normal">(optional)</span></label>
+              <label className="block text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">Siding / Exterior Material <span className="text-slate-400 font-normal">(optional)</span></label>
               <select
                 value={profile.sidingType}
                 onChange={e => setProfile(p => ({ ...p, sidingType: e.target.value }))}
@@ -867,7 +867,7 @@ export default function HomeProfilePage() {
 
             {/* Roof Age / Last Replaced */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              <label className="block text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                 Roof Last Replaced — Year <span className="text-slate-400 font-normal">(optional)</span>
               </label>
               <input
@@ -883,7 +883,7 @@ export default function HomeProfilePage() {
 
             {/* Grass Type */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Grass / Lawn Type <span className="text-slate-400 font-normal">(optional)</span></label>
+              <label className="block text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">Grass / Lawn Type <span className="text-slate-400 font-normal">(optional)</span></label>
               <select
                 value={profile.grassType}
                 onChange={e => setProfile(p => ({ ...p, grassType: e.target.value }))}
@@ -948,7 +948,7 @@ export default function HomeProfilePage() {
             }`}
           >
             <div className="px-5 py-4 border-b border-slate-800 bg-slate-900">
-              <h2 className="text-base font-bold text-white">Mortgage Rate Comparison</h2>
+              <h2 className="text-lg sm:text-base font-bold text-white">Mortgage Rate Comparison</h2>
             </div>
             <div className="px-5 py-5 space-y-4">
               <div className="flex items-center gap-4">
@@ -1022,8 +1022,8 @@ export default function HomeProfilePage() {
             >
               <div className="flex items-center justify-between px-5 py-4 border-b border-slate-800 bg-slate-900">
                 <div>
-                  <h2 className="text-base font-bold text-white">Future Big-Ticket Items</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <h2 className="text-lg sm:text-base font-bold text-white">Future Big-Ticket Items</h2>
+                  <p className="text-sm sm:text-xs text-slate-400 mt-0.5">
                     Based on your home built in <span className="font-semibold text-slate-200">{yb}</span> ({age} yrs old) · averages, ±3 yrs
                   </p>
                 </div>
@@ -1111,15 +1111,15 @@ export default function HomeProfilePage() {
               <div className="px-5 py-4 border-b border-slate-800 bg-slate-900">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-green-400 shrink-0" />
-                  <h2 className="text-base font-bold text-white">Home Value Estimates</h2>
+                  <h2 className="text-lg sm:text-base font-bold text-white">Home Value Estimates</h2>
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5 ml-6">Enter your address to look up live estimates on major real estate sites</p>
+                <p className="text-sm sm:text-xs text-slate-400 mt-0.5 ml-6">Enter your address to look up live estimates on major real estate sites</p>
               </div>
 
               <div className="px-5 pt-4 pb-2 space-y-4">
                 {/* Address input */}
                 <div>
-                  <label className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 mb-1.5">
+                  <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
                     <MapPin className="w-4 h-4 text-slate-400" />
                     Full Street Address
                     <span className="text-slate-400 font-normal">(optional)</span>
@@ -1226,7 +1226,7 @@ export default function HomeProfilePage() {
           <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-green-400" />
-              <h2 className="text-base font-bold text-white">Text Reminders</h2>
+              <h2 className="text-lg sm:text-base font-bold text-white">Text Reminders</h2>
             </div>
             {smsEnabled && smsPhone ? (
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300 bg-emerald-900/60 border border-emerald-700 px-2.5 py-1 rounded-full">
@@ -1252,7 +1252,7 @@ export default function HomeProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-slate-800">Enable Text Reminders</p>
-                <p className="text-xs text-slate-400 mt-0.5">Receive critical task reminders by text message</p>
+                <p className="text-sm sm:text-xs text-slate-400 mt-0.5">Receive critical task reminders by text message</p>
               </div>
               <button
                 onClick={() => setSmsEnabled((v) => !v)}
@@ -1371,7 +1371,7 @@ export default function HomeProfilePage() {
           <div className="px-5 py-4 flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-slate-800">Delete Account</p>
-              <p className="text-xs text-slate-400 mt-0.5">Permanently delete your account and all data. This cannot be undone.</p>
+              <p className="text-sm sm:text-xs text-slate-400 mt-0.5">Permanently delete your account and all data. This cannot be undone.</p>
             </div>
             <button
               onClick={() => setShowDeleteModal(true)}

@@ -1071,7 +1071,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <button
               ref={tourRef1}
               onClick={onOpenAIChat}
-              className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group overflow-hidden"
+              className="flex flex-col items-start gap-1 pt-3 sm:pt-2 px-5 sm:px-4 pb-5 sm:pb-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group overflow-hidden"
               onMouseEnter={e => { const el = e.currentTarget; el.style.background = "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)"; el.style.borderColor = "transparent"; }}
               onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
             >
@@ -1084,8 +1084,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 />
               </div>
               <div>
-                <p className="text-base font-bold text-slate-900 group-hover:text-white transition-colors">Talk to Maintly</p>
-                <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">
+                <p className="text-lg sm:text-base font-bold text-slate-900 group-hover:text-white transition-colors">Talk to Maintly</p>
+                <p className="text-sm sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-relaxed">
                   Your Personal Ai Home<br />Ownership Chatbot
                 </p>
               </div>
@@ -1094,7 +1094,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <button
               ref={tourRef1}
               onClick={() => navigate("/home-profile")}
-              className="flex flex-col items-start gap-1 pt-2 px-4 pb-4 bg-white rounded-2xl border border-dashed border-amber-300 hover:border-amber-400 hover:shadow-sm transition-all text-left group overflow-hidden"
+              className="flex flex-col items-start gap-1 pt-3 sm:pt-2 px-5 sm:px-4 pb-5 sm:pb-4 bg-white rounded-2xl border border-dashed border-amber-300 hover:border-amber-400 hover:shadow-sm transition-all text-left group overflow-hidden"
             >
               <div className="w-14 h-16 overflow-hidden shrink-0 relative">
                 <img
@@ -1105,8 +1105,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 />
               </div>
               <div>
-                <p className="text-base font-bold text-amber-700">Talk to Maintly</p>
-                <p className="text-xs sm:text-sm text-amber-500 leading-snug">
+                <p className="text-lg sm:text-base font-bold text-amber-700">Talk to Maintly</p>
+                <p className="text-sm sm:text-sm text-amber-500 leading-relaxed">
                   Pro feature<br />Upgrade to unlock
                 </p>
               </div>
@@ -1117,16 +1117,16 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           <button
             ref={tourRef2}
             onClick={() => navigate("/history")}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
+            className="flex flex-col items-start gap-2 p-5 sm:p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
             onMouseEnter={e => { const el = e.currentTarget; el.style.background = "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)"; el.style.borderColor = "transparent"; }}
             onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
           >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <ClipboardList className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+            <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <ClipboardList className="w-6 h-6 sm:w-5 sm:h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">Historical Home Maintenance Log</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Completed Tasks<br />&amp; Notes</p>
+              <p className="text-lg sm:text-base font-bold text-slate-800 group-hover:text-white transition-colors">Historical Home Maintenance Log</p>
+              <p className="text-sm sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-relaxed">Completed Tasks<br />&amp; Notes</p>
             </div>
           </button>
 
@@ -1134,16 +1134,16 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           <button
             ref={tourRef3}
             onClick={scrollToThisMonth}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
+            className="flex flex-col items-start gap-2 p-5 sm:p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
             onMouseEnter={e => { const el = e.currentTarget; el.style.background = "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)"; el.style.borderColor = "transparent"; }}
             onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
           >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <CheckCircle2 className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+            <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <CheckCircle2 className="w-6 h-6 sm:w-5 sm:h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">To-Do List This Month</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Custom Suggestions<br />For Your Home</p>
+              <p className="text-lg sm:text-base font-bold text-slate-800 group-hover:text-white transition-colors">To-Do List This Month</p>
+              <p className="text-sm sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-relaxed">Custom Suggestions<br />For Your Home</p>
             </div>
           </button>
 
@@ -1151,16 +1151,16 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           <button
             ref={tourRef4}
             onClick={() => navigate("/home-profile")}
-            className="flex flex-col items-start gap-2 p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
+            className="flex flex-col items-start gap-2 p-5 sm:p-4 bg-white rounded-2xl border border-slate-200 hover:shadow-md transition-all text-left group"
             onMouseEnter={e => { const el = e.currentTarget; el.style.background = "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)"; el.style.borderColor = "transparent"; }}
             onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
           >
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
-              <HomeIcon className="w-5 h-5 text-primary group-hover:text-white transition-colors" />
+            <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+              <HomeIcon className="w-6 h-6 sm:w-5 sm:h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Property Facts</p>
-              <p className="text-xs sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-snug">Detailed Facts About<br />Your Property</p>
+              <p className="text-lg sm:text-base font-bold text-slate-800 group-hover:text-white transition-colors">My Property Facts</p>
+              <p className="text-sm sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-relaxed">Detailed Facts About<br />Your Property</p>
             </div>
           </button>
         </motion.div>
@@ -1462,7 +1462,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                             <>
                               <button
                                 onClick={() => setThisMonthMarking(task._key)}
-                                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-sm transition-colors active:scale-[0.98]"
+                                className="w-full flex items-center justify-center gap-2 py-4 sm:py-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-bold text-base sm:text-sm transition-colors active:scale-[0.98]"
                               >
                                 <Check className="w-4 h-4" />
                                 Mark as Done
@@ -1475,7 +1475,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               ) : (
                                 <button
                                   onClick={() => handleRemindNextMonth(task)}
-                                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-500 hover:text-blue-700 text-sm font-medium transition-colors active:scale-[0.98]"
+                                  className="w-full flex items-center justify-center gap-2 py-3.5 sm:py-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-500 hover:text-blue-700 text-base sm:text-sm font-medium transition-colors active:scale-[0.98]"
                                 >
                                   <Bell className="w-4 h-4" />
                                   Snooze Till Next Month
