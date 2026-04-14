@@ -18,6 +18,7 @@ import InviteLanding from "@/pages/invite-landing";
 import CheckoutSuccess from "@/pages/checkout-success";
 import PricingPage from "@/pages/pricing";
 import ActivatePage from "@/pages/activate";
+import TeamJoin from "@/pages/team-join";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient({
@@ -75,6 +76,7 @@ function Router() {
       <Route path="/checkout/success" component={CheckoutSuccess} />
       <Route path="/pricing" component={PricingPage} />
       <Route path="/activate" component={ActivatePage} />
+      <Route path="/team-join" component={TeamJoin} />
       <Route path="/invite/:subdomain" component={InviteLanding} />
       <Route path="/invite" component={InviteLanding} />
       <Route path="/:subdomain" component={InviteLanding} />

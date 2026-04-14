@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from "express";
-import { db, usersTable, magicLinkTokensTable, sessionsTable, whiteLabelConfigsTable, brokerPrecreationsTable } from "@workspace/db";
+import { db, usersTable, magicLinkTokensTable, sessionsTable, whiteLabelConfigsTable, brokerPrecreationsTable, teamMembersTable } from "@workspace/db";
 import { eq, and, gt } from "drizzle-orm";
 import crypto from "crypto";
 import { Resend } from "resend";
@@ -96,9 +96,9 @@ router.post("/auth/check-email", async (req: Request, res: Response) => {
 
 const VALID_PROMO_CODE = "BETA2026";
 
-// Request magic link — accepts optional name, zipCode, promoCode, staySignedIn, referralSubdomain, giftCode
+// Request magic link — accepts optional name, zipCode, promoCode, staySignedIn, referralSubdomain, giftCode, assignedMemberId
 router.post("/auth/request-link", async (req: Request, res: Response) => {
-  const { email, name, zipCode, promoCode, staySignedIn, referralSubdomain, giftCode } = req.body;
+  const { email, name, zipCode, promoCode, staySignedIn, referralSubdomain, giftCode, assignedMemberId } = req.body;
   const stay = staySignedIn !== false;
   if (!email || typeof email !== "string" || !email.includes("@")) {
     res.status(400).json({ error: "Valid email address required" });
@@ -123,6 +123,12 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
 
   const trimmedReferral = typeof referralSubdomain === "string" ? referralSubdomain.trim().toLowerCase() : null;
 
+  const assignedMemberIdNum = typeof assignedMemberId === "number" && assignedMemberId > 0
+    ? assignedMemberId
+    : typeof assignedMemberId === "string" && parseInt(assignedMemberId) > 0
+    ? parseInt(assignedMemberId)
+    : null;
+
   if (!user) {
     // New user — create account with email (name/zip collected later via quiz)
     [user] = await db
@@ -134,6 +140,7 @@ router.post("/auth/request-link", async (req: Request, res: Response) => {
         fullAccess: promoGrantsAccess,
         subscriptionStatus: promoGrantsAccess ? "promo_pro" : "free",
         referralSubdomain: trimmedReferral || null,
+        assignedMemberId: assignedMemberIdNum,
       })
       .returning();
     console.log(`[auth] New user created: ${normalizedEmail} subscriptionStatus=${promoGrantsAccess ? "promo_pro" : "free"} referral=${trimmedReferral || "none"}`);
@@ -251,10 +258,34 @@ router.get("/auth/verify", async (req: Request, res: Response) => {
     }
   }
 
+  // Activate team membership if this magic link was generated from a team-join invite
+  let isTeamJoin = false;
+  if (linkRecord.pendingTeamJoinToken) {
+    try {
+      const [invite] = await db
+        .select()
+        .from(teamMembersTable)
+        .where(eq(teamMembersTable.inviteToken, linkRecord.pendingTeamJoinToken))
+        .limit(1);
+
+      if (invite && invite.status === "invited") {
+        await db.update(teamMembersTable).set({
+          memberUserId: user.id,
+          status: "active",
+          activatedAt: new Date(),
+        }).where(eq(teamMembersTable.id, invite.id));
+        console.log(`[auth] Team member activated: user ${user.id} joined team ${invite.teamSubdomain}`);
+        isTeamJoin = true;
+      }
+    } catch (err) {
+      console.error("[auth] Team join activation failed:", err);
+    }
+  }
+
   const baseUrl = getBaseUrl(req);
-  const isNewUserFlow = redirectParam !== "dashboard";
-  const goToDashboard = !isNewUserFlow || giftApplied;
-  const destination = goToDashboard ? "/" : "/quiz";
+  const isNewUserFlow = redirectParam !== "dashboard" && redirectParam !== "broker-dashboard";
+  const goToDashboard = !isNewUserFlow || giftApplied || isTeamJoin;
+  const destination = isTeamJoin ? "/broker-dashboard" : goToDashboard ? "/" : "/quiz";
   const giftParam = giftApplied
     ? `?gift_applied=1${isNewUserFlow ? "&new_user=1" : ""}`
     : "";
@@ -294,7 +325,7 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
     setSessionCookie(res, currentToken, true, isRequestHttps(req));
   }
 
-  // Check if this user also has an approved broker account
+  // Check if this user also has an approved broker account (team leader / individual agent)
   const [brokerRecord] = await db
     .select({ id: whiteLabelConfigsTable.id })
     .from(whiteLabelConfigsTable)
@@ -306,7 +337,23 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
     )
     .limit(1);
 
-  res.json({ ...user, isBroker: !!brokerRecord });
+  // Also check if user is an active team member — they also get broker dashboard access
+  const [teamMembership] = await db
+    .select({ id: teamMembersTable.id, teamSubdomain: teamMembersTable.teamSubdomain })
+    .from(teamMembersTable)
+    .where(
+      and(
+        eq(teamMembersTable.memberUserId, user.id),
+        eq(teamMembersTable.status, "active"),
+      ),
+    )
+    .limit(1);
+
+  res.json({
+    ...user,
+    isBroker: !!brokerRecord || !!teamMembership,
+    isTeamMember: !!teamMembership,
+  });
 });
 
 // Mark dashboard tour as completed (permanent flag, never resets)

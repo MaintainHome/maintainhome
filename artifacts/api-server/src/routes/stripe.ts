@@ -326,6 +326,7 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
     const precreationId = Number(meta.precreationId);
     const brokerSubdomain = meta.brokerSubdomain ?? "";
     const proMonths = Number(meta.proMonths ?? 13);
+    const assignedMemberId = meta.assignedMemberId ? Number(meta.assignedMemberId) : null;
 
     await db.update(stripeTransactionsTable)
       .set({ status: "paid" })
@@ -334,7 +335,7 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
 
     try {
       const base = getBaseUrl(req);
-      const result = await processBrokerPrecreation(precreationId, brokerSubdomain, base, proMonths);
+      const result = await processBrokerPrecreation(precreationId, brokerSubdomain, base, proMonths, assignedMemberId);
       await autoLoginUser(res, userId, https);
       res.json({
         status: "ok",
@@ -489,10 +490,11 @@ router.post(
         const precreationId = Number(meta.precreationId);
         const brokerSubdomain = meta.brokerSubdomain ?? "";
         const proMonths = Number(meta.proMonths ?? 13);
+        const assignedMemberId = meta.assignedMemberId ? Number(meta.assignedMemberId) : null;
         if (precreationId) {
           const host = (session as any).success_url?.match(/^(https?:\/\/[^/]+)/)?.[1] ?? "";
           const base = host || "https://maintainhome.ai";
-          processBrokerPrecreation(precreationId, brokerSubdomain, base, proMonths).catch((err) => {
+          processBrokerPrecreation(precreationId, brokerSubdomain, base, proMonths, assignedMemberId).catch((err) => {
             console.error("[webhook] broker_precreate processing error:", err);
           });
         }

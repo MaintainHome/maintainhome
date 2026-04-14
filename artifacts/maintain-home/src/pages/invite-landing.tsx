@@ -40,6 +40,14 @@ export default function InviteLanding() {
     if (subdomain) {
       setPreviewSubdomain(subdomain);
       localStorage.setItem("mh_referral_sub", subdomain);
+      // If a team member shared this link with ?member=ID, remember it for client assignment
+      const p = new URLSearchParams(window.location.search);
+      const memberId = p.get("member");
+      if (memberId) {
+        localStorage.setItem("mh_pending_member", memberId);
+      } else {
+        localStorage.removeItem("mh_pending_member");
+      }
     }
   }, [subdomain, setPreviewSubdomain]);
 

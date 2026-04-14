@@ -110,6 +110,8 @@ export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
         if (promoCode.trim()) body.promoCode = promoCode.trim();
         const referral = localStorage.getItem("mh_referral_sub");
         if (referral) body.referralSubdomain = referral;
+        const pendingMember = localStorage.getItem("mh_pending_member");
+        if (pendingMember) body.assignedMemberId = pendingMember;
       }
       if (giftCode.trim()) {
         body.giftCode = giftCode.trim().toUpperCase();

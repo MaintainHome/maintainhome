@@ -16,6 +16,7 @@ export const usersTable = pgTable("users", {
   hasSeenDashboardTour: boolean("has_seen_dashboard_tour").default(false).notNull(),
   proExpiresAt: timestamp("pro_expires_at"),
   brokerPreCreated: boolean("broker_pre_created").default(false).notNull(),
+  assignedMemberId: integer("assigned_member_id"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -27,6 +28,7 @@ export const magicLinkTokensTable = pgTable("magic_link_tokens", {
   expiresAt: timestamp("expires_at").notNull(),
   used: boolean("used").default(false).notNull(),
   pendingGiftCode: text("pending_gift_code"),
+  pendingTeamJoinToken: text("pending_team_join_token"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

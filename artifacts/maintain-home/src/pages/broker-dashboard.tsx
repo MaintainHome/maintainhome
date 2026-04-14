@@ -61,6 +61,33 @@ interface Client {
   isPrecreated?: boolean;
   isActivated?: boolean;
   activationToken?: string | null;
+  assignedMemberId?: number | null;
+}
+
+interface TeamMember {
+  id: number;
+  teamSubdomain: string;
+  memberUserId: number | null;
+  displayName: string;
+  email: string;
+  headshotUrl: string | null;
+  phone: string | null;
+  status: "invited" | "active";
+  inviteToken: string;
+  invitedAt: string;
+  activatedAt: string | null;
+}
+
+interface TeamMembership {
+  id: number;
+  teamSubdomain: string;
+  memberUserId: number | null;
+  displayName: string;
+  email: string;
+  headshotUrl: string | null;
+  phone: string | null;
+  status: "invited" | "active";
+  inviteToken: string;
 }
 
 /* ─── Helpers ─────────────────────────────────────────────────────── */
@@ -165,6 +192,339 @@ function CopyBtn({ text, label }: { text: string; label: string }) {
       className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors shrink-0">
       {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
     </button>
+  );
+}
+
+/* ─── Team Members Panel (Team Leader only) ─────────────────────── */
+function TeamMembersPanel({
+  accent, teamMembers, onRefresh, config,
+}: {
+  accent: string;
+  teamMembers: TeamMember[];
+  onRefresh: () => void;
+  config: BrokerConfig;
+}) {
+  const [inviteName, setInviteName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [copiedToken, setCopiedToken] = useState<string | null>(null);
+  const [removingId, setRemovingId] = useState<number | null>(null);
+  const [open, setOpen] = useState(true);
+
+  async function handleInvite() {
+    if (!inviteName.trim() || !inviteEmail.trim()) {
+      setInviteError("Name and email are required"); return;
+    }
+    setInviting(true); setInviteError(null); setInviteLink(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/broker/team/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ displayName: inviteName.trim(), email: inviteEmail.trim() }),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) { setInviteError(data.error ?? "Failed to create invite"); return; }
+      setInviteLink(data.inviteLink);
+      setInviteName(""); setInviteEmail("");
+      onRefresh();
+    } catch { setInviteError("Network error. Please try again."); }
+    finally { setInviting(false); }
+  }
+
+  async function handleRemoveMember(id: number) {
+    if (!confirm("Remove this team member? They will lose access to the team dashboard.")) return;
+    setRemovingId(id);
+    try {
+      await fetch(`${API_BASE}/api/broker/team/members/${id}`, {
+        method: "DELETE", credentials: "include",
+      });
+      onRefresh();
+    } catch { alert("Failed to remove member."); }
+    finally { setRemovingId(null); }
+  }
+
+  function copyLink(link: string, token: string) {
+    navigator.clipboard.writeText(link);
+    setCopiedToken(token);
+    setTimeout(() => setCopiedToken(null), 2500);
+  }
+
+  function getMemberInviteLink(member: TeamMember) {
+    return `${window.location.origin}${import.meta.env.BASE_URL}team-join?token=${member.inviteToken}`;
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-6 py-4 border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5" style={{ color: accent }} />
+          <h2 className="font-bold text-slate-900">Team Members</h2>
+          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">{teamMembers.length}</span>
+        </div>
+        {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+      </button>
+
+      {open && (
+        <div className="px-6 py-5 space-y-5">
+          {/* Invite form */}
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
+            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Invite a New Agent</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Agent Name</label>
+                <input
+                  type="text"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                  placeholder="Jane Smith"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-slate-500 mb-1">Agent Email</label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="agent@example.com"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                />
+              </div>
+            </div>
+            {inviteError && (
+              <p className="text-xs text-red-500">{inviteError}</p>
+            )}
+            <button
+              onClick={handleInvite}
+              disabled={inviting}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90"
+              style={{ backgroundColor: accent }}>
+              {inviting ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+              Generate Invite Link
+            </button>
+            {inviteLink && (
+              <div className="mt-2 p-3 rounded-xl bg-green-50 border border-green-200">
+                <p className="text-xs font-bold text-green-700 mb-2">Invite link created! Share with the agent:</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-green-800 font-mono break-all flex-1 truncate">{inviteLink}</span>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText(inviteLink); }}
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-700 text-white text-xs font-bold hover:bg-green-800 transition-colors shrink-0">
+                    <Copy className="w-3 h-3" />Copy
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Members list */}
+          {teamMembers.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <p className="text-sm">No team members yet.</p>
+              <p className="text-xs mt-1">Invite an agent above to get started.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {teamMembers.map((member) => {
+                const memberInviteLink = getMemberInviteLink(member);
+                return (
+                  <div key={member.id}
+                    className="flex items-center gap-3 p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                    {member.headshotUrl ? (
+                      <img src={member.headshotUrl} alt={member.displayName}
+                        className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
+                        style={{ backgroundColor: accent + "20", color: accent }}>
+                        {member.displayName[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-slate-800 truncate">{member.displayName}</p>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          member.status === "active"
+                            ? "bg-green-50 text-green-600 border border-green-200"
+                            : "bg-amber-50 text-amber-600 border border-amber-200"
+                        }`}>
+                          {member.status === "active" ? "Active" : "Invited"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 truncate">{member.email}</p>
+                      {member.phone && <p className="text-xs text-slate-400">{member.phone}</p>}
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {member.status === "invited" && (
+                        <button
+                          onClick={() => copyLink(memberInviteLink, member.inviteToken)}
+                          title="Copy invite link"
+                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+                          {copiedToken === member.inviteToken
+                            ? <><Check className="w-3 h-3 text-emerald-500" />Copied</>
+                            : <><Link2 className="w-3 h-3" />Resend</>}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleRemoveMember(member.id)}
+                        disabled={removingId === member.id}
+                        className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
+                        {removingId === member.id
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : <Trash2 className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+/* ─── Team Member Personal Profile Panel ─────────────────────────── */
+function TeamMemberProfilePanel({
+  accent, membership, onUpdate,
+}: {
+  accent: string;
+  membership: TeamMembership;
+  onUpdate: () => void;
+}) {
+  const [form, setForm] = useState({
+    displayName: membership.displayName,
+    phone: membership.phone ?? "",
+    headshotUrl: membership.headshotUrl ?? "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleHeadshotUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true); setError(null);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      const res = await fetch(`${API_BASE}/api/photo-upload`, { method: "POST", body: fd, credentials: "include" });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error ?? "Upload failed");
+      setForm((f) => ({ ...f, headshotUrl: data.photoUrl }));
+    } catch (err: any) {
+      setError(err.message ?? "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  async function handleSave() {
+    setSaving(true); setSuccess(null); setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/broker/member/profile`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(form),
+      });
+      const data = await safeJson(res);
+      if (!res.ok) throw new Error(data.error ?? "Failed to save");
+      setSuccess("Profile updated!");
+      setTimeout(() => setSuccess(null), 3000);
+      onUpdate();
+    } catch (err: any) {
+      setError(err.message ?? "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+      className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+      <div className="flex items-center gap-2">
+        <User className="w-5 h-5" style={{ color: accent }} />
+        <h2 className="font-bold text-slate-900">My Profile</h2>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">Team Agent</span>
+      </div>
+
+      <div className="flex items-center gap-4">
+        {form.headshotUrl ? (
+          <img src={form.headshotUrl} alt={form.displayName}
+            className="w-14 h-14 rounded-full object-cover border border-slate-200 shrink-0" />
+        ) : (
+          <div className="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+            <Camera className="w-6 h-6 text-slate-400" />
+          </div>
+        )}
+        <div>
+          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleHeadshotUpload} />
+          <button
+            onClick={() => fileRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50">
+            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+            {uploading ? "Uploading…" : "Update Headshot"}
+          </button>
+          <p className="text-[11px] text-slate-400 mt-1">Your personal photo (not the team logo)</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1">Display Name</label>
+          <input
+            type="text"
+            value={form.displayName}
+            onChange={(e) => setForm((f) => ({ ...f, displayName: e.target.value }))}
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-bold text-slate-700 mb-1">Phone</label>
+          <input
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+            placeholder="(555) 123-4567"
+            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+        </div>
+      </div>
+
+      {success && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 border border-green-200">
+          <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+          <p className="text-sm text-green-700">{success}</p>
+        </div>
+      )}
+      {error && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-50 border border-red-200">
+          <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" />
+          <p className="text-sm text-red-600">{error}</p>
+        </div>
+      )}
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90"
+        style={{ backgroundColor: accent }}>
+        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+        Save Profile
+      </button>
+    </motion.div>
   );
 }
 
@@ -1312,6 +1672,10 @@ export default function BrokerDashboard() {
 
   const [config, setConfig] = useState<BrokerConfig | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
+  const [isTeamMember, setIsTeamMember] = useState(false);
+  const [isTeamLeader, setIsTeamLeader] = useState(false);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [membership, setMembership] = useState<TeamMembership | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [renewingClientId, setRenewingClientId] = useState<number | null>(null);
@@ -1348,7 +1712,12 @@ export default function BrokerDashboard() {
         setError(d.error ?? "Could not load broker profile.");
         return;
       }
-      setConfig((await safeJson(meRes)).config);
+      const meData = await safeJson(meRes);
+      setConfig(meData.config);
+      setIsTeamMember(!!meData.isTeamMember);
+      setIsTeamLeader(!!meData.isTeamLeader);
+      setTeamMembers(meData.teamMembers ?? []);
+      setMembership(meData.membership ?? null);
       if (clientsRes.ok) setClients((await safeJson(clientsRes)).clients ?? []);
     } catch { setError("Network error. Please refresh."); }
     finally { setLoading(false); }
@@ -1370,16 +1739,25 @@ export default function BrokerDashboard() {
     finally { setRenewingClientId(null); }
   }
 
+  function getPersonalInviteLink() {
+    if (!config) return "";
+    const base = `${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}`;
+    if (isTeamMember && membership?.memberUserId) {
+      return `${base}?member=${membership.memberUserId}`;
+    }
+    return base;
+  }
+
   function copyInviteLink() {
     if (!config) return;
-    navigator.clipboard.writeText(`${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}`);
+    navigator.clipboard.writeText(getPersonalInviteLink());
     setLinkCopied(true);
     setTimeout(() => setLinkCopied(false), 2500);
   }
 
   function copyFullMessage() {
     if (!config) return;
-    const link = `${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}`;
+    const link = getPersonalInviteLink();
     const msg = `Hi [Client Name],
 
 I wanted to give you this personal gift to help with your new home. MaintainHome.ai is an app that will streamline your homeownership experience. You'll be able to track maintenance, talk to your AI assistant Maintly, keep all your documents in one place, and stay on top of everything about your most important investment.
@@ -1482,8 +1860,7 @@ Click here to get started: ${link}`;
 
   const accent = MH_PRIMARY;
   const isGift = config?.monetizationModel === "closing_gift";
-  const inviteLink = config
-    ? `${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}` : "";
+  const inviteLink = getPersonalInviteLink();
 
   /* ── Loading ─────────────────────────────────────────────────────── */
   if (loading || authLoading) {
@@ -1550,8 +1927,18 @@ Click here to get started: ${link}`;
             <span className="font-bold text-slate-900 text-sm hidden sm:block">Partner Dashboard</span>
             <span className="text-slate-300 hidden sm:block">·</span>
             <span className="text-xs font-semibold truncate hidden sm:block" style={{ color: accent }}>
-              {config.brokerName}
+              {isTeamMember && membership ? membership.displayName : config.brokerName}
             </span>
+            {isTeamMember && (
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shrink-0">
+                <Users className="w-3 h-3" />Team Agent
+              </span>
+            )}
+            {isTeamLeader && (
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 shrink-0">
+                <Users className="w-3 h-3" />Team Leader
+              </span>
+            )}
             {config.phoneNumber && (
               <span className="hidden lg:flex items-center gap-1 text-xs text-slate-400">
                 <Phone className="w-3 h-3" />{config.phoneNumber}
@@ -1564,10 +1951,12 @@ Click here to get started: ${link}`;
               style={{ backgroundColor: accent }}>
               {linkCopied ? <><Check className="w-3.5 h-3.5" />Copied!</> : <><Link2 className="w-3.5 h-3.5" />Invite Client</>}
             </button>
-            <button onClick={openEditModal}
-              className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
-              <Pencil className="w-3.5 h-3.5" />Edit Branding
-            </button>
+            {!isTeamMember && (
+              <button onClick={openEditModal}
+                className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
+                <Pencil className="w-3.5 h-3.5" />Edit Branding
+              </button>
+            )}
             <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
               className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
               <ExternalLink className="w-3.5 h-3.5" />Preview
@@ -1811,6 +2200,16 @@ Click here to get started: ${link}`;
           </div>
         </motion.div>
 
+        {/* ── Team Members (Team Leader only) ─────────────────────── */}
+        {isTeamLeader && config && (
+          <TeamMembersPanel accent={accent} teamMembers={teamMembers} onRefresh={load} config={config} />
+        )}
+
+        {/* ── Team Member Personal Profile ─────────────────────────── */}
+        {isTeamMember && membership && (
+          <TeamMemberProfilePanel accent={accent} membership={membership} onUpdate={load} />
+        )}
+
         {/* ── Pre-Create Client Account ────────────────────────────── */}
         <PreCreateClientPanel accent={accent} />
 
@@ -1818,7 +2217,7 @@ Click here to get started: ${link}`;
         <GiftCodePurchasePanel accent={accent} />
 
         {/* ── Trusted Service Providers ────────────────────────────── */}
-        <TrustedServiceProvidersPanel accent={accent} />
+        {!isTeamMember && <TrustedServiceProvidersPanel accent={accent} />}
 
         {/* ── Invite + Agent Profile row ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -1970,11 +2369,16 @@ Click here to get started: ${link}`;
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <div className="flex items-center gap-2 flex-wrap">
               <Users className="w-5 h-5" style={{ color: accent }} />
-              <h2 className="font-bold text-slate-900">Your Clients</h2>
+              <h2 className="font-bold text-slate-900">{isTeamMember ? "My Clients" : "Your Clients"}</h2>
               {clients.length > 0 && (
                 <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">{clients.length}</span>
               )}
-              {isGift && config.giftDuration && (
+              {isTeamMember && (
+                <span className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                  <User className="w-3 h-3" />Assigned to me
+                </span>
+              )}
+              {isGift && config.giftDuration && !isTeamMember && (
                 <span className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
                   <Gift className="w-3 h-3" />
                   Gift · {config.giftDuration === "3years" ? "3 Years" : "1 Year"}
@@ -2084,6 +2488,29 @@ Click here to get started: ${link}`;
                               )}
                             </div>
                             <p className="text-xs text-slate-400 truncate">{client.email}</p>
+                            {isTeamLeader && teamMembers.filter(m => m.status === "active").length > 0 && (
+                              <select
+                                value={client.assignedMemberId ?? ""}
+                                onChange={async (e) => {
+                                  const memberId = e.target.value ? parseInt(e.target.value) : null;
+                                  await fetch(`${API_BASE}/api/broker/clients/${client.id}/assign`, {
+                                    method: "PATCH",
+                                    headers: { "Content-Type": "application/json" },
+                                    credentials: "include",
+                                    body: JSON.stringify({ memberId }),
+                                  });
+                                  load();
+                                }}
+                                className="mt-1 text-[10px] text-slate-500 border border-slate-200 rounded-lg px-1.5 py-0.5 bg-white cursor-pointer hover:border-slate-300 focus:outline-none max-w-[120px]"
+                              >
+                                <option value="">Unassigned</option>
+                                {teamMembers.filter(m => m.status === "active").map(m => (
+                                  <option key={m.id} value={m.memberUserId ?? ""}>
+                                    {m.displayName}
+                                  </option>
+                                ))}
+                              </select>
+                            )}
                           </div>
                         </div>
 

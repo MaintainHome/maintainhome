@@ -1,5 +1,5 @@
 import { Router, type Response } from "express";
-import { db, whiteLabelConfigsTable, usersTable, savedCalendarsTable, maintenanceLogTable, brokerPrecreationsTable, maintenanceDocumentsTable, homeProfilesTable, brokerServiceProvidersTable } from "@workspace/db";
+import { db, whiteLabelConfigsTable, usersTable, savedCalendarsTable, maintenanceLogTable, brokerPrecreationsTable, maintenanceDocumentsTable, homeProfilesTable, brokerServiceProvidersTable, teamMembersTable, magicLinkTokensTable } from "@workspace/db";
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 import { getStripeClient } from "../stripeClient";
@@ -22,6 +22,8 @@ function getBaseUrl(req: any): string {
   return `${proto}://${host}`;
 }
 
+// ─── Broker context helpers ────────────────────────────────────────────────────
+
 async function getBrokerConfig(userEmail: string) {
   const [config] = await db
     .select()
@@ -36,19 +38,51 @@ async function getBrokerConfig(userEmail: string) {
   return config ?? null;
 }
 
-router.get("/broker/me", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  try {
-    const config = await getBrokerConfig(req.userEmail!);
-    if (!config) {
-      res.status(404).json({ error: "No approved broker account found for this email." });
-      return;
-    }
-    res.json({ config });
-  } catch (err) {
-    console.error("[broker] GET /broker/me error:", err);
-    res.status(500).json({ error: "Failed to load broker profile" });
+async function getTeamMembership(userId: number) {
+  const [membership] = await db
+    .select()
+    .from(teamMembersTable)
+    .where(
+      and(
+        eq(teamMembersTable.memberUserId, userId),
+        eq(teamMembersTable.status, "active"),
+      ),
+    )
+    .limit(1);
+  return membership ?? null;
+}
+
+async function getTeamConfig(teamSubdomain: string) {
+  const [config] = await db
+    .select()
+    .from(whiteLabelConfigsTable)
+    .where(
+      and(
+        eq(whiteLabelConfigsTable.subdomain, teamSubdomain),
+        eq(whiteLabelConfigsTable.status, "approved"),
+      ),
+    )
+    .limit(1);
+  return config ?? null;
+}
+
+// Returns broker context for both team leaders and team members.
+// For team leaders: { config, isTeamLeader, isTeamMember: false }
+// For team members: { config (team leader's), isTeamMember: true, isTeamLeader: false, membership }
+async function getBrokerContext(userId: number, userEmail: string) {
+  const config = await getBrokerConfig(userEmail);
+  if (config) {
+    return { config, isTeamLeader: config.type === "team_leader", isTeamMember: false, membership: null };
   }
-});
+  const membership = await getTeamMembership(userId);
+  if (membership) {
+    const teamConfig = await getTeamConfig(membership.teamSubdomain);
+    if (teamConfig) {
+      return { config: teamConfig, isTeamLeader: false, isTeamMember: true, membership };
+    }
+  }
+  return null;
+}
 
 // ─── Big-ticket imminent forecast helpers ─────────────────────────────────────
 const BIG_TICKET_ITEMS_BROKER = [
@@ -82,29 +116,87 @@ function computeImminentForecasts(yearBuilt: number, currentYear: number, recent
     );
 }
 
+// ── GET /api/broker/me ─────────────────────────────────────────────────────────
+router.get("/broker/me", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+    if (!ctx) {
+      res.status(404).json({ error: "No approved broker account found for this email." });
+      return;
+    }
+
+    // For team leaders: also return team members list
+    let teamMembers: any[] = [];
+    if (ctx.isTeamLeader) {
+      teamMembers = await db
+        .select()
+        .from(teamMembersTable)
+        .where(eq(teamMembersTable.teamSubdomain, ctx.config.subdomain))
+        .orderBy(teamMembersTable.invitedAt);
+    }
+
+    res.json({
+      config: ctx.config,
+      isTeamLeader: ctx.isTeamLeader,
+      isTeamMember: ctx.isTeamMember,
+      membership: ctx.membership,
+      teamMembers,
+    });
+  } catch (err) {
+    console.error("[broker] GET /broker/me error:", err);
+    res.status(500).json({ error: "Failed to load broker profile" });
+  }
+});
+
+// ── GET /api/broker/clients ───────────────────────────────────────────────────
 router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
-    const config = await getBrokerConfig(req.userEmail!);
-    if (!config) {
+    const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+    if (!ctx) {
       res.status(403).json({ error: "Not authorized as broker" });
       return;
     }
 
-    const rawClients = await db
-      .select({
-        id: usersTable.id,
-        email: usersTable.email,
-        name: usersTable.name,
-        subscriptionStatus: usersTable.subscriptionStatus,
-        createdAt: usersTable.createdAt,
-        lastActiveAt: usersTable.updatedAt,
-        brokerPreCreated: usersTable.brokerPreCreated,
-      })
-      .from(usersTable)
-      .where(eq(usersTable.referralSubdomain, config.subdomain));
+    // Team members see only their assigned clients
+    // Team leaders see ALL clients under their subdomain
+    let rawClients;
+    if (ctx.isTeamMember) {
+      rawClients = await db
+        .select({
+          id: usersTable.id,
+          email: usersTable.email,
+          name: usersTable.name,
+          subscriptionStatus: usersTable.subscriptionStatus,
+          createdAt: usersTable.createdAt,
+          lastActiveAt: usersTable.updatedAt,
+          brokerPreCreated: usersTable.brokerPreCreated,
+          assignedMemberId: usersTable.assignedMemberId,
+        })
+        .from(usersTable)
+        .where(
+          and(
+            eq(usersTable.referralSubdomain, ctx.config.subdomain),
+            eq(usersTable.assignedMemberId, req.userId!),
+          ),
+        );
+    } else {
+      rawClients = await db
+        .select({
+          id: usersTable.id,
+          email: usersTable.email,
+          name: usersTable.name,
+          subscriptionStatus: usersTable.subscriptionStatus,
+          createdAt: usersTable.createdAt,
+          lastActiveAt: usersTable.updatedAt,
+          brokerPreCreated: usersTable.brokerPreCreated,
+          assignedMemberId: usersTable.assignedMemberId,
+        })
+        .from(usersTable)
+        .where(eq(usersTable.referralSubdomain, ctx.config.subdomain));
+    }
 
     if (rawClients.length === 0) {
-      res.json({ clients: [], subdomain: config.subdomain });
+      res.json({ clients: [], subdomain: ctx.config.subdomain });
       return;
     }
 
@@ -121,12 +213,9 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         .where(inArray(maintenanceLogTable.userId, userIds))
         .groupBy(maintenanceLogTable.userId),
       db
-        .select({ clientUserId: brokerPrecreationsTable.clientUserId, activatedAt: brokerPrecreationsTable.activatedAt, activationToken: brokerPrecreationsTable.activationToken })
+        .select({ clientUserId: brokerPrecreationsTable.clientUserId, activatedAt: brokerPrecreationsTable.activatedAt, activationToken: brokerPrecreationsTable.activationToken, brokerUserId: brokerPrecreationsTable.brokerUserId })
         .from(brokerPrecreationsTable)
-        .where(and(
-          eq(brokerPrecreationsTable.brokerUserId, req.userId!),
-          inArray(brokerPrecreationsTable.clientUserId as any, userIds),
-        )),
+        .where(inArray(brokerPrecreationsTable.clientUserId as any, userIds)),
       db
         .select({ userId: homeProfilesTable.userId, yearBuilt: homeProfilesTable.yearBuilt })
         .from(homeProfilesTable)
@@ -175,18 +264,21 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
       };
     });
 
-    res.json({ clients, subdomain: config.subdomain });
+    res.json({ clients, subdomain: ctx.config.subdomain });
   } catch (err) {
     console.error("[broker] GET /broker/clients error:", err);
     res.status(500).json({ error: "Failed to load client list" });
   }
 });
 
+// ── PATCH /api/broker/branding ─────────────────────────────────────────────────
+// Only team leaders and individual agents can change team branding.
+// Team members CANNOT change the main team logo.
 router.patch("/broker/branding", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
     const config = await getBrokerConfig(req.userEmail!);
     if (!config) {
-      res.status(403).json({ error: "Not authorized as an approved broker" });
+      res.status(403).json({ error: "Not authorized to change team branding" });
       return;
     }
 
@@ -211,16 +303,344 @@ router.patch("/broker/branding", requireAuth as any, async (req: AuthRequest, re
   }
 });
 
+// ── PATCH /api/broker/member/profile ──────────────────────────────────────────
+// Team members update their personal headshot/contact info (not the team logo).
+router.patch("/broker/member/profile", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const membership = await getTeamMembership(req.userId!);
+    if (!membership) {
+      res.status(403).json({ error: "Not a team member" });
+      return;
+    }
+
+    const { displayName, phone, headshotUrl } = req.body as Record<string, string | undefined>;
+    const updates: Record<string, string | null> = {};
+    if (displayName !== undefined) updates.displayName = displayName?.trim() || null;
+    if (phone !== undefined)       updates.phone        = phone?.trim()       || null;
+    if (headshotUrl !== undefined) updates.headshotUrl  = headshotUrl?.trim() || null;
+
+    if (Object.keys(updates).length === 0) {
+      res.status(400).json({ error: "No fields to update" });
+      return;
+    }
+
+    const [updated] = await db
+      .update(teamMembersTable)
+      .set(updates as any)
+      .where(eq(teamMembersTable.id, membership.id))
+      .returning();
+
+    res.json({ ok: true, membership: updated });
+  } catch (err) {
+    console.error("[broker] PATCH /broker/member/profile error:", err);
+    res.status(500).json({ error: "Failed to update profile" });
+  }
+});
+
+// ── POST /api/broker/team/invite ──────────────────────────────────────────────
+// Team leader creates a team member invite link.
+router.post("/broker/team/invite", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const config = await getBrokerConfig(req.userEmail!);
+    if (!config || config.type !== "team_leader") {
+      res.status(403).json({ error: "Only team leaders can invite team members" });
+      return;
+    }
+
+    const { displayName, email } = req.body as { displayName?: string; email?: string };
+    if (!displayName?.trim()) {
+      res.status(400).json({ error: "Display name is required" });
+      return;
+    }
+    if (!email?.trim() || !email.includes("@")) {
+      res.status(400).json({ error: "Valid email is required" });
+      return;
+    }
+
+    const inviteToken = crypto.randomBytes(32).toString("hex");
+
+    const [invite] = await db.insert(teamMembersTable).values({
+      teamSubdomain: config.subdomain,
+      displayName: displayName.trim(),
+      email: email.trim().toLowerCase(),
+      inviteToken,
+      status: "invited",
+    }).returning();
+
+    const base = getBaseUrl(req);
+    const inviteLink = `${base}/team-join?token=${inviteToken}`;
+
+    res.json({ ok: true, invite, inviteLink });
+  } catch (err) {
+    console.error("[broker] POST /broker/team/invite error:", err);
+    res.status(500).json({ error: "Failed to create invite" });
+  }
+});
+
+// ── GET /api/broker/team/members ──────────────────────────────────────────────
+// Team leader lists their team members.
+router.get("/broker/team/members", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const config = await getBrokerConfig(req.userEmail!);
+    if (!config || config.type !== "team_leader") {
+      res.status(403).json({ error: "Only team leaders can view team members" });
+      return;
+    }
+
+    const members = await db
+      .select()
+      .from(teamMembersTable)
+      .where(eq(teamMembersTable.teamSubdomain, config.subdomain))
+      .orderBy(teamMembersTable.invitedAt);
+
+    res.json({ members });
+  } catch (err) {
+    console.error("[broker] GET /broker/team/members error:", err);
+    res.status(500).json({ error: "Failed to load team members" });
+  }
+});
+
+// ── DELETE /api/broker/team/members/:id ───────────────────────────────────────
+router.delete("/broker/team/members/:id", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const config = await getBrokerConfig(req.userEmail!);
+    if (!config || config.type !== "team_leader") {
+      res.status(403).json({ error: "Only team leaders can remove team members" });
+      return;
+    }
+
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
+
+    await db.delete(teamMembersTable).where(
+      and(
+        eq(teamMembersTable.id, id),
+        eq(teamMembersTable.teamSubdomain, config.subdomain),
+      ),
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("[broker] DELETE /broker/team/members/:id error:", err);
+    res.status(500).json({ error: "Failed to remove team member" });
+  }
+});
+
+// ── GET /api/broker/team/invite-info ──────────────────────────────────────────
+// Public endpoint: returns team info for a given invite token (for the team-join page).
+router.get("/broker/team/invite-info", async (req: any, res: Response) => {
+  try {
+    const { token } = req.query as { token?: string };
+    if (!token) {
+      res.status(400).json({ error: "Token required" });
+      return;
+    }
+
+    const [invite] = await db
+      .select()
+      .from(teamMembersTable)
+      .where(eq(teamMembersTable.inviteToken, token))
+      .limit(1);
+
+    if (!invite) {
+      res.status(404).json({ error: "Invalid or expired invite link" });
+      return;
+    }
+
+    if (invite.status === "active") {
+      res.status(400).json({ error: "This invite has already been used" });
+      return;
+    }
+
+    const teamConfig = await getTeamConfig(invite.teamSubdomain);
+    if (!teamConfig) {
+      res.status(404).json({ error: "Team not found" });
+      return;
+    }
+
+    res.json({
+      invite: {
+        id: invite.id,
+        displayName: invite.displayName,
+        email: invite.email,
+        teamSubdomain: invite.teamSubdomain,
+        status: invite.status,
+      },
+      team: {
+        brokerName: teamConfig.brokerName,
+        logoUrl: teamConfig.logoUrl,
+        tagline: teamConfig.tagline,
+        subdomain: teamConfig.subdomain,
+      },
+    });
+  } catch (err) {
+    console.error("[broker] GET /broker/team/invite-info error:", err);
+    res.status(500).json({ error: "Failed to load invite info" });
+  }
+});
+
+// ── POST /api/broker/team/join ─────────────────────────────────────────────────
+// New agent activates their team membership. Sends magic link email.
+router.post("/broker/team/join", async (req: any, res: Response) => {
+  try {
+    const { token, displayName, phone, headshotUrl } = req.body as {
+      token?: string;
+      displayName?: string;
+      phone?: string;
+      headshotUrl?: string;
+    };
+
+    if (!token) {
+      res.status(400).json({ error: "Token required" });
+      return;
+    }
+
+    const [invite] = await db
+      .select()
+      .from(teamMembersTable)
+      .where(eq(teamMembersTable.inviteToken, token))
+      .limit(1);
+
+    if (!invite) {
+      res.status(404).json({ error: "Invalid invite token" });
+      return;
+    }
+
+    if (invite.status === "active") {
+      res.status(400).json({ error: "This invite has already been activated" });
+      return;
+    }
+
+    // Update invite with provided info
+    const updateData: Record<string, any> = {};
+    if (displayName?.trim()) updateData.displayName = displayName.trim();
+    if (phone?.trim())       updateData.phone        = phone.trim();
+    if (headshotUrl?.trim()) updateData.headshotUrl  = headshotUrl.trim();
+
+    if (Object.keys(updateData).length > 0) {
+      await db.update(teamMembersTable).set(updateData).where(eq(teamMembersTable.id, invite.id));
+    }
+
+    // Issue a magic link for the invite email, carrying the team join token
+    const { Resend } = await import("resend");
+    const resendKey = process.env.RESEND_API_KEY;
+    const fromAddr = process.env.RESEND_FROM_EMAIL ?? "MaintainHome.ai <onboarding@resend.dev>";
+
+    const proto = (req.headers["x-forwarded-proto"] as string) ?? req.protocol ?? "https";
+    const host = (req.headers["x-forwarded-host"] as string) ?? req.get("host") ?? "localhost";
+    const baseUrl = `${proto}://${host}`;
+
+    const magicToken = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await db.insert(magicLinkTokensTable).values({
+      email: invite.email,
+      token: magicToken,
+      expiresAt,
+      pendingTeamJoinToken: invite.inviteToken,
+    });
+
+    const magicLink = `${baseUrl}/api/auth/verify?token=${magicToken}&stay=1&redirect=broker-dashboard`;
+
+    console.log(`[broker] Team join magic link for ${invite.email}: ${magicLink}`);
+
+    if (resendKey) {
+      const resend = new Resend(resendKey);
+      await resend.emails.send({
+        from: fromAddr,
+        to: invite.email,
+        subject: "You've been invited to join a team on MaintainHome.ai",
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto">
+            <img src="https://maintainhome.ai/images/logo-icon.png" alt="MaintainHome.ai" style="width:48px;height:48px;margin-bottom:16px" />
+            <h2 style="color:#1a1a2e;margin-bottom:8px">Welcome to the Team!</h2>
+            <p style="color:#555">Hi ${invite.displayName}, you've been invited to join the team on MaintainHome.ai. Click the button below to activate your account. This link expires in 15 minutes.</p>
+            <a href="${magicLink}" style="display:inline-block;padding:14px 28px;background:#1f9e6e;color:white;text-decoration:none;border-radius:10px;font-weight:bold;font-size:16px;margin:20px 0">
+              Activate My Account
+            </a>
+            <p style="color:#888;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
+          </div>
+        `,
+      }).catch((e: any) => console.error("[broker] team join email failed:", e));
+    }
+
+    const isDev = process.env.NODE_ENV !== "production";
+    res.json({
+      ok: true,
+      message: "Activation link sent! Check your email.",
+      ...(isDev ? { debugLink: magicLink } : {}),
+    });
+  } catch (err) {
+    console.error("[broker] POST /broker/team/join error:", err);
+    res.status(500).json({ error: "Failed to process team join" });
+  }
+});
+
+// ── PATCH /api/broker/clients/:clientId/assign ────────────────────────────────
+// Team leader assigns or re-assigns a client to a team member.
+router.patch("/broker/clients/:clientId/assign", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const config = await getBrokerConfig(req.userEmail!);
+    if (!config || config.type !== "team_leader") {
+      res.status(403).json({ error: "Only team leaders can assign clients" });
+      return;
+    }
+
+    const clientId = parseInt(req.params.clientId);
+    if (isNaN(clientId)) { res.status(400).json({ error: "Invalid client id" }); return; }
+
+    const { memberId } = req.body as { memberId?: number | null };
+
+    // Verify the client belongs to this team
+    const [client] = await db.select({ id: usersTable.id, referralSubdomain: usersTable.referralSubdomain })
+      .from(usersTable)
+      .where(eq(usersTable.id, clientId))
+      .limit(1);
+
+    if (!client || client.referralSubdomain !== config.subdomain) {
+      res.status(404).json({ error: "Client not found in your team" });
+      return;
+    }
+
+    if (memberId !== null && memberId !== undefined) {
+      // Verify the member belongs to this team
+      const [member] = await db.select({ id: teamMembersTable.id })
+        .from(teamMembersTable)
+        .where(
+          and(
+            eq(teamMembersTable.memberUserId, memberId),
+            eq(teamMembersTable.teamSubdomain, config.subdomain),
+            eq(teamMembersTable.status, "active"),
+          ),
+        )
+        .limit(1);
+
+      if (!member) {
+        res.status(404).json({ error: "Team member not found" });
+        return;
+      }
+    }
+
+    await db.update(usersTable)
+      .set({ assignedMemberId: memberId ?? null })
+      .where(eq(usersTable.id, clientId));
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("[broker] PATCH /broker/clients/:clientId/assign error:", err);
+    res.status(500).json({ error: "Failed to assign client" });
+  }
+});
+
 // ── POST /api/broker/precreate-doc-upload ─────────────────────────────────────
-// Broker uploads a document (before checkout). Returns { objectPath, fileName, contentType, fileSizeBytes }
 router.post(
   "/broker/precreate-doc-upload",
   requireAuth as any,
   docUpload.single("document"),
   async (req: AuthRequest, res: Response) => {
     try {
-      const config = await getBrokerConfig(req.userEmail!);
-      if (!config) {
+      const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+      if (!ctx) {
         res.status(403).json({ error: "Not authorized as broker" });
         return;
       }
@@ -245,11 +665,10 @@ router.post(
 );
 
 // ── POST /api/broker/precreate-checkout ──────────────────────────────────────
-// Creates a Stripe checkout session ($36 1yr / $99 3yr) + pending precreation record.
 router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
-    const config = await getBrokerConfig(req.userEmail!);
-    if (!config) {
+    const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+    if (!ctx) {
       res.status(403).json({ error: "Not authorized as broker" });
       return;
     }
@@ -286,6 +705,9 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
     const is3Year = duration === "3years";
     const priceCents = is3Year ? 9900 : 3600;
     const proMonths = is3Year ? 37 : 13;
+
+    // For team members: store their userId so the client gets assigned to them after payment
+    const assignedMemberId = ctx.isTeamMember ? req.userId! : null;
 
     const [pending] = await db.insert(brokerPrecreationsTable).values({
       brokerUserId: req.userId!,
@@ -336,9 +758,10 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
         email: brokerUser.email,
         type: "broker_precreate",
         precreationId: String(pending.id),
-        brokerSubdomain: config.subdomain,
+        brokerSubdomain: ctx.config.subdomain,
         duration,
         proMonths: String(proMonths),
+        ...(assignedMemberId ? { assignedMemberId: String(assignedMemberId) } : {}),
       },
       success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/broker-dashboard`,
@@ -356,11 +779,10 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
 });
 
 // ── POST /api/broker/client-renew-checkout ────────────────────────────────────
-// Creates a $36 Stripe session to renew a specific client's Pro by 13 months.
 router.post("/broker/client-renew-checkout", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
-    const config = await getBrokerConfig(req.userEmail!);
-    if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+    const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+    if (!ctx) { res.status(403).json({ error: "Not authorized as broker" }); return; }
 
     const { clientUserId, clientEmail } = req.body as { clientUserId?: number; clientEmail?: string };
     if (!clientUserId && !clientEmail) {
@@ -403,7 +825,7 @@ router.post("/broker/client-renew-checkout", requireAuth as any, async (req: Aut
         type: "broker_client_renew",
         clientUserId: String(clientUserId ?? ""),
         clientEmail: clientEmail ?? "",
-        brokerSubdomain: config.subdomain,
+        brokerSubdomain: ctx.config.subdomain,
       },
       success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/broker-dashboard`,
@@ -419,8 +841,8 @@ router.post("/broker/client-renew-checkout", requireAuth as any, async (req: Aut
 // ── GET /api/broker/precreations ─────────────────────────────────────────────
 router.get("/broker/precreations", requireAuth as any, async (req: AuthRequest, res: Response) => {
   try {
-    const config = await getBrokerConfig(req.userEmail!);
-    if (!config) {
+    const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+    if (!ctx) {
       res.status(403).json({ error: "Not authorized as broker" });
       return;
     }
@@ -438,12 +860,12 @@ router.get("/broker/precreations", requireAuth as any, async (req: AuthRequest, 
 });
 
 // ── Internal: process broker precreation after payment ────────────────────────
-// Called from stripe.ts verify-session / webhook
 export async function processBrokerPrecreation(
   precreationId: number,
   brokerSubdomain: string,
   baseUrl: string,
   proMonths: number = 13,
+  assignedMemberId?: number | null,
 ): Promise<{ ok: boolean; activationLink: string; clientEmail: string; clientName: string | null }> {
   const [precreation] = await db
     .select()
@@ -485,6 +907,7 @@ export async function processBrokerPrecreation(
       referralSubdomain: brokerSubdomain,
       brokerPreCreated: true,
       name: clientName || undefined,
+      assignedMemberId: assignedMemberId ?? null,
       updatedAt: new Date(),
     }).where(eq(usersTable.id, clientUserId));
   } else {
@@ -496,6 +919,7 @@ export async function processBrokerPrecreation(
       proExpiresAt,
       referralSubdomain: brokerSubdomain,
       brokerPreCreated: true,
+      assignedMemberId: assignedMemberId ?? null,
     }).returning({ id: usersTable.id });
     clientUserId = newUser.id;
   }
@@ -589,18 +1013,18 @@ export async function processBrokerPrecreation(
 
 // ── GET /api/broker/providers ─────────────────────────────────────────────────
 router.get("/broker/providers", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  const config = await getBrokerConfig(req.userEmail!);
-  if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+  const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+  if (!ctx) { res.status(403).json({ error: "Not authorized as broker" }); return; }
   const providers = await db.select().from(brokerServiceProvidersTable)
-    .where(eq(brokerServiceProvidersTable.brokerSubdomain, config.subdomain))
+    .where(eq(brokerServiceProvidersTable.brokerSubdomain, ctx.config.subdomain))
     .orderBy(brokerServiceProvidersTable.category, brokerServiceProvidersTable.companyName);
   res.json({ providers });
 });
 
 // ── POST /api/broker/providers ────────────────────────────────────────────────
 router.post("/broker/providers", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  const config = await getBrokerConfig(req.userEmail!);
-  if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+  const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+  if (!ctx) { res.status(403).json({ error: "Not authorized as broker" }); return; }
   const { category, companyName, contactName, phone, email, website, note } = req.body as {
     category?: string; companyName?: string; contactName?: string;
     phone?: string; email?: string; website?: string; note?: string;
@@ -609,7 +1033,7 @@ router.post("/broker/providers", requireAuth as any, async (req: AuthRequest, re
     res.status(400).json({ error: "Category and company name are required" }); return;
   }
   const [created] = await db.insert(brokerServiceProvidersTable).values({
-    brokerSubdomain: config.subdomain,
+    brokerSubdomain: ctx.config.subdomain,
     category: category.trim(),
     companyName: companyName.trim(),
     contactName: contactName?.trim() || null,
@@ -623,8 +1047,8 @@ router.post("/broker/providers", requireAuth as any, async (req: AuthRequest, re
 
 // ── PUT /api/broker/providers/:id ─────────────────────────────────────────────
 router.put("/broker/providers/:id", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  const config = await getBrokerConfig(req.userEmail!);
-  if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+  const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+  if (!ctx) { res.status(403).json({ error: "Not authorized as broker" }); return; }
   const id = parseInt(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   const { category, companyName, contactName, phone, email, website, note } = req.body as {
@@ -645,7 +1069,7 @@ router.put("/broker/providers/:id", requireAuth as any, async (req: AuthRequest,
     updatedAt: new Date(),
   }).where(and(
     eq(brokerServiceProvidersTable.id, id),
-    eq(brokerServiceProvidersTable.brokerSubdomain, config.subdomain),
+    eq(brokerServiceProvidersTable.brokerSubdomain, ctx.config.subdomain),
   )).returning();
   if (!updated) { res.status(404).json({ error: "Provider not found" }); return; }
   res.json({ provider: updated });
@@ -653,13 +1077,13 @@ router.put("/broker/providers/:id", requireAuth as any, async (req: AuthRequest,
 
 // ── DELETE /api/broker/providers/:id ─────────────────────────────────────────
 router.delete("/broker/providers/:id", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  const config = await getBrokerConfig(req.userEmail!);
-  if (!config) { res.status(403).json({ error: "Not authorized as broker" }); return; }
+  const ctx = await getBrokerContext(req.userId!, req.userEmail!);
+  if (!ctx) { res.status(403).json({ error: "Not authorized as broker" }); return; }
   const id = parseInt(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
   await db.delete(brokerServiceProvidersTable).where(and(
     eq(brokerServiceProvidersTable.id, id),
-    eq(brokerServiceProvidersTable.brokerSubdomain, config.subdomain),
+    eq(brokerServiceProvidersTable.brokerSubdomain, ctx.config.subdomain),
   ));
   res.json({ ok: true });
 });
