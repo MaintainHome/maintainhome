@@ -19,6 +19,8 @@ import CheckoutSuccess from "@/pages/checkout-success";
 import PricingPage from "@/pages/pricing";
 import ActivatePage from "@/pages/activate";
 import TeamJoin from "@/pages/team-join";
+import { PWASplashScreen } from "@/components/PWASplashScreen";
+import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { useEffect } from "react";
 
 const queryClient = new QueryClient({
@@ -40,6 +42,46 @@ function ClearPreviewHandler() {
       window.history.replaceState({}, "", url.toString());
     }
   }, []);
+  return null;
+}
+
+/** Dynamically replaces <link rel="manifest"> with a branding-aware version */
+function DynamicManifest() {
+  const { branding } = useBranding();
+  useEffect(() => {
+    const appName = branding?.brokerName ?? "MaintainHome.ai";
+    const shortName = branding ? appName.split(" ").slice(0, 2).join(" ") : "MaintainHome";
+    const themeColor = "#1f9e6e";
+    const bgColor = "#0f172a";
+
+    const manifest = {
+      name: appName,
+      short_name: shortName,
+      description: branding
+        ? `${appName} — AI-powered home maintenance reminders.`
+        : "AI-Powered Home Maintenance Reminders — personalized to your state and climate.",
+      start_url: "/",
+      display: "standalone",
+      background_color: bgColor,
+      theme_color: themeColor,
+      orientation: "portrait-primary",
+      icons: [
+        { src: branding?.logoUrl ?? "/images/logo-icon.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+        { src: branding?.logoUrl ?? "/images/logo-icon.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+      ],
+    };
+
+    const blob = new Blob([JSON.stringify(manifest)], { type: "application/manifest+json" });
+    const url = URL.createObjectURL(blob);
+    const existing = document.querySelector('link[rel="manifest"]') as HTMLLinkElement | null;
+    if (existing) {
+      const old = existing.href;
+      existing.href = url;
+      // Revoke old blob URL if it was one we created
+      if (old.startsWith("blob:")) URL.revokeObjectURL(old);
+    }
+    return () => URL.revokeObjectURL(url);
+  }, [branding]);
   return null;
 }
 
@@ -93,6 +135,9 @@ function App() {
           <TooltipProvider>
             <ClearPreviewHandler />
             <AuthBrandingSync />
+            <DynamicManifest />
+            <PWASplashScreen />
+            <AddToHomeScreen />
             <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
               <Router />
             </WouterRouter>

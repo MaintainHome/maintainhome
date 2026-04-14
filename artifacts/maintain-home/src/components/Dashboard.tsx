@@ -8,7 +8,7 @@ import {
   Clock, TriangleAlert, Paperclip, FileText, Phone, Building2, Gift, Mail, UserCheck,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
-import { AddToHomeScreen } from "@/components/AddToHomeScreen";
+import { AddToHomeScreenButton } from "@/components/AddToHomeScreen";
 import { HomeDocumentsWidget } from "@/components/HomeDocumentsWidget";
 import { isPro, useAuth } from "@/contexts/AuthContext";
 import type { AuthUser } from "@/contexts/AuthContext";
@@ -698,9 +698,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        {/* ── Mobile: Add to Home Screen ── */}
+        {/* ── Mobile: Add to Home Screen (compact inline button) ── */}
         <div className="sm:hidden flex justify-center">
-          <AddToHomeScreen />
+          <AddToHomeScreenButton />
         </div>
 
         {/* ── Gift code redemption result banner ── */}
