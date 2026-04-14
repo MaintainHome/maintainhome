@@ -4,7 +4,7 @@ import {
   Building2, Users, Link2, Copy, Check, User, Loader2,
   ExternalLink, BarChart2, Zap, RefreshCw, LogOut,
   ShieldCheck, Gift, CreditCard, Calendar, TrendingUp,
-  AlertTriangle, ArrowUpRight, Star, Phone, Camera,
+  AlertTriangle, AlertCircle, ArrowUpRight, Star, Phone, Camera,
   Pencil, X, Upload, CheckCircle2, HomeIcon, PlusCircle,
   FileText, Trash2, UserPlus, Key, Clock, Wrench, Plus, ChevronDown, ChevronUp, Mail, Globe,
 } from "lucide-react";
@@ -146,8 +146,14 @@ function ScoreRing({ score, color }: { score: number; color: string }) {
 /* ─── Score bar ──────────────────────────────────────────────────── */
 function ScoreBar({ score }: { score: number }) {
   const c = scoreColor(score);
+  const isLow = score < 60;
   return (
     <div className="flex items-center gap-2">
+      {isLow && (
+        <span title="Low health score — client may need attention">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+        </span>
+      )}
       <div className="w-16 h-1.5 rounded-full bg-slate-100 overflow-hidden">
         <div className="h-full rounded-full transition-all duration-700"
           style={{ width: `${score}%`, backgroundColor: c }} />

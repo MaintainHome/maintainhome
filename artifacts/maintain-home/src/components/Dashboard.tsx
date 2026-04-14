@@ -5,7 +5,7 @@ import {
   CheckCircle2, Sparkles, ChevronRight, RefreshCw,
   AlertCircle, Check, Info, Wrench, DollarSign, X, Trash2, Bell, MessageCircle, Home as HomeIcon,
   Send, Loader2, User, TrendingDown, TrendingUp, Shield, ChevronDown, ChevronUp,
-  Clock, TriangleAlert, Paperclip, FileText, Phone, Building2, Gift, Mail, UserCheck,
+  Clock, TriangleAlert, Paperclip, FileText, Phone, Building2, Gift, Mail, UserCheck, BarChart2,
 } from "lucide-react";
 import { AIChatModal } from "@/components/AIChatModal";
 import { AddToHomeScreenButton } from "@/components/AddToHomeScreen";
@@ -121,50 +121,118 @@ interface HomeProfileData {
   mortgageRate?: string | null;
 }
 
+interface DocEntry { category: string; expiryDate: string | null; }
+
+interface HealthInsight { text: string; route?: string; actionLabel?: string; }
+
 interface HealthScore {
   total: number;
-  profile: number;
-  calendar: number;
-  completion: number;
-  history: number;
+  adherence: number;   // max 40 — Maintenance Adherence
+  docCoverage: number; // max 25 — Document & Warranty Coverage
+  bigTicket: number;   // max 20 — Big-Ticket Preparedness
+  condition: number;   // max 15 — Overall Home Condition
+  trend: "up" | "down" | "neutral";
+  insights: HealthInsight[];
 }
 
 function computeHealthScore(params: {
-  homeProfile: HomeProfileData | null;
   hasCalendar: boolean;
+  homeProfile: HomeProfileData | null;
   thisMonthTotal: number;
   thisMonthDone: number;
   logCount: number;
+  forecasts: ForecastResult[];
+  documents: DocEntry[];
 }): HealthScore {
-  const { homeProfile, hasCalendar, thisMonthTotal, thisMonthDone, logCount } = params;
+  const { hasCalendar, homeProfile, thisMonthTotal, thisMonthDone, logCount, forecasts, documents } = params;
+  const now = new Date();
 
-  let profile = 0;
-  if (homeProfile?.fullAddress?.trim()) profile += 5;
-  if (homeProfile?.bedrooms) profile += 4;
-  if (homeProfile?.bathrooms) profile += 4;
-  if (homeProfile?.yearBuilt) profile += 8;
-  if (homeProfile?.lastRenovationYear) profile += 4;
-
-  const calendar = hasCalendar ? 20 : 0;
-
-  let completion = 0;
-  if (thisMonthTotal === 0) {
-    completion = hasCalendar ? 15 : 0;
+  // 1. Maintenance Adherence (40 pts)
+  let adherence = 0;
+  if (!hasCalendar) {
+    adherence = 0;
+  } else if (thisMonthTotal === 0) {
+    adherence = Math.min(40, 20 + Math.min(logCount, 4) * 4);
   } else {
-    const rate = thisMonthDone / thisMonthTotal;
-    if (rate >= 1) completion = 30;
-    else if (rate >= 0.5) completion = 22;
-    else if (rate > 0) completion = 15;
-    else completion = 5;
+    adherence = Math.min(40, Math.round((thisMonthDone / thisMonthTotal) * 40));
   }
 
-  let history = 0;
-  if (logCount >= 4) history = 25;
-  else if (logCount >= 2) history = 16;
-  else if (logCount >= 1) history = 8;
+  // 2. Document & Warranty Coverage (25 pts)
+  const SOON_MS = 60 * 24 * 60 * 60 * 1000;
+  const hasInsurance = documents.some(d => d.category === "insurance");
+  const insuranceExpiringSoon = documents.some(d =>
+    d.category === "insurance" && d.expiryDate &&
+    new Date(d.expiryDate).getTime() - now.getTime() < SOON_MS
+  );
+  const warrantyCount = documents.filter(d => d.category === "warranty").length;
+  const hasOtherDocs = documents.some(d => !["insurance", "warranty"].includes(d.category));
+  let docCoverage = 0;
+  if (hasInsurance) docCoverage += 15;
+  if (hasInsurance && !insuranceExpiringSoon) docCoverage += 5;
+  if (warrantyCount >= 1) docCoverage += 3;
+  if (warrantyCount >= 2) docCoverage += 2;
+  if (hasOtherDocs) docCoverage = Math.min(25, docCoverage + 2);
+  docCoverage = Math.min(25, docCoverage);
 
-  const total = Math.min(100, profile + calendar + completion + history);
-  return { total, profile, calendar, completion, history };
+  // 3. Big-Ticket Preparedness (20 pts)
+  const KEY_BT = ["roof", "hvac", "water", "windows"];
+  let bigTicket = 0;
+  if (!homeProfile?.yearBuilt || forecasts.length === 0) {
+    bigTicket = 12; // neutral when no year-built data
+  } else {
+    for (const key of KEY_BT) {
+      const f = forecasts.find(x => x.key === key);
+      if (!f) { bigTicket += 5; continue; }
+      if (f.yearsLeft > 5) bigTicket += 5;
+      else if (f.yearsLeft > 2) bigTicket += 3;
+      else if (f.yearsLeft > 0) bigTicket += 1;
+    }
+  }
+  bigTicket = Math.min(20, Math.max(0, bigTicket));
+
+  // 4. Overall Home Condition (15 pts)
+  let condition = 0;
+  if (homeProfile?.yearBuilt) condition += 4;
+  if (homeProfile?.fullAddress?.trim()) condition += 3;
+  if (homeProfile?.bedrooms && homeProfile?.bathrooms) condition += 4;
+  if (hasCalendar) condition += 4;
+  condition = Math.min(15, condition);
+
+  const total = Math.min(100, adherence + docCoverage + bigTicket + condition);
+
+  // Trend: compare with last month's stored score
+  const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1);
+  const prevKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
+  const prevScore = parseInt(localStorage.getItem(`mh_hs_${prevKey}`) ?? "NaN", 10);
+  localStorage.setItem(`mh_hs_${monthKey}`, String(total));
+  const trend: HealthScore["trend"] =
+    !isNaN(prevScore) && total > prevScore + 2 ? "up" :
+    !isNaN(prevScore) && total < prevScore - 2 ? "down" : "neutral";
+
+  // Actionable insights (up to 3)
+  const insights: HealthInsight[] = [];
+  if (!hasCalendar) {
+    insights.push({ text: "Build your personalized AI calendar to start tracking tasks and earn up to 40 adherence points.", route: "/quiz", actionLabel: "Build calendar" });
+  } else if (thisMonthTotal > 0 && adherence < 32) {
+    const rem = thisMonthTotal - thisMonthDone;
+    insights.push({ text: `Complete your ${rem} remaining task${rem !== 1 ? "s" : ""} this month to maximize your Maintenance Adherence score.` });
+  }
+  if (!hasInsurance) {
+    insights.push({ text: "Upload your homeowners insurance policy to earn 15 Document Coverage points immediately.", route: "/", actionLabel: "Upload policy" });
+  } else if (insuranceExpiringSoon) {
+    insights.push({ text: "Your insurance policy is expiring within 60 days — upload the renewal to keep your Document Coverage score intact." });
+  } else if (warrantyCount === 0) {
+    insights.push({ text: "Add an appliance or roof warranty to boost your Document & Warranty Coverage score.", route: "/", actionLabel: "Add warranty" });
+  }
+  const imminentBT = forecasts.filter(f => KEY_BT.includes(f.key) && f.yearsLeft <= 1);
+  if (imminentBT.length > 0) {
+    insights.push({ text: `Your ${imminentBT[0].name} may need replacement within the year — scheduling proactively protects your Big-Ticket score.` });
+  } else if (!homeProfile?.yearBuilt) {
+    insights.push({ text: "Add your home's year built to unlock Big-Ticket Preparedness scoring.", route: "/home-profile", actionLabel: "Add year built" });
+  }
+
+  return { total, adherence, docCoverage, bigTicket, condition, trend, insights: insights.slice(0, 3) };
 }
 
 function ScoreGauge({ score }: { score: number }) {
@@ -192,6 +260,104 @@ function ScoreGauge({ score }: { score: number }) {
         {score}
       </text>
     </svg>
+  );
+}
+
+// ── Health Score Breakdown Modal ─────────────────────────────────────────
+function HealthScoreModal({ score, onClose }: { score: HealthScore; onClose: () => void }) {
+  const color = (pct: number) => pct >= 80 ? "#1f9e6e" : pct >= 50 ? "#f59e0b" : "#ef4444";
+  const categories = [
+    { label: "Maintenance Adherence", earned: score.adherence, max: 40, weight: "40%",
+      tip: score.adherence >= 36 ? "All tasks on track this month!" :
+           score.adherence >= 20 ? "Keep completing tasks to hit the max." :
+           "Complete this month's maintenance tasks to raise this score." },
+    { label: "Document & Warranty Coverage", earned: score.docCoverage, max: 25, weight: "25%",
+      tip: score.docCoverage >= 20 ? "Great document coverage!" :
+           score.docCoverage >= 15 ? "Add warranties to earn more points." :
+           "Upload your insurance policy to earn up to 20 points here." },
+    { label: "Big-Ticket Preparedness", earned: score.bigTicket, max: 20, weight: "20%",
+      tip: score.bigTicket >= 18 ? "Major systems are in good shape!" :
+           score.bigTicket >= 12 ? "Some systems are approaching end-of-life." :
+           "One or more major systems may need attention soon." },
+    { label: "Overall Home Condition", earned: score.condition, max: 15, weight: "15%",
+      tip: score.condition >= 13 ? "Home profile is complete and calendar is active!" :
+           score.condition >= 8 ? "Complete your home profile for full points." :
+           "Add your address, year built, and generate a calendar." },
+  ];
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div
+        initial={{ scale: 0.93, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.93, opacity: 0, y: 20 }}
+        transition={{ type: "spring", stiffness: 320, damping: 28 }}
+        className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+          <div>
+            <h2 className="text-lg font-black text-slate-900">Home Health Score</h2>
+            <p className="text-xs text-slate-400 mt-0.5">Score breakdown for this month</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-center">
+              <span className={`text-3xl font-black ${score.total >= 80 ? "text-emerald-600" : score.total >= 60 ? "text-amber-500" : "text-red-500"}`}>
+                {score.total}
+              </span>
+              <p className="text-[10px] text-slate-400 leading-none">/ 100</p>
+            </div>
+            <button onClick={onClose}
+              className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Category bars */}
+        <div className="px-6 py-5 space-y-4">
+          {categories.map(cat => {
+            const pct = Math.round((cat.earned / cat.max) * 100);
+            const c = color(pct);
+            return (
+              <div key={cat.label}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div>
+                    <span className="text-sm font-bold text-slate-800">{cat.label}</span>
+                    <span className="ml-2 text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">{cat.weight}</span>
+                  </div>
+                  <span className="text-sm font-black tabular-nums" style={{ color: c }}>
+                    {cat.earned}<span className="text-slate-300 font-normal text-xs">/{cat.max}</span>
+                  </span>
+                </div>
+                <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden mb-1.5">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+                    className="h-full rounded-full"
+                    style={{ backgroundColor: c }}
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 leading-snug">{cat.tip}</p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="px-6 pb-6">
+          <button onClick={onClose}
+            className="w-full py-3 rounded-2xl bg-primary text-white font-extrabold text-sm hover:bg-primary/90 transition-colors">
+            Close
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -282,7 +448,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   // ── Mortgage Rate + Home Profile State ────────────────────────────────
   const [mortgageRate, setMortgageRate] = useState<number | null | undefined>(undefined);
   const [homeProfile, setHomeProfile] = useState<HomeProfileData | null>(null);
-  const [showScoreBreakdown, setShowScoreBreakdown] = useState(false);
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [scoreDocs, setScoreDocs] = useState<DocEntry[]>([]);
 
   // ── Inline Chat State ──────────────────────────────────────────────────
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([MAINTLY_WELCOME]);
@@ -375,6 +542,16 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       .then((data) => setRecentLog(Array.isArray(data) ? data.slice(0, 4) : []))
       .catch(() => setRecentLog([]))
       .finally(() => setLogLoading(false));
+  }, [user.id]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/user/documents`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => {
+        const docs = Array.isArray(data) ? data : (data?.documents ?? []);
+        setScoreDocs(docs.map((d: any) => ({ category: d.docType ?? "other", expiryDate: d.warrantyData?.expiryDate ?? null })));
+      })
+      .catch(() => setScoreDocs([]));
   }, [user.id]);
 
   useEffect(() => {
@@ -660,20 +837,6 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const rateIsBetter = rateDiff != null && rateDiff < 0;
   const rateIsHigher = rateDiff != null && rateDiff > 0;
 
-  // ── Home Health Score ────────────────────────────────────────────────────
-  const healthScore = computeHealthScore({
-    homeProfile,
-    hasCalendar: !!savedCalendar,
-    thisMonthTotal: visibleThisMonthTasks.length + snoozedThisMonth.size,
-    thisMonthDone: Object.keys(thisMonthCompleted).length,
-    logCount: recentLog.length,
-  });
-  const scoreGrade = healthScore.total >= 80
-    ? { label: "Excellent", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", msg: "Your home is well maintained — great work!" }
-    : healthScore.total >= 60
-    ? { label: "Good", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", msg: "A few things need attention to reach Excellent." }
-    : { label: "Needs Attention", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", msg: "Several important tasks are overdue or incomplete." };
-
   // ── Big-Ticket Forecasts ─────────────────────────────────────────────────
   const currentYear = new Date().getFullYear();
   const yearBuiltNum = homeProfile?.yearBuilt ? parseInt(homeProfile.yearBuilt) : null;
@@ -686,6 +849,22 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [resolvedKeys, setResolvedKeys] = useState<Set<string>>(new Set());
   const [resolvingKey, setResolvingKey] = useState<string | null>(null);
   const forecasts = allForecasts.filter((f) => !resolvedKeys.has(f.key));
+
+  // ── Home Health Score (uses forecasts + docs) ─────────────────────────────
+  const healthScore = computeHealthScore({
+    hasCalendar: !!savedCalendar,
+    homeProfile,
+    thisMonthTotal: visibleThisMonthTasks.length + snoozedThisMonth.size,
+    thisMonthDone: Object.keys(thisMonthCompleted).length,
+    logCount: recentLog.length,
+    forecasts,
+    documents: scoreDocs,
+  });
+  const scoreGrade = healthScore.total >= 80
+    ? { label: "Excellent", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", msg: "Your home is well maintained — great work!" }
+    : healthScore.total >= 60
+    ? { label: "Good", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200", msg: "A few things need attention to reach Excellent." }
+    : { label: "Needs Attention", color: "text-red-600", bg: "bg-red-50", border: "border-red-200", msg: "Several important tasks are overdue or incomplete." };
 
   function openChatForTask(taskName: string) {
     const locationHint = state ? ` for a home in ${state}` : "";
@@ -992,19 +1171,32 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.09 }}
-          className={`rounded-2xl border shadow-sm overflow-hidden ${scoreGrade.bg} ${scoreGrade.border}`}
+          className="rounded-2xl border shadow-sm overflow-hidden bg-white border-slate-200"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-black/5">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Shield className={`w-4 h-4 ${scoreGrade.color}`} />
               <h2 className="text-base font-bold text-slate-900">Home Health Score</h2>
             </div>
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-              healthScore.total >= 80 ? "bg-emerald-100 text-emerald-700" :
-              healthScore.total >= 60 ? "bg-amber-100 text-amber-700" :
-              "bg-red-100 text-red-700"
-            }`}>{scoreGrade.label}</span>
+            <div className="flex items-center gap-2">
+              {/* Trend badge */}
+              {healthScore.trend !== "neutral" && (
+                <span className={`flex items-center gap-0.5 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                  healthScore.trend === "up" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
+                }`}>
+                  {healthScore.trend === "up"
+                    ? <><TrendingUp className="w-3 h-3" /> Rising</>
+                    : <><TrendingDown className="w-3 h-3" /> Falling</>
+                  }
+                </span>
+              )}
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                healthScore.total >= 80 ? "bg-emerald-100 text-emerald-700" :
+                healthScore.total >= 60 ? "bg-amber-100 text-amber-700" :
+                "bg-red-100 text-red-700"
+              }`}>{scoreGrade.label}</span>
+            </div>
           </div>
 
           <div className="px-5 py-5 flex flex-col sm:flex-row items-center gap-5 sm:gap-8">
@@ -1017,139 +1209,58 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             {/* Right side */}
             <div className="flex-1 min-w-0 text-center sm:text-left">
               <p className={`text-xl font-black ${scoreGrade.color} leading-tight`}>{scoreGrade.msg}</p>
-              <p className="text-sm text-slate-600 mt-1.5 leading-snug">
-                Your score is based on <span className="font-semibold text-slate-800">profile completeness</span>, <span className="font-semibold text-slate-800">task completion</span>, <span className="font-semibold text-slate-800">maintenance history</span>, and whether you have a <span className="font-semibold text-slate-800">personalized calendar</span>.
+              <p className="text-xs text-slate-500 mt-1 mb-3 leading-snug">
+                Based on <span className="font-semibold text-slate-700">maintenance adherence</span>, <span className="font-semibold text-slate-700">document coverage</span>, <span className="font-semibold text-slate-700">big-ticket preparedness</span>, and <span className="font-semibold text-slate-700">home condition</span>.
               </p>
 
-              {/* Improvement hints for lower scores */}
-              {healthScore.total < 80 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {!savedCalendar && (
-                    <button onClick={() => navigate("/quiz")} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-primary hover:text-primary transition-colors shadow-sm">
-                      + Generate calendar
-                    </button>
-                  )}
-                  {!homeProfile?.yearBuilt && (
-                    <button onClick={() => navigate("/home-profile")} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-primary hover:text-primary transition-colors shadow-sm">
-                      + Add year built
-                    </button>
-                  )}
-                  {!homeProfile?.fullAddress && (
-                    <button onClick={() => navigate("/home-profile")} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-primary hover:text-primary transition-colors shadow-sm">
-                      + Add home address
-                    </button>
-                  )}
-                  {recentLog.length === 0 && (
-                    <button onClick={() => navigate("/history")} className="text-xs font-semibold px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-700 hover:border-primary hover:text-primary transition-colors shadow-sm">
-                      + Log a completed task
-                    </button>
-                  )}
+              {/* Actionable insights */}
+              {healthScore.insights.length > 0 && (
+                <div className="space-y-2 mb-3">
+                  {healthScore.insights.map((insight, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-left bg-slate-50 rounded-xl px-3 py-2.5 border border-slate-100">
+                      <span className="text-base leading-none mt-0.5">
+                        {idx === 0 ? "🎯" : idx === 1 ? "📄" : "⚠️"}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] text-slate-600 leading-snug">{insight.text}</p>
+                        {insight.route && insight.actionLabel && (
+                          <button onClick={() => navigate(insight.route!)}
+                            className="mt-1 text-[11px] font-bold text-primary hover:underline">
+                            {insight.actionLabel} →
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
 
-              {/* Pro: breakdown toggle */}
-              {userIsPro && (
+              {/* Pro: View Breakdown CTA */}
+              {userIsPro ? (
                 <button
-                  onClick={() => setShowScoreBreakdown(v => !v)}
-                  className="mt-3 flex items-center gap-1 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors"
+                  onClick={() => setShowScoreModal(true)}
+                  className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm"
                 >
-                  {showScoreBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                  {showScoreBreakdown ? "Hide breakdown" : "See detailed breakdown"}
+                  <BarChart2 className="w-3.5 h-3.5" />
+                  View Score Breakdown
                 </button>
-              )}
-              {!userIsPro && (
-                <p className="mt-3 text-[11px] text-slate-400 flex items-center gap-1">
+              ) : (
+                <p className="text-[11px] text-slate-400 flex items-center gap-1">
                   <Zap className="w-3 h-3 text-amber-400" />
-                  <button onClick={() => navigate("/pricing")} className="hover:underline text-amber-600 font-semibold">Upgrade to Pro</button> for a detailed score breakdown
+                  <button onClick={() => navigate("/pricing")} className="hover:underline text-amber-600 font-semibold">Upgrade to Pro</button>
+                  {" "}for a full 4-category breakdown
                 </p>
               )}
             </div>
           </div>
-
-          {/* Pro breakdown panel */}
-          <AnimatePresence>
-            {userIsPro && showScoreBreakdown && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="overflow-hidden"
-              >
-                <div className="border-t border-black/5 px-5 py-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {[
-                    {
-                      label: "Profile Completeness",
-                      earned: healthScore.profile,
-                      max: 25,
-                      tip: healthScore.profile < 25 ? "Add year built, address & renovation year for full points." : "Profile is fully complete.",
-                      action: () => navigate("/home-profile"),
-                      actionLabel: "Edit Profile",
-                    },
-                    {
-                      label: "Calendar Generated",
-                      earned: healthScore.calendar,
-                      max: 20,
-                      tip: healthScore.calendar < 20 ? "Generate your personalized 12-month calendar." : "Calendar generated.",
-                      action: () => navigate("/quiz"),
-                      actionLabel: "Generate Calendar",
-                    },
-                    {
-                      label: "This Month's Tasks",
-                      earned: healthScore.completion,
-                      max: 30,
-                      tip: healthScore.completion < 30
-                        ? Object.keys(thisMonthCompleted).length === 0
-                          ? "Start completing your tasks for this month."
-                          : "Keep going — complete all tasks for full points."
-                        : "All tasks complete for this month!",
-                      action: undefined,
-                      actionLabel: null,
-                    },
-                    {
-                      label: "Maintenance History",
-                      earned: healthScore.history,
-                      max: 25,
-                      tip: recentLog.length === 0
-                        ? "Log your first completed maintenance task."
-                        : recentLog.length < 4
-                        ? "Log a few more tasks to build your history."
-                        : "Great maintenance history!",
-                      action: () => navigate("/history"),
-                      actionLabel: "View History",
-                    },
-                  ].map(item => {
-                    const pct = Math.round((item.earned / item.max) * 100);
-                    const barColor = pct >= 80 ? "bg-emerald-500" : pct >= 50 ? "bg-amber-400" : "bg-red-400";
-                    return (
-                      <div key={item.label} className="bg-white rounded-xl border border-slate-200 px-4 py-3 shadow-sm">
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-xs font-bold text-slate-700">{item.label}</span>
-                          <span className="text-xs font-black text-slate-900">{item.earned}<span className="text-slate-400 font-normal">/{item.max}</span></span>
-                        </div>
-                        <div className="h-2 rounded-full bg-slate-100 overflow-hidden mb-2">
-                          <div
-                            className={`h-full rounded-full transition-all duration-700 ${barColor}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <p className="text-[11px] text-slate-500 leading-snug">{item.tip}</p>
-                        {item.action && item.earned < item.max && (
-                          <button
-                            onClick={item.action}
-                            className="mt-1.5 text-[11px] font-bold text-primary hover:underline"
-                          >
-                            {item.actionLabel} →
-                          </button>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </motion.div>
+
+        {/* Health Score Modal */}
+        <AnimatePresence>
+          {showScoreModal && (
+            <HealthScoreModal score={healthScore} onClose={() => setShowScoreModal(false)} />
+          )}
+        </AnimatePresence>
 
         {/* ── This Month ── */}
         {savedCalendar && (
