@@ -341,12 +341,12 @@ export default function BrokerOnboard() {
           </div>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.0] tracking-tight">
             The Ultimate{" "}
-            <span style={{ color: ACCENT }}>Client Retention</span>{" "}
+            <span style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Client Retention</span>{" "}
             Tool
           </h1>
           <p className="text-white/55 text-base sm:text-lg leading-relaxed mt-4 max-w-2xl mx-auto">
             Join the <strong className="text-white">Pioneer 300</strong> — get your own fully branded AI home maintenance app at{" "}
-            <span className="font-bold" style={{ color: ACCENT }}>maintainhome.ai/[yourname]</span>{" "}
+            <span className="font-bold" style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>maintainhome.ai/[yourname]</span>{" "}
             that turns one-time transactions into lifelong client relationships.
           </p>
         </motion.div>
@@ -381,9 +381,8 @@ export default function BrokerOnboard() {
                 The{" "}
                 <span className="font-black text-white">$1,993</span>
                 {" "}White-Label Setup Fee is{" "}
-                <span className="font-black px-1.5 py-0.5 rounded-md"
-                  style={{ color: ACCENT, backgroundColor: ACCENT + "22" }}>
-                  waived
+                <span className="font-black px-1.5 py-0.5 rounded-md" style={{ backgroundColor: ACCENT + "22" }}>
+                  <span style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>waived</span>
                 </span>
                 {" "}for our first 300 qualified agents.
               </p>
