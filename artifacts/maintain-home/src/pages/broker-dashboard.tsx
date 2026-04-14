@@ -63,7 +63,8 @@ interface Client {
   activationToken?: string | null;
   assignedMemberId?: number | null;
   closingDate?: string | null;
-  clientBirthday?: string | null;
+  clientBirthday1?: string | null;
+  clientBirthday2?: string | null;
 }
 
 interface TeamMember {
@@ -1061,7 +1062,8 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
     clientEmail: "",
     clientName: "",
     closingDate: "",
-    clientBirthday: "",
+    clientBirthday1: "",
+    clientBirthday2: "",
     fullAddress: "",
     zipCode: "",
     homeType: "single_family",
@@ -1180,7 +1182,8 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
           clientEmail: form.clientEmail.trim().toLowerCase(),
           clientName: form.clientName.trim() || null,
           closingDate: form.closingDate.trim() || null,
-          clientBirthday: form.clientBirthday.trim() || null,
+          clientBirthday1: form.clientBirthday1.trim() || null,
+          clientBirthday2: form.clientBirthday2.trim() || null,
           propertyData,
           quizAnswers,
           documentPaths: docs,
@@ -1354,10 +1357,10 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                       />
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                       <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">
-                        Closing Date <span className="text-slate-400 font-normal normal-case text-[10px]">optional · for anniversary reminders</span>
+                        Closing Date <span className="text-slate-400 font-normal normal-case text-[10px]">optional · anniversary</span>
                       </label>
                       <input
                         type="date"
@@ -1369,12 +1372,24 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">
-                        Client Birthday <span className="text-slate-400 font-normal normal-case text-[10px]">optional · for birthday recognition</span>
+                        Client 1 Birthday <span className="text-slate-400 font-normal normal-case text-[10px]">optional</span>
                       </label>
                       <input
                         type="date"
-                        value={form.clientBirthday}
-                        onChange={(e) => setField("clientBirthday", e.target.value)}
+                        value={form.clientBirthday1}
+                        onChange={(e) => setField("clientBirthday1", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">
+                        Client 2 Birthday <span className="text-slate-400 font-normal normal-case text-[10px]">optional · couples</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={form.clientBirthday2}
+                        onChange={(e) => setField("clientBirthday2", e.target.value)}
                         className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent"
                         style={{ "--tw-ring-color": accent } as React.CSSProperties}
                       />
@@ -2254,16 +2269,37 @@ Click here to get started: ${link}`;
 
           for (const client of clients) {
             const displayName = client.name ?? client.email;
-            if (client.clientBirthday) {
-              const parts = client.clientBirthday.split("-");
-              if (parts.length >= 3) {
-                const bMonth = Number(parts[1]);
-                const bDay = Number(parts[2]);
-                if (bMonth === currentMonth) {
-                  celebrations.push({ key: `bday-${client.id}`, name: displayName, label: `Birthday · ${monthNames[bMonth - 1]} ${bDay}`, emoji: "🎂", dayNum: bDay });
-                }
+
+            const parseBday = (raw: string | null | undefined): { month: number; day: number } | null => {
+              if (!raw) return null;
+              const parts = raw.split("-");
+              if (parts.length < 3) return null;
+              return { month: Number(parts[1]), day: Number(parts[2]) };
+            };
+
+            const b1 = parseBday(client.clientBirthday1);
+            const b2 = parseBday(client.clientBirthday2);
+            const b1ThisMonth = b1 && b1.month === currentMonth;
+            const b2ThisMonth = b2 && b2.month === currentMonth;
+
+            if (b1ThisMonth && b2ThisMonth) {
+              const earlierDay = Math.min(b1.day, b2.day);
+              celebrations.push({
+                key: `bday-both-${client.id}`,
+                name: displayName,
+                label: `Client 1 Birthday · ${monthNames[b1.month - 1]} ${b1.day}  ·  Client 2 Birthday · ${monthNames[b2.month - 1]} ${b2.day}`,
+                emoji: "🎂",
+                dayNum: earlierDay,
+              });
+            } else {
+              if (b1ThisMonth) {
+                celebrations.push({ key: `bday1-${client.id}`, name: displayName, label: `Client 1 Birthday · ${monthNames[b1.month - 1]} ${b1.day}`, emoji: "🎂", dayNum: b1.day });
+              }
+              if (b2ThisMonth) {
+                celebrations.push({ key: `bday2-${client.id}`, name: displayName, label: `Client 2 Birthday · ${monthNames[b2.month - 1]} ${b2.day}`, emoji: "🎂", dayNum: b2.day });
               }
             }
+
             if (client.closingDate) {
               const parts = client.closingDate.split("-");
               if (parts.length >= 3) {

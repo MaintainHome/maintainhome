@@ -120,7 +120,8 @@ export const brokerPrecreationsTable = pgTable("broker_precreations", {
   priceCents: integer("price_cents").notNull().default(3600),
   newConstructionData: jsonb("new_construction_data"),
   closingDate: text("closing_date"),
-  clientBirthday: text("client_birthday"),
+  clientBirthday1: text("client_birthday_1"),
+  clientBirthday2: text("client_birthday_2"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
