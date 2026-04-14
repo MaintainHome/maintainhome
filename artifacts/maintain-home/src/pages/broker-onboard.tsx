@@ -340,9 +340,8 @@ export default function BrokerOnboard() {
             Pioneer Agent Program
           </div>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.0] tracking-tight">
-            Apply To Gain Access To The Ultimate{" "}
-            <span style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Client Retention</span>{" "}
-            Tool
+            Gain Access To The Ultimate{" "}
+            <span style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Client Retention Tool</span>
           </h1>
           <p className="text-white/80 text-lg sm:text-xl font-semibold leading-snug mt-5 max-w-2xl mx-auto">
             Limited to the first{" "}
