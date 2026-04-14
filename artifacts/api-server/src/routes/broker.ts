@@ -213,7 +213,7 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         .where(inArray(maintenanceLogTable.userId, userIds))
         .groupBy(maintenanceLogTable.userId),
       db
-        .select({ clientUserId: brokerPrecreationsTable.clientUserId, activatedAt: brokerPrecreationsTable.activatedAt, activationToken: brokerPrecreationsTable.activationToken, brokerUserId: brokerPrecreationsTable.brokerUserId })
+        .select({ clientUserId: brokerPrecreationsTable.clientUserId, activatedAt: brokerPrecreationsTable.activatedAt, activationToken: brokerPrecreationsTable.activationToken, brokerUserId: brokerPrecreationsTable.brokerUserId, closingDate: brokerPrecreationsTable.closingDate, clientBirthday: brokerPrecreationsTable.clientBirthday })
         .from(brokerPrecreationsTable)
         .where(inArray(brokerPrecreationsTable.clientUserId as any, userIds)),
       db
@@ -244,6 +244,8 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
       const isPrecreated = c.brokerPreCreated;
       const isActivated = !!precreation?.activatedAt;
       const activationToken = isPrecreated && !isActivated ? precreation?.activationToken ?? null : null;
+      const closingDate = precreation?.closingDate ?? null;
+      const clientBirthday = precreation?.clientBirthday ?? null;
 
       const yearBuilt = homeProfileMap.get(c.id);
       const recentUpgradesRaw: string = (quizAnswers?.recentUpgrades as string) ?? "";
@@ -261,6 +263,8 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         isPrecreated,
         isActivated,
         activationToken,
+        closingDate,
+        clientBirthday,
       };
     });
 
@@ -679,6 +683,8 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       documentPaths,
       duration = "1year",
       newConstructionData,
+      closingDate,
+      clientBirthday,
     } = req.body as {
       clientEmail?: string;
       clientName?: string;
@@ -687,6 +693,8 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       documentPaths?: Array<{ objectPath: string; fileName: string; contentType: string; fileSizeBytes?: number; displayName?: string }>;
       duration?: "1year" | "3years";
       newConstructionData?: Record<string, unknown> | null;
+      closingDate?: string | null;
+      clientBirthday?: string | null;
     };
 
     if (!clientEmail?.trim()) {
@@ -717,6 +725,8 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
       quizAnswers: quizAnswers ?? null,
       documentPaths: documentPaths ?? null,
       newConstructionData: newConstructionData ?? null,
+      closingDate: closingDate?.trim() || null,
+      clientBirthday: clientBirthday?.trim() || null,
       status: "pending_payment",
       priceCents,
     }).returning();

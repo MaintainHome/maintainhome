@@ -62,6 +62,8 @@ interface Client {
   isActivated?: boolean;
   activationToken?: string | null;
   assignedMemberId?: number | null;
+  closingDate?: string | null;
+  clientBirthday?: string | null;
 }
 
 interface TeamMember {
@@ -1058,6 +1060,8 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
   const [form, setForm] = useState({
     clientEmail: "",
     clientName: "",
+    closingDate: "",
+    clientBirthday: "",
     fullAddress: "",
     zipCode: "",
     homeType: "single_family",
@@ -1175,6 +1179,8 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
         body: JSON.stringify({
           clientEmail: form.clientEmail.trim().toLowerCase(),
           clientName: form.clientName.trim() || null,
+          closingDate: form.closingDate.trim() || null,
+          clientBirthday: form.clientBirthday.trim() || null,
           propertyData,
           quizAnswers,
           documentPaths: docs,
@@ -1348,6 +1354,36 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                       />
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">
+                        Closing Date <span className="text-slate-400 font-normal normal-case text-[10px]">optional · for anniversary reminders</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={form.closingDate}
+                        onChange={(e) => setField("closingDate", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 uppercase tracking-wide mb-1">
+                        Client Birthday <span className="text-slate-400 font-normal normal-case text-[10px]">optional · for birthday recognition</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={form.clientBirthday}
+                        onChange={(e) => setField("clientBirthday", e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent"
+                        style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 flex items-center gap-1.5">
+                    <span>🎉</span>
+                    <span>These dates power your <strong>Client Celebrations</strong> widget — helpful for staying in touch at the right moment.</span>
+                  </p>
                 </div>
 
                 {/* Property Info */}
@@ -2205,6 +2241,88 @@ Click here to get started: ${link}`;
             </div>
           </div>
         </motion.div>
+
+        {/* ── Client Celebrations This Month ───────────────────────── */}
+        {(() => {
+          const now = new Date();
+          const currentMonth = now.getMonth() + 1;
+          const currentYear = now.getFullYear();
+          const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+          type Celebration = { key: string; name: string; label: string; emoji: string; dayNum: number };
+          const celebrations: Celebration[] = [];
+
+          for (const client of clients) {
+            const displayName = client.name ?? client.email;
+            if (client.clientBirthday) {
+              const parts = client.clientBirthday.split("-");
+              if (parts.length >= 3) {
+                const bMonth = Number(parts[1]);
+                const bDay = Number(parts[2]);
+                if (bMonth === currentMonth) {
+                  celebrations.push({ key: `bday-${client.id}`, name: displayName, label: `Birthday · ${monthNames[bMonth - 1]} ${bDay}`, emoji: "🎂", dayNum: bDay });
+                }
+              }
+            }
+            if (client.closingDate) {
+              const parts = client.closingDate.split("-");
+              if (parts.length >= 3) {
+                const cYear = Number(parts[0]);
+                const cMonth = Number(parts[1]);
+                const cDay = Number(parts[2]);
+                if (cMonth === currentMonth && cYear < currentYear) {
+                  const yearsAgo = currentYear - cYear;
+                  const label = `${yearsAgo === 1 ? "1 Year" : `${yearsAgo} Year`} Closing Anniversary · ${monthNames[cMonth - 1]} ${cDay}`;
+                  celebrations.push({ key: `ann-${client.id}`, name: displayName, label, emoji: "🏡", dayNum: cDay });
+                }
+              }
+            }
+          }
+          celebrations.sort((a, b) => a.dayNum - b.dayNum);
+
+          return (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.11 }}
+              className="bg-white rounded-2xl border border-amber-200 shadow-sm p-6"
+              style={{ background: "linear-gradient(135deg, #fffbeb 0%, #ffffff 60%)" }}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl"
+                  style={{ backgroundColor: "#fef3c7", border: "1px solid #fde68a" }}>
+                  🎉
+                </div>
+                <div>
+                  <h2 className="font-bold text-slate-900">Client Celebrations This Month</h2>
+                  <p className="text-xs text-amber-600 font-medium">{monthNames[currentMonth - 1]} {currentYear} · Birthdays &amp; Closing Anniversaries</p>
+                </div>
+              </div>
+
+              {celebrations.length === 0 ? (
+                <div className="text-center py-6">
+                  <div className="text-3xl mb-2">📅</div>
+                  <p className="text-sm font-semibold text-slate-500">No celebrations this month</p>
+                  <p className="text-xs text-slate-400 mt-1">Great time to check in with your clients anyway!</p>
+                  <p className="text-[11px] text-amber-600 mt-3">Add closing dates &amp; birthdays when creating clients to see them here.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {celebrations.map((c) => (
+                    <div key={c.key}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-100"
+                      style={{ backgroundColor: "#fffbeb" }}>
+                      <span className="text-xl shrink-0">{c.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">{c.name}</p>
+                        <p className="text-xs text-amber-700">{c.label}</p>
+                      </div>
+                      <div className="shrink-0 text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full border border-amber-200">
+                        Reach Out!
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          );
+        })()}
 
         {/* ── Team Members (Team Leader only) ─────────────────────── */}
         {isTeamLeader && config && (

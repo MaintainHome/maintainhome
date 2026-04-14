@@ -119,6 +119,8 @@ export const brokerPrecreationsTable = pgTable("broker_precreations", {
   status: text("status").notNull().default("pending_payment"),
   priceCents: integer("price_cents").notNull().default(3600),
   newConstructionData: jsonb("new_construction_data"),
+  closingDate: text("closing_date"),
+  clientBirthday: text("client_birthday"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
