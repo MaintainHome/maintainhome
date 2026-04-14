@@ -30,6 +30,31 @@ router.get("/user/calendar/latest", requireAuth as any, async (req: AuthRequest,
   res.json(latest ?? null);
 });
 
+router.patch("/user/calendar/quiz-answers", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const updates = req.body;
+  if (!updates || typeof updates !== "object" || Array.isArray(updates)) {
+    res.status(400).json({ error: "Invalid body" });
+    return;
+  }
+  const [latest] = await db
+    .select()
+    .from(savedCalendarsTable)
+    .where(eq(savedCalendarsTable.userId, req.userId!))
+    .orderBy(desc(savedCalendarsTable.createdAt))
+    .limit(1);
+  if (!latest) {
+    res.status(404).json({ error: "No calendar found" });
+    return;
+  }
+  const merged = { ...(latest.quizAnswers as Record<string, string>), ...updates };
+  const [updated] = await db
+    .update(savedCalendarsTable)
+    .set({ quizAnswers: merged })
+    .where(eq(savedCalendarsTable.id, latest.id))
+    .returning();
+  res.json(updated);
+});
+
 // ─── Maintenance Log (completed tasks) ───────────────────────────────────────
 
 router.get("/user/log", requireAuth as any, async (req: AuthRequest, res: Response) => {

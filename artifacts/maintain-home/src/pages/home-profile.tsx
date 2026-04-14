@@ -128,6 +128,11 @@ export default function HomeProfilePage() {
   const [isNewConstruction, setIsNewConstruction] = useState(false);
   const [newConstructionData, setNewConstructionData] = useState<NewConstructionData>(emptyNewConstruction);
 
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<Record<string, string>>({});
+  const [editSaving, setEditSaving] = useState(false);
+  const [quizEditError, setQuizEditError] = useState<string | null>(null);
+
   const userIsPro = isPro(user);
 
   // ── SMS settings state ────────────────────────────────────────────────────
@@ -323,6 +328,49 @@ export default function HomeProfilePage() {
     const val = quizAnswers?.[key];
     if (!val) return "—";
     return labelMap ? (labelMap[val] ?? val) : val;
+  }
+
+  function startEdit(key: string) {
+    setEditingField(key);
+    setQuizEditError(null);
+    setEditDraft({
+      [key]: quizAnswers?.[key] ?? "",
+      ...(key === "allergies" ? { allergiesDetails: quizAnswers?.allergiesDetails ?? "" } : {}),
+      ...(key === "crawlSpace" ? { crawlSpaceSealed: quizAnswers?.crawlSpaceSealed ?? "" } : {}),
+    });
+  }
+
+  async function saveQuizField() {
+    if (!editingField) return;
+    setEditSaving(true);
+    setQuizEditError(null);
+    try {
+      const updates: Record<string, string> = {};
+      if (editingField === "allergies") {
+        updates.allergies = editDraft.allergies ?? "";
+        if (editDraft.allergies === "yes") updates.allergiesDetails = editDraft.allergiesDetails ?? "";
+        else updates.allergiesDetails = "";
+      } else if (editingField === "crawlSpace") {
+        updates.crawlSpace = editDraft.crawlSpace ?? "";
+        if (editDraft.crawlSpace === "yes") updates.crawlSpaceSealed = editDraft.crawlSpaceSealed ?? "";
+        else updates.crawlSpaceSealed = "";
+      } else {
+        updates[editingField] = editDraft[editingField] ?? "";
+      }
+      const r = await fetch("/api/user/calendar/quiz-answers", {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!r.ok) throw new Error("Save failed");
+      setQuizAnswers(prev => ({ ...prev!, ...updates }));
+      setEditingField(null);
+    } catch {
+      setQuizEditError("Could not save. Please try again.");
+    } finally {
+      setEditSaving(false);
+    }
   }
 
   if (!user) {
@@ -539,14 +587,13 @@ export default function HomeProfilePage() {
           <div className="px-5 py-4 border-b border-slate-800 bg-slate-900 flex items-center justify-between">
             <div>
               <h2 className="text-lg sm:text-base font-bold text-white">Home Setup Answers</h2>
-              <p className="text-sm sm:text-xs text-slate-400 mt-0.5">From your original quiz — these power your calendar</p>
+              <p className="text-sm sm:text-xs text-slate-400 mt-0.5">Tap the pencil to edit any answer individually</p>
             </div>
             <button
               onClick={() => navigate("/quiz")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-semibold transition-colors"
+              className="text-xs text-slate-500 hover:text-slate-300 transition-colors underline underline-offset-2 whitespace-nowrap"
             >
-              <Edit2 className="w-3.5 h-3.5" />
-              Retake Quiz
+              Full retake
             </button>
           </div>
           {loading ? (
@@ -554,25 +601,145 @@ export default function HomeProfilePage() {
               <RefreshCw className="w-5 h-5 text-slate-300 animate-spin" />
             </div>
           ) : quizAnswers ? (
-            <div className="divide-y divide-slate-50">
-              {[
-                { label: "ZIP Code", value: qa("zip") },
-                { label: "Home Age", value: qa("homeAge", HOME_AGE_LABELS) },
-                { label: "Home Type", value: qa("homeType", HOME_TYPE_LABELS) },
-                { label: "Roof Type", value: qa("roofType", ROOF_TYPE_LABELS) },
-                { label: "Water Source", value: qa("waterSource", WATER_LABELS) },
-                { label: "Sewer System", value: qa("sewerSystem", SEWER_LABELS) },
-                { label: "Pest Prevention", value: qa("pestSchedule", PEST_LABELS) },
-                { label: "Square Footage", value: qa("sqft", SQFT_LABELS) },
-                { label: "Landscaping", value: qa("landscaping", LANDSCAPING_LABELS) },
-                { label: "Allergies / Pets", value: quizAnswers.allergies === "yes" ? `Yes${quizAnswers.allergiesDetails ? ` — ${quizAnswers.allergiesDetails}` : ""}` : "No" },
-                { label: "Crawl Space", value: quizAnswers.crawlSpace === "yes" ? `Yes (${CRAWL_SEALED_LABELS[quizAnswers.crawlSpaceSealed] ?? "status unknown"})` : quizAnswers.crawlSpace === "no" ? "No" : "—" },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between px-5 py-4 sm:py-3">
-                  <span className="text-base sm:text-sm text-slate-500 font-medium">{label}</span>
-                  <span className="text-base sm:text-sm font-semibold text-slate-800 text-right max-w-[55%]">{value}</span>
-                </div>
-              ))}
+            <div className="divide-y divide-slate-100">
+              {(
+                [
+                  { key: "zip", label: "ZIP Code", type: "text" },
+                  { key: "homeAge", label: "Home Age", type: "select", options: HOME_AGE_LABELS },
+                  { key: "homeType", label: "Home Type", type: "select", options: HOME_TYPE_LABELS },
+                  { key: "roofType", label: "Roof Type", type: "select", options: ROOF_TYPE_LABELS },
+                  { key: "waterSource", label: "Water Source", type: "select", options: WATER_LABELS },
+                  { key: "sewerSystem", label: "Sewer System", type: "select", options: SEWER_LABELS },
+                  { key: "pestSchedule", label: "Pest Prevention", type: "select", options: PEST_LABELS },
+                  { key: "sqft", label: "Square Footage", type: "select", options: SQFT_LABELS },
+                  { key: "landscaping", label: "Landscaping", type: "select", options: LANDSCAPING_LABELS },
+                  { key: "allergies", label: "Allergies / Pets", type: "special_allergies" },
+                  { key: "crawlSpace", label: "Crawl Space", type: "special_crawl" },
+                ] as Array<{ key: string; label: string; type: string; options?: Record<string, string> }>
+              ).map(({ key, label, type, options }) => {
+                const isEditing = editingField === key;
+                const displayValue = (() => {
+                  if (key === "allergies") return quizAnswers.allergies === "yes" ? `Yes${quizAnswers.allergiesDetails ? ` — ${quizAnswers.allergiesDetails}` : ""}` : quizAnswers.allergies === "no" ? "No" : "—";
+                  if (key === "crawlSpace") return quizAnswers.crawlSpace === "yes" ? `Yes (${CRAWL_SEALED_LABELS[quizAnswers.crawlSpaceSealed] ?? "status unknown"})` : quizAnswers.crawlSpace === "no" ? "No" : "—";
+                  return qa(key, options);
+                })();
+                const inputClass = "w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary";
+                return (
+                  <div key={key} className={`transition-colors ${isEditing ? "bg-slate-50/80" : ""}`}>
+                    {isEditing ? (
+                      <div className="px-4 py-3 space-y-2.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-semibold text-slate-700">{label}</span>
+                          <button onClick={() => setEditingField(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        {type === "text" && (
+                          <input
+                            type="text"
+                            value={editDraft[key] ?? ""}
+                            onChange={e => setEditDraft(d => ({ ...d, [key]: e.target.value }))}
+                            className={inputClass}
+                            placeholder={`Enter ${label.toLowerCase()}…`}
+                          />
+                        )}
+                        {type === "select" && options && (
+                          <select
+                            value={editDraft[key] ?? ""}
+                            onChange={e => setEditDraft(d => ({ ...d, [key]: e.target.value }))}
+                            className={inputClass}
+                          >
+                            <option value="">Select…</option>
+                            {Object.entries(options).map(([v, l]) => (
+                              <option key={v} value={v}>{l}</option>
+                            ))}
+                          </select>
+                        )}
+                        {type === "special_allergies" && (
+                          <div className="space-y-2">
+                            <select
+                              value={editDraft.allergies ?? ""}
+                              onChange={e => setEditDraft(d => ({ ...d, allergies: e.target.value }))}
+                              className={inputClass}
+                            >
+                              <option value="">Select…</option>
+                              <option value="yes">Yes</option>
+                              <option value="no">No</option>
+                            </select>
+                            {editDraft.allergies === "yes" && (
+                              <input
+                                type="text"
+                                value={editDraft.allergiesDetails ?? ""}
+                                onChange={e => setEditDraft(d => ({ ...d, allergiesDetails: e.target.value }))}
+                                placeholder="Describe (e.g. dog, pollen allergy…)"
+                                className={inputClass}
+                              />
+                            )}
+                          </div>
+                        )}
+                        {type === "special_crawl" && (
+                          <div className="space-y-2">
+                            <select
+                              value={editDraft.crawlSpace ?? ""}
+                              onChange={e => setEditDraft(d => ({ ...d, crawlSpace: e.target.value }))}
+                              className={inputClass}
+                            >
+                              <option value="">Select…</option>
+                              <option value="yes">Yes</option>
+                              <option value="no">No</option>
+                            </select>
+                            {editDraft.crawlSpace === "yes" && (
+                              <select
+                                value={editDraft.crawlSpaceSealed ?? ""}
+                                onChange={e => setEditDraft(d => ({ ...d, crawlSpaceSealed: e.target.value }))}
+                                className={inputClass}
+                              >
+                                <option value="">Sealing status…</option>
+                                {Object.entries(CRAWL_SEALED_LABELS).map(([v, l]) => (
+                                  <option key={v} value={v}>{l}</option>
+                                ))}
+                              </select>
+                            )}
+                          </div>
+                        )}
+                        {quizEditError && editingField === key && (
+                          <p className="text-xs text-red-500">{quizEditError}</p>
+                        )}
+                        <div className="flex gap-2 pt-0.5">
+                          <button
+                            onClick={saveQuizField}
+                            disabled={editSaving}
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-bold transition-colors disabled:opacity-60"
+                          >
+                            {editSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                            Save
+                          </button>
+                          <button
+                            onClick={() => setEditingField(null)}
+                            className="px-3.5 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2 px-5 py-4 sm:py-3 group">
+                        <span className="text-base sm:text-sm text-slate-500 font-medium shrink-0">{label}</span>
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-base sm:text-sm font-semibold text-slate-800 text-right truncate">{displayValue}</span>
+                          <button
+                            onClick={() => startEdit(key)}
+                            className="shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-slate-300 hover:text-primary hover:bg-primary/10 sm:opacity-0 sm:group-hover:opacity-100 transition-all"
+                            title={`Edit ${label}`}
+                          >
+                            <Edit2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="px-5 py-6 text-center text-slate-400 text-sm">

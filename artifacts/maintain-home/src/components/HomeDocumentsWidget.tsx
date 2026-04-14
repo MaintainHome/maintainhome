@@ -945,66 +945,102 @@ export function LightDocRow({
   const days = daysUntil(primaryDate);
   const isUrgent = days !== null && days <= 90;
 
+  const iconBg = doc.docType === "warranty" ? "bg-emerald-100" :
+    doc.docType === "hoa" ? "bg-blue-100" :
+    doc.docType === "insurance" ? "bg-violet-100" :
+    doc.docType === "deed" ? "bg-amber-100" :
+    doc.docType === "manual" ? "bg-cyan-100" : "bg-slate-100";
+
   return (
-    <div className={`flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-slate-50 ${isUrgent ? "bg-red-50/50" : ""}`}>
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-        doc.docType === "warranty" ? "bg-emerald-100" :
-        doc.docType === "hoa" ? "bg-blue-100" :
-        doc.docType === "insurance" ? "bg-violet-100" :
-        doc.docType === "deed" ? "bg-amber-100" :
-        doc.docType === "manual" ? "bg-cyan-100" : "bg-slate-100"
-      }`}>
-        <span className={cat.color}>{cat.icon}</span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-base sm:text-sm font-semibold text-slate-800 truncate">{name}</p>
-        <div className="flex items-center gap-2 flex-wrap mt-0.5">
-          <span className="text-xs text-slate-400">{cat.label}</span>
-          {primaryDate && (
-            <>
-              <span className="text-slate-200">·</span>
-              <ExpiryBadge label={dateLabel} dateStr={primaryDate} />
-            </>
+    <div className={`px-4 sm:px-5 py-4 sm:py-3.5 transition-colors hover:bg-slate-50 ${isUrgent ? "bg-red-50/50" : ""}`}>
+      {/* Info row */}
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 ${iconBg}`}>
+          <span className={cat.color}>{cat.icon}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-base sm:text-sm font-semibold text-slate-800 leading-tight truncate">{name}</p>
+          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+            <span className="text-xs text-slate-400">{cat.label}</span>
+            {primaryDate && (
+              <>
+                <span className="text-slate-200">·</span>
+                <ExpiryBadge label={dateLabel} dateStr={primaryDate} />
+              </>
+            )}
+          </div>
+        </div>
+        {/* Desktop-only: buttons inline */}
+        <div className="hidden sm:flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => onViewDetails(doc)}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
+          >
+            <Eye className="w-4 h-4" />
+            View Details
+          </button>
+          <button
+            onClick={() => onViewFile(doc)}
+            title="View full document"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.97] transition-all"
+          >
+            <FileText className="w-4 h-4" />
+            View File
+          </button>
+          {userIsPro ? (
+            <button
+              onClick={() => onAskMaintly?.(buildAskMessage(doc))}
+              title="Ask Maintly about this document"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-primary border border-primary/30 hover:bg-primary/8 hover:border-primary/60 active:scale-[0.97] transition-all"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Ask Maintly
+            </button>
+          ) : (
+            <button
+              disabled
+              title="Upgrade to Pro to ask Maintly about your documents"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-bold text-slate-400 border border-slate-200 cursor-not-allowed opacity-60"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Ask Maintly
+              <span className="text-[9px] font-bold bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded ml-0.5">Pro</span>
+            </button>
           )}
         </div>
       </div>
-      <div className="shrink-0 flex items-center gap-2">
+
+      {/* Mobile-only: buttons below, full-width layout */}
+      <div className="flex items-center gap-2 mt-3 sm:hidden">
         <button
           onClick={() => onViewDetails(doc)}
-          className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary/90 active:scale-[0.97] transition-all shadow-sm shadow-primary/20"
         >
           <Eye className="w-4 h-4" />
-          <span className="hidden sm:inline">View Details</span>
-          <span className="sm:hidden">Details</span>
+          View Details
         </button>
         <button
           onClick={() => onViewFile(doc)}
-          title="View full document"
-          className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.97] transition-all"
+          title="View file"
+          className="w-12 h-12 flex items-center justify-center rounded-xl text-slate-600 border border-slate-200 hover:bg-slate-100 active:scale-[0.97] transition-all"
         >
-          <FileText className="w-4 h-4" />
-          <span className="hidden sm:inline">View File</span>
+          <FileText className="w-5 h-5" />
         </button>
         {userIsPro ? (
           <button
             onClick={() => onAskMaintly?.(buildAskMessage(doc))}
-            title="Ask Maintly about this document"
-            className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-primary border border-primary/30 hover:bg-primary/8 hover:border-primary/60 active:scale-[0.97] transition-all"
+            title="Ask Maintly"
+            className="w-12 h-12 flex items-center justify-center rounded-xl text-primary border border-primary/30 hover:bg-primary/10 active:scale-[0.97] transition-all"
           >
-            <MessageSquare className="w-4 h-4" />
-            <span className="hidden sm:inline">Ask Maintly</span>
-            <span className="sm:hidden">Ask</span>
+            <MessageSquare className="w-5 h-5" />
           </button>
         ) : (
           <button
             disabled
-            title="Upgrade to Pro to ask Maintly about your documents"
-            className="flex items-center gap-1.5 px-4 py-2.5 sm:px-3.5 sm:py-2 rounded-xl text-base sm:text-sm font-bold text-slate-400 border border-slate-200 cursor-not-allowed opacity-60"
+            title="Upgrade to Pro to ask Maintly"
+            className="w-12 h-12 flex items-center justify-center rounded-xl text-slate-300 border border-slate-200 cursor-not-allowed opacity-60"
           >
-            <MessageSquare className="w-4 h-4" />
-            <span className="hidden sm:inline">Ask Maintly</span>
-            <span className="sm:hidden">Ask</span>
-            <span className="text-[9px] font-bold bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded ml-0.5 hidden sm:inline">Pro</span>
+            <MessageSquare className="w-5 h-5" />
           </button>
         )}
       </div>
