@@ -75,6 +75,7 @@ interface TeamMember {
   email: string;
   headshotUrl: string | null;
   phone: string | null;
+  agentHandle: string | null;
   status: "invited" | "active";
   inviteToken: string;
   invitedAt: string;
@@ -89,6 +90,7 @@ interface TeamMembership {
   email: string;
   headshotUrl: string | null;
   phone: string | null;
+  agentHandle: string | null;
   status: "invited" | "active";
   inviteToken: string;
 }
@@ -261,8 +263,15 @@ function TeamMembersPanel({
     setTimeout(() => setCopiedToken(null), 2500);
   }
 
-  function getMemberInviteLink(member: TeamMember) {
+  function getMemberJoinLink(member: TeamMember) {
     return `${window.location.origin}${import.meta.env.BASE_URL}team-join?token=${member.inviteToken}`;
+  }
+
+  function getMemberClientInviteLink(member: TeamMember) {
+    if (member.agentHandle) {
+      return `${window.location.origin}${import.meta.env.BASE_URL}${config.subdomain}/${member.agentHandle}`;
+    }
+    return `${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}?member=${member.memberUserId ?? member.id}`;
   }
 
   return (
@@ -342,52 +351,80 @@ function TeamMembersPanel({
           ) : (
             <div className="space-y-2">
               {teamMembers.map((member) => {
-                const memberInviteLink = getMemberInviteLink(member);
+                const joinLink = getMemberJoinLink(member);
+                const clientLink = getMemberClientInviteLink(member);
+                const clientCopyId = `client-${member.id}`;
                 return (
                   <div key={member.id}
-                    className="flex items-center gap-3 p-4 rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                    {member.headshotUrl ? (
-                      <img src={member.headshotUrl} alt={member.displayName}
-                        className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
-                        style={{ backgroundColor: accent + "20", color: accent }}>
-                        {member.displayName[0].toUpperCase()}
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-slate-800 truncate">{member.displayName}</p>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                          member.status === "active"
-                            ? "bg-green-50 text-green-600 border border-green-200"
-                            : "bg-amber-50 text-amber-600 border border-amber-200"
-                        }`}>
-                          {member.status === "active" ? "Active" : "Invited"}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-400 truncate">{member.email}</p>
-                      {member.phone && <p className="text-xs text-slate-400">{member.phone}</p>}
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {member.status === "invited" && (
-                        <button
-                          onClick={() => copyLink(memberInviteLink, member.inviteToken)}
-                          title="Copy invite link"
-                          className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
-                          {copiedToken === member.inviteToken
-                            ? <><Check className="w-3 h-3 text-emerald-500" />Copied</>
-                            : <><Link2 className="w-3 h-3" />Resend</>}
-                        </button>
+                    className="rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors overflow-hidden">
+                    <div className="flex items-center gap-3 p-4">
+                      {member.headshotUrl ? (
+                        <img src={member.headshotUrl} alt={member.displayName}
+                          className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
+                          style={{ backgroundColor: accent + "20", color: accent }}>
+                          {member.displayName[0].toUpperCase()}
+                        </div>
                       )}
-                      <button
-                        onClick={() => handleRemoveMember(member.id)}
-                        disabled={removingId === member.id}
-                        className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
-                        {removingId === member.id
-                          ? <Loader2 className="w-4 h-4 animate-spin" />
-                          : <Trash2 className="w-4 h-4" />}
-                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold text-slate-800 truncate">{member.displayName}</p>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                            member.status === "active"
+                              ? "bg-green-50 text-green-600 border border-green-200"
+                              : "bg-amber-50 text-amber-600 border border-amber-200"
+                          }`}>
+                            {member.status === "active" ? "Active" : "Invited"}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-400 truncate">{member.email}</p>
+                        {member.agentHandle && (
+                          <p className="text-[10px] text-slate-400 font-mono">@{member.agentHandle}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {member.status === "invited" && (
+                          <button
+                            onClick={() => copyLink(joinLink, member.inviteToken)}
+                            title="Copy team join link"
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+                            {copiedToken === member.inviteToken
+                              ? <><Check className="w-3 h-3 text-emerald-500" />Copied</>
+                              : <><Link2 className="w-3 h-3" />Resend</>}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleRemoveMember(member.id)}
+                          disabled={removingId === member.id}
+                          className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
+                          {removingId === member.id
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <Trash2 className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    {/* Client invite link row (always shown) */}
+                    <div className="px-4 pb-3">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200">
+                        <Link2 className="w-3 h-3 shrink-0" style={{ color: accent }} />
+                        <span className="text-[11px] text-slate-500 font-mono flex-1 truncate min-w-0">
+                          {clientLink.replace(/^https?:\/\//, "")}
+                        </span>
+                        <button
+                          onClick={() => copyLink(clientLink, clientCopyId)}
+                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold shrink-0 transition-colors"
+                          style={{
+                            backgroundColor: copiedToken === clientCopyId ? "#d1fae5" : accent + "18",
+                            color: copiedToken === clientCopyId ? "#059669" : accent,
+                          }}
+                        >
+                          {copiedToken === clientCopyId
+                            ? <><Check className="w-3 h-3" />Copied</>
+                            : <><Copy className="w-3 h-3" />Copy</>}
+                        </button>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-1 pl-1">Client invite link</p>
                     </div>
                   </div>
                 );
@@ -1798,6 +1835,10 @@ export default function BrokerDashboard() {
 
   function getPersonalInviteLink() {
     if (!config) return "";
+    // Team members with an agentHandle get a clean /:subdomain/:agentHandle URL
+    if (isTeamMember && membership?.agentHandle) {
+      return `${window.location.origin}${import.meta.env.BASE_URL}${config.subdomain}/${membership.agentHandle}`;
+    }
     const base = `${window.location.origin}${import.meta.env.BASE_URL}invite/${config.subdomain}`;
     if (isTeamMember && membership?.memberUserId) {
       return `${base}?member=${membership.memberUserId}`;
@@ -1914,6 +1955,33 @@ Click here to get started: ${link}`;
   const imminentClients = clients.filter((c) => c.imminentAlertCount > 0);
   const avgScore = clients.length > 0
     ? Math.round(clients.reduce((s, c) => s + c.activityScore, 0) / clients.length) : null;
+
+  /* ── Client list with optional grouping by agent ─────────────── */
+  type ClientListItem =
+    | { kind: "separator"; member: TeamMember | null; count: number }
+    | { kind: "client"; client: Client };
+
+  const clientListItems: ClientListItem[] = (() => {
+    const hasActiveMembers = isTeamLeader && teamMembers.some((m) => m.status === "active");
+    if (!hasActiveMembers) {
+      return clients.map((c) => ({ kind: "client" as const, client: c }));
+    }
+    const activeMembers = teamMembers.filter((m) => m.status === "active");
+    const memberMap = new Map(activeMembers.map((m) => [m.memberUserId, m]));
+    const items: ClientListItem[] = [];
+    for (const m of activeMembers) {
+      const gc = clients.filter((c) => c.assignedMemberId === m.memberUserId);
+      if (!gc.length) continue;
+      items.push({ kind: "separator", member: m, count: gc.length });
+      for (const c of gc) items.push({ kind: "client", client: c });
+    }
+    const unassigned = clients.filter((c) => !c.assignedMemberId || !memberMap.has(c.assignedMemberId));
+    if (unassigned.length) {
+      items.push({ kind: "separator", member: null, count: unassigned.length });
+      for (const c of unassigned) items.push({ kind: "client", client: c });
+    }
+    return items;
+  })();
 
   const accent = MH_PRIMARY;
   const isGift = config?.monetizationModel === "closing_gift";
@@ -2580,7 +2648,33 @@ Click here to get started: ${link}`;
               </div>
 
               <div className="divide-y divide-slate-100">
-                {clients.map((client, idx) => {
+                {clientListItems.map((item, listIdx) => {
+                  if (item.kind === "separator") {
+                    const { member, count } = item;
+                    return (
+                      <div key={`sep-${member?.id ?? "unassigned"}`}
+                        className="flex items-center gap-2 px-6 py-2.5 bg-slate-50 border-b border-slate-100">
+                        {member?.headshotUrl ? (
+                          <img src={member.headshotUrl} alt={member.displayName}
+                            className="w-5 h-5 rounded-full object-cover shrink-0" />
+                        ) : (
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black shrink-0"
+                            style={{ backgroundColor: accent + "20", color: accent }}>
+                            {member ? member.displayName[0].toUpperCase() : "?"}
+                          </div>
+                        )}
+                        <span className="text-xs font-bold text-slate-700">
+                          {member ? member.displayName : "Unassigned"}
+                        </span>
+                        <span className="text-[10px] text-slate-400 ml-0.5">
+                          · {count} {count === 1 ? "client" : "clients"}
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  const { client } = item;
+                  const idx = listIdx;
                   const expiry = isGift && config.giftDuration
                     ? giftExpiry(client.createdAt, config.giftDuration)
                     : null;

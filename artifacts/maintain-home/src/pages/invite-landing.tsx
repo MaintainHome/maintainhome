@@ -10,24 +10,49 @@ import { useLocation, useParams } from "wouter";
 
 const BASE = import.meta.env.BASE_URL;
 const ACCENT = "#1f9e6e";
+const API_BASE = import.meta.env.VITE_API_URL ?? "";
+
+interface AgentInfo {
+  id: number;
+  memberUserId: number | null;
+  displayName: string;
+  headshotUrl: string | null;
+  phone: string | null;
+  agentHandle: string | null;
+  status: string;
+}
 
 /* ════════════════════════════════════════════════════════════════════
    Invite Landing Page
    Supported routes:
-     /invite/:subdomain      → cleanest explicit form
-     /:subdomain             → ultra-short alias
-     /invite?broker=...      → legacy query-param form
-     /?_ref=...              → legacy referral param (still works)
+     /invite/:subdomain          → cleanest explicit form
+     /:subdomain                 → ultra-short alias
+     /:teamHandle/:agentHandle   → agent-specific invite link
+     /invite?broker=...          → legacy query-param form
+     /?_ref=...                  → legacy referral param (still works)
 ════════════════════════════════════════════════════════════════════ */
 export default function InviteLanding() {
-  const params = useParams<{ subdomain?: string }>();
+  const params = useParams<{ subdomain?: string; teamHandle?: string; agentHandle?: string }>();
 
-  const subdomain = useMemo(() => {
+  // Determine subdomain and optional agentHandle from route params or query
+  const { subdomain, agentHandle: routeAgentHandle } = useMemo(() => {
+    // /:teamHandle/:agentHandle route
+    if (params?.teamHandle && params?.agentHandle) {
+      return {
+        subdomain: params.teamHandle.toLowerCase().trim(),
+        agentHandle: params.agentHandle.toLowerCase().trim(),
+      };
+    }
+    // /invite/:subdomain or /:subdomain route
     const fromRoute = params?.subdomain?.toLowerCase().trim();
-    if (fromRoute) return fromRoute;
+    if (fromRoute) return { subdomain: fromRoute, agentHandle: null };
+    // legacy query params
     const p = new URLSearchParams(window.location.search);
-    return (p.get("broker") ?? p.get("_ref"))?.toLowerCase().trim() ?? null;
-  }, [params?.subdomain]);
+    return {
+      subdomain: (p.get("broker") ?? p.get("_ref"))?.toLowerCase().trim() ?? null,
+      agentHandle: null,
+    };
+  }, [params?.subdomain, params?.teamHandle, params?.agentHandle]);
 
   const { setPreviewSubdomain, branding, loading: brandingLoading } = useBranding();
   const { user, loading: authLoading } = useAuth();
@@ -35,21 +60,46 @@ export default function InviteLanding() {
 
   const [showAuth, setShowAuth] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "signin">("signup");
+  const [agentInfo, setAgentInfo] = useState<AgentInfo | null>(null);
+  const [agentLoading, setAgentLoading] = useState(false);
 
   useEffect(() => {
     if (subdomain) {
       setPreviewSubdomain(subdomain);
       localStorage.setItem("mh_referral_sub", subdomain);
-      // If a team member shared this link with ?member=ID, remember it for client assignment
+    }
+  }, [subdomain, setPreviewSubdomain]);
+
+  // Fetch agent info if agentHandle is present in route
+  useEffect(() => {
+    if (!subdomain || !routeAgentHandle) {
+      // Legacy ?member= query param support
       const p = new URLSearchParams(window.location.search);
       const memberId = p.get("member");
       if (memberId) {
         localStorage.setItem("mh_pending_member", memberId);
-      } else {
+      } else if (!routeAgentHandle) {
         localStorage.removeItem("mh_pending_member");
       }
+      return;
     }
-  }, [subdomain, setPreviewSubdomain]);
+
+    setAgentLoading(true);
+    fetch(`${API_BASE}/api/broker/team/member-by-handle?subdomain=${encodeURIComponent(subdomain)}&agentHandle=${encodeURIComponent(routeAgentHandle)}`)
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.member) {
+          setAgentInfo(data.member);
+          // Store agent's memberUserId so auth flow can assign the client
+          if (data.member.memberUserId) {
+            localStorage.setItem("mh_pending_member", String(data.member.memberUserId));
+          }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setAgentLoading(false));
+  }, [subdomain, routeAgentHandle]);
 
   useEffect(() => {
     if (!authLoading && user) navigate("/");
@@ -59,7 +109,7 @@ export default function InviteLanding() {
   function openSignin() { setAuthInitialMode("signin"); setShowAuth(true); }
 
   /* ── Loading ─────────────────────────────────────────────────── */
-  if (brandingLoading || authLoading) {
+  if (brandingLoading || authLoading || agentLoading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
@@ -111,6 +161,12 @@ export default function InviteLanding() {
       </div>
     );
   }
+
+  // When coming from /:teamHandle/:agentHandle, show agent's info prominently
+  // Agent's photo overrides the broker's agentPhotoUrl if present
+  const displayPhotoUrl = agentInfo?.headshotUrl ?? branding.agentPhotoUrl;
+  const displayPhone = agentInfo?.phone ?? branding.phoneNumber;
+  const displayAgentName = agentInfo?.displayName ?? null;
 
   /* ── Branded invite page ─────────────────────────────────────── */
   return (
@@ -175,8 +231,8 @@ export default function InviteLanding() {
               </div>
             )}
 
-            {/* Agent headshot — centered below logo */}
-            {branding.agentPhotoUrl && (
+            {/* Agent / team member headshot */}
+            {displayPhotoUrl ? (
               <motion.div
                 className="relative mb-4"
                 initial={{ opacity: 0, scale: 0.88 }}
@@ -188,8 +244,8 @@ export default function InviteLanding() {
                   style={{ borderColor: ACCENT + "80" }}
                 >
                   <img
-                    src={branding.agentPhotoUrl}
-                    alt={branding.brokerName}
+                    src={displayPhotoUrl}
+                    alt={displayAgentName ?? branding.brokerName}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -199,18 +255,47 @@ export default function InviteLanding() {
                   style={{ boxShadow: `0 0 0 8px ${ACCENT}20, 0 0 50px ${ACCENT}35` }}
                 />
               </motion.div>
-            )}
+            ) : agentInfo ? (
+              /* Initials avatar when agentInfo exists but no headshot */
+              <motion.div
+                className="relative mb-4"
+                initial={{ opacity: 0, scale: 0.88 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.18, duration: 0.45, ease: "easeOut" }}
+              >
+                <div
+                  className="w-32 h-32 sm:w-36 sm:h-36 lg:w-40 lg:h-40 rounded-full flex items-center justify-center border-4 shadow-2xl shadow-black/60"
+                  style={{ backgroundColor: ACCENT + "25", borderColor: ACCENT + "80" }}
+                >
+                  <span className="text-4xl font-black" style={{ color: ACCENT }}>
+                    {agentInfo.displayName[0].toUpperCase()}
+                  </span>
+                </div>
+                <div
+                  className="absolute inset-0 rounded-full pointer-events-none"
+                  style={{ boxShadow: `0 0 0 8px ${ACCENT}20, 0 0 50px ${ACCENT}35` }}
+                />
+              </motion.div>
+            ) : null}
 
-            {/* Broker name + phone */}
+            {/* Name + phone */}
             <div className="text-center">
-              <p className="text-white font-bold text-xl">{branding.brokerName}</p>
-              {branding.phoneNumber && (
+              {/* Agent name (prominent) when agent-specific link */}
+              {agentInfo ? (
+                <>
+                  <p className="text-white font-bold text-xl">{agentInfo.displayName}</p>
+                  <p className="text-white/45 text-sm mt-0.5">{branding.brokerName}</p>
+                </>
+              ) : (
+                <p className="text-white font-bold text-xl">{branding.brokerName}</p>
+              )}
+              {displayPhone && (
                 <a
-                  href={`tel:${branding.phoneNumber}`}
+                  href={`tel:${displayPhone}`}
                   className="inline-flex items-center gap-1.5 mt-2.5 px-3.5 py-1.5 rounded-full text-sm font-semibold transition-colors hover:bg-white/15"
                   style={{ color: ACCENT, backgroundColor: ACCENT + "18", border: `1px solid ${ACCENT}40` }}
                 >
-                  <Phone className="w-3.5 h-3.5" />{branding.phoneNumber}
+                  <Phone className="w-3.5 h-3.5" />{displayPhone}
                 </a>
               )}
             </div>
@@ -254,7 +339,12 @@ export default function InviteLanding() {
               className="text-white/55 text-base sm:text-lg mb-7 text-center lg:text-left leading-snug"
             >
               A personal gift from{" "}
-              <span className="font-bold" style={{ color: ACCENT }}>{branding.brokerName}</span>
+              <span className="font-bold" style={{ color: ACCENT }}>
+                {agentInfo ? agentInfo.displayName : branding.brokerName}
+              </span>
+              {agentInfo && (
+                <span className="text-white/35"> · {branding.brokerName}</span>
+              )}
             </motion.p>
 
             {/* ── PRIMARY CTA ──────────────────────────────────── */}

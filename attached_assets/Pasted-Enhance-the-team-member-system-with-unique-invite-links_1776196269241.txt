@@ -1,0 +1,43 @@
+Enhance the team member system with unique invite links (build on what was implemented yesterday).
+
+Current state: Team leaders can mark themselves as "Team Leader" and invite team members. Team members share the team branding.
+
+New requirements:
+
+1. Unique Invite Links for Team Members
+   - When a team leader invites or adds a team member, generate a unique handle for that agent (e.g., first name, or firstname-lastname if needed).
+   - Create unique invite links in this format:
+     - Team main page: maintainhome.ai/[teamhandle]   (e.g. maintainhome.ai/diamondgroup)
+     - Individual team member link: maintainhome.ai/[teamhandle]/[agenthandle]   (e.g. maintainhome.ai/diamondgroup/john or maintainhome.ai/diamondgroup/sarah)
+   - When a client visits maintainhome.ai/[teamhandle]/[agenthandle], show the full team branding (logo, colors, tagline, welcome message) but remember which specific agent invited them.
+
+2. Team Member Profile
+   - Team members can upload their own headshot and phone number (but NOT their own logo or change colors — those stay with the team leader).
+   - These appear on their personal invite page and in the "Your Home Support" widget for their clients.
+
+3. Broker Dashboard Updates
+   - Team Leader Dashboard: Show clients grouped by team member (e.g. "John's Clients", "Sarah's Clients"). Include a section showing all team members with their unique invite links (copy button for each).
+   - Team Member Dashboard: When a team member logs in, they see only their own clients, using the shared team branding. They also get a "My Invite Link" button that copies maintainhome.ai/[teamhandle]/[theirhandle].
+
+4. Client Assignment
+   - When a client signs up through any team member's unique link, they are automatically assigned to that specific agent.
+   - Team leader can still see all clients and re-assign if needed.
+
+5. Technical Notes
+   - Store agent_handle separately for team members.
+   - Use path-based routing: /:teamHandle/:agentHandle? 
+   - Keep branding pulled from the team leader's white_label_configs record.
+   - Make sure the system falls back gracefully if someone visits just the team handle.
+
+After implementing, confirm:
+- Team leaders can add team members and get unique invite links like maintainhome.ai/diamondgroup/john
+- Team members see their own headshot + phone on their personal invite page
+- Clients who sign up via a team member's link are correctly assigned to that agent
+- Team leader dashboard shows grouped clients by agent
+- Everything works on both desktop and mobile
+
+Test by:
+1. Adding a test team member
+2. Copying their unique link
+3. Visiting the link as a new client
+4. Checking client assignment in both team leader and team member dashboards

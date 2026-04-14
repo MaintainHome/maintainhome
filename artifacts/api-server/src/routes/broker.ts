@@ -343,6 +343,30 @@ router.patch("/broker/member/profile", requireAuth as any, async (req: AuthReque
   }
 });
 
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function slugifyHandle(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 30) || "agent";
+}
+
+async function uniqueAgentHandle(teamSubdomain: string, base: string): Promise<string> {
+  const existing = await db
+    .select({ agentHandle: teamMembersTable.agentHandle })
+    .from(teamMembersTable)
+    .where(eq(teamMembersTable.teamSubdomain, teamSubdomain));
+  const taken = new Set(existing.map((r) => r.agentHandle).filter(Boolean));
+  if (!taken.has(base)) return base;
+  for (let i = 2; i < 100; i++) {
+    const candidate = `${base}${i}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+  return `${base}-${crypto.randomBytes(3).toString("hex")}`;
+}
+
 // ── POST /api/broker/team/invite ──────────────────────────────────────────────
 // Team leader creates a team member invite link.
 router.post("/broker/team/invite", requireAuth as any, async (req: AuthRequest, res: Response) => {
@@ -365,18 +389,24 @@ router.post("/broker/team/invite", requireAuth as any, async (req: AuthRequest, 
 
     const inviteToken = crypto.randomBytes(32).toString("hex");
 
+    // Generate a unique agent handle from the display name
+    const baseHandle = slugifyHandle(displayName.trim().split(/\s+/)[0]);
+    const agentHandle = await uniqueAgentHandle(config.subdomain, baseHandle);
+
     const [invite] = await db.insert(teamMembersTable).values({
       teamSubdomain: config.subdomain,
       displayName: displayName.trim(),
       email: email.trim().toLowerCase(),
       inviteToken,
+      agentHandle,
       status: "invited",
     }).returning();
 
     const base = getBaseUrl(req);
     const inviteLink = `${base}/team-join?token=${inviteToken}`;
+    const clientInviteLink = `${base}/${config.subdomain}/${agentHandle}`;
 
-    res.json({ ok: true, invite, inviteLink });
+    res.json({ ok: true, invite, inviteLink, clientInviteLink });
   } catch (err) {
     console.error("[broker] POST /broker/team/invite error:", err);
     res.status(500).json({ error: "Failed to create invite" });
@@ -429,6 +459,48 @@ router.delete("/broker/team/members/:id", requireAuth as any, async (req: AuthRe
   } catch (err) {
     console.error("[broker] DELETE /broker/team/members/:id error:", err);
     res.status(500).json({ error: "Failed to remove team member" });
+  }
+});
+
+// ── GET /api/broker/team/member-by-handle ─────────────────────────────────────
+// Public endpoint: look up a team member by subdomain + agentHandle.
+// Used by the invite landing page at /:teamHandle/:agentHandle
+router.get("/broker/team/member-by-handle", async (req: any, res: Response) => {
+  try {
+    const { subdomain, agentHandle } = req.query as { subdomain?: string; agentHandle?: string };
+    if (!subdomain || !agentHandle) {
+      res.status(400).json({ error: "subdomain and agentHandle are required" });
+      return;
+    }
+
+    const [member] = await db
+      .select({
+        id: teamMembersTable.id,
+        memberUserId: teamMembersTable.memberUserId,
+        displayName: teamMembersTable.displayName,
+        headshotUrl: teamMembersTable.headshotUrl,
+        phone: teamMembersTable.phone,
+        agentHandle: teamMembersTable.agentHandle,
+        status: teamMembersTable.status,
+      })
+      .from(teamMembersTable)
+      .where(
+        and(
+          eq(teamMembersTable.teamSubdomain, subdomain.toLowerCase().trim()),
+          eq(teamMembersTable.agentHandle, agentHandle.toLowerCase().trim()),
+        ),
+      )
+      .limit(1);
+
+    if (!member) {
+      res.status(404).json({ error: "Agent not found" });
+      return;
+    }
+
+    res.json({ member });
+  } catch (err) {
+    console.error("[broker] GET /broker/team/member-by-handle error:", err);
+    res.status(500).json({ error: "Failed to look up agent" });
   }
 });
 

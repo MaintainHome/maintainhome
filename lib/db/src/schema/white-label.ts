@@ -28,6 +28,7 @@ export const teamMembersTable = pgTable("team_members", {
   email: text("email").notNull(),
   headshotUrl: text("headshot_url"),
   phone: text("phone"),
+  agentHandle: text("agent_handle"),
   status: text("status").$type<"invited" | "active">().default("invited").notNull(),
   inviteToken: text("invite_token").notNull().unique(),
   invitedAt: timestamp("invited_at").defaultNow().notNull(),

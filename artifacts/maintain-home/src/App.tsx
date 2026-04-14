@@ -121,6 +121,7 @@ function Router() {
       <Route path="/team-join" component={TeamJoin} />
       <Route path="/invite/:subdomain" component={InviteLanding} />
       <Route path="/invite" component={InviteLanding} />
+      <Route path="/:teamHandle/:agentHandle" component={InviteLanding} />
       <Route path="/:subdomain" component={InviteLanding} />
       <Route component={NotFound} />
     </Switch>
