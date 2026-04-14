@@ -340,14 +340,16 @@ export default function BrokerOnboard() {
             Pioneer Agent Program
           </div>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.0] tracking-tight">
-            The Ultimate{" "}
+            Apply To Gain Access To The Ultimate{" "}
             <span style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Client Retention</span>{" "}
             Tool
           </h1>
-          <p className="text-white/55 text-base sm:text-lg leading-relaxed mt-4 max-w-2xl mx-auto">
-            Join the <strong className="text-white">Pioneer 300</strong> — get your own fully branded AI home maintenance app at{" "}
-            <span className="font-bold" style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>maintainhome.ai/[yourname]</span>{" "}
-            that turns one-time transactions into lifelong client relationships.
+          <p className="text-white/80 text-lg sm:text-xl font-semibold leading-snug mt-5 max-w-2xl mx-auto">
+            Limited to the first{" "}
+            <span style={{ color: "#1f9e6e" }}>300 qualified agents</span>{" "}
+            — once these spots are gone, the{" "}
+            <span style={{ color: "#1f9e6e" }}>Pioneer pricing</span>{" "}
+            and priority support disappear.
           </p>
         </motion.div>
       </div>
