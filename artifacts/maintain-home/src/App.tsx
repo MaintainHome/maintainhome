@@ -4,6 +4,37 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BrandingProvider, useBranding } from "@/contexts/BrandingContext";
+import { Component, type ReactNode, type ErrorInfo } from "react";
+
+class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("[AppErrorBoundary]", error, info.componentStack);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center gap-4 px-6 text-center">
+          <p className="text-white font-bold text-xl">Something went wrong.</p>
+          <p className="text-slate-400 text-sm max-w-sm">{this.state.error.message}</p>
+          <button
+            onClick={() => { this.setState({ error: null }); window.location.href = "/"; }}
+            className="mt-2 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-semibold text-sm hover:bg-emerald-500 transition-colors"
+          >
+            Reload App
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import History from "@/pages/history";
@@ -130,23 +161,25 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrandingProvider>
-        <AuthProvider>
-          <TooltipProvider>
-            <ClearPreviewHandler />
-            <AuthBrandingSync />
-            <DynamicManifest />
-            <PWASplashScreen />
-            <AddToHomeScreen />
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <Router />
-            </WouterRouter>
-            <Toaster />
-          </TooltipProvider>
-        </AuthProvider>
-      </BrandingProvider>
-    </QueryClientProvider>
+    <AppErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrandingProvider>
+          <AuthProvider>
+            <TooltipProvider>
+              <ClearPreviewHandler />
+              <AuthBrandingSync />
+              <DynamicManifest />
+              <PWASplashScreen />
+              <AddToHomeScreen />
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <Router />
+              </WouterRouter>
+              <Toaster />
+            </TooltipProvider>
+          </AuthProvider>
+        </BrandingProvider>
+      </QueryClientProvider>
+    </AppErrorBoundary>
   );
 }
 

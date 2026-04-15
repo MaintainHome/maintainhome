@@ -27,8 +27,10 @@ export default function ChooseRole() {
 
   function chooseHomeowner() {
     sessionStorage.setItem("mh_active_role", "homeowner");
-    // For broker users, load their own white-label config so the homeowner
-    // dashboard shows their branding (logo, agent info, etc.)
+    // Navigate immediately so the homeowner dashboard appears without delay.
+    // Then load the broker's white-label config in the background so branding
+    // is applied as soon as the fetch resolves.
+    navigate("/");
     if (user?.isBroker) {
       fetch(`${API_BASE}/api/broker/me`, { credentials: "include" })
         .then((r) => r.json())
@@ -37,10 +39,7 @@ export default function ChooseRole() {
             setPreviewSubdomain(data.config.subdomain);
           }
         })
-        .catch(() => {})
-        .finally(() => navigate("/"));
-    } else {
-      navigate("/");
+        .catch(() => {});
     }
   }
 

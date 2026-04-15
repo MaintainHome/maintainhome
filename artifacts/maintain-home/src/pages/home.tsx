@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle, Home as HomeIcon, CalendarDays, X } from "lucide-react";
 import { Features } from "@/components/Features";
 import { PricingSection } from "@/components/PricingSection";
@@ -7,7 +7,7 @@ import { AIChatModal } from "@/components/AIChatModal";
 import { AuthModal } from "@/components/AuthModal";
 import { Dashboard } from "@/components/Dashboard";
 import { useAuth, isPro } from "@/contexts/AuthContext";
-import { useBranding } from "@/contexts/BrandingContext";
+import { useBranding, PREVIEW_KEY } from "@/contexts/BrandingContext";
 import { useLocation } from "wouter";
 
 export default function Home() {
@@ -31,14 +31,30 @@ export default function Home() {
     }
   }, []);
 
+  // Track whether this page instance has already confirmed the homeowner role,
+  // so a later re-render never incorrectly redirects back to choose-role.
+  const confirmedHomeowner = useRef(false);
+
   // Dual-role routing: if this user is also an approved broker and hasn't chosen
   // the homeowner role for this session, send them to the role selection screen.
   useEffect(() => {
     if (authLoading) return;
     if (!user) return;
     if (!user.isBroker) return;
+
+    // Sticky: once we've confirmed homeowner mode for this page instance, never redirect.
+    if (confirmedHomeowner.current) return;
+
     const chosenRole = sessionStorage.getItem("mh_active_role");
-    if (chosenRole === "homeowner") return; // explicitly chose homeowner this session
+    // Also accept previewSubdomain in sessionStorage as a valid homeowner signal
+    // (set by Preview Profile button before navigate, so it might arrive first).
+    const hasPreview = !!sessionStorage.getItem(PREVIEW_KEY);
+
+    if (chosenRole === "homeowner" || hasPreview) {
+      confirmedHomeowner.current = true;
+      return;
+    }
+
     navigate("/choose-role");
   }, [authLoading, user?.id, user?.isBroker]);
 
