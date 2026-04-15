@@ -123,15 +123,21 @@ interface HomeProfileData {
 
 interface DocEntry { category: string; expiryDate: string | null; }
 
-interface HealthInsight { text: string; route?: string; actionLabel?: string; }
+interface HealthInsight {
+  text: string;
+  route?: string;
+  actionLabel?: string;
+  scrollId?: string; // scroll to element instead of navigating
+}
 
 interface HealthScore {
   total: number;
-  adherence: number;   // max 40 — Maintenance Adherence
-  docCoverage: number; // max 25 — Document & Warranty Coverage
-  bigTicket: number;   // max 20 — Big-Ticket Preparedness
-  condition: number;   // max 15 — Overall Home Condition
+  adherence: number;    // max 40 — Maintenance Adherence
+  docCoverage: number;  // max 25 — Document Coverage
+  bigTicket: number;    // max 20 — Big-Ticket Preparedness
+  condition: number;    // max 15 — Profile Completeness
   trend: "up" | "down" | "neutral";
+  trendDelta: number;   // signed point change vs last month
   insights: HealthInsight[];
 }
 
@@ -143,96 +149,142 @@ function computeHealthScore(params: {
   logCount: number;
   forecasts: ForecastResult[];
   documents: DocEntry[];
+  quizAnswers: Record<string, any>;
+  resolvedBigTicketCount: number;
 }): HealthScore {
-  const { hasCalendar, homeProfile, thisMonthTotal, thisMonthDone, logCount, forecasts, documents } = params;
+  const {
+    hasCalendar, homeProfile, thisMonthTotal, thisMonthDone, logCount,
+    forecasts, documents, quizAnswers, resolvedBigTicketCount,
+  } = params;
   const now = new Date();
 
-  // 1. Maintenance Adherence (40 pts)
+  /* ── 1. Maintenance Adherence (40 pts) ────────────────────────────
+     40% of total. Calendar must exist; then it's tasks completed vs. due. */
   let adherence = 0;
   if (!hasCalendar) {
     adherence = 0;
   } else if (thisMonthTotal === 0) {
+    // No tasks scheduled: credit log history
     adherence = Math.min(40, 20 + Math.min(logCount, 4) * 4);
   } else {
     adherence = Math.min(40, Math.round((thisMonthDone / thisMonthTotal) * 40));
   }
 
-  // 2. Document & Warranty Coverage (25 pts)
-  const SOON_MS = 60 * 24 * 60 * 60 * 1000;
-  const hasInsurance = documents.some(d => d.category === "insurance");
-  const insuranceExpiringSoon = documents.some(d =>
-    d.category === "insurance" && d.expiryDate &&
-    new Date(d.expiryDate).getTime() - now.getTime() < SOON_MS
-  );
-  const warrantyCount = documents.filter(d => d.category === "warranty").length;
-  const hasOtherDocs = documents.some(d => !["insurance", "warranty"].includes(d.category));
-  let docCoverage = 0;
-  if (hasInsurance) docCoverage += 15;
-  if (hasInsurance && !insuranceExpiringSoon) docCoverage += 5;
-  if (warrantyCount >= 1) docCoverage += 3;
-  if (warrantyCount >= 2) docCoverage += 2;
-  if (hasOtherDocs) docCoverage = Math.min(25, docCoverage + 2);
-  docCoverage = Math.min(25, docCoverage);
+  /* ── 2. Document Coverage (25 pts) ───────────────────────────────
+     25% of total. Driven by total uploaded / analyzed documents.
+     Each document earns points on a smooth scale up to 25. */
+  const docCount = documents.length;
+  const DOC_SCALE = [0, 8, 14, 18, 21, 23, 24, 25]; // index = doc count, cap at 7+
+  const docCoverage = docCount >= DOC_SCALE.length
+    ? 25
+    : DOC_SCALE[docCount];
 
-  // 3. Big-Ticket Preparedness (20 pts)
+  /* ── 3. Big-Ticket Preparedness (20 pts) ─────────────────────────
+     20% of total. How many major systems are in good shape or addressed. */
   const KEY_BT = ["roof", "hvac", "water", "windows"];
   let bigTicket = 0;
-  if (!homeProfile?.yearBuilt || forecasts.length === 0) {
-    bigTicket = 12; // neutral when no year-built data
+  if (!homeProfile?.yearBuilt) {
+    bigTicket = 10; // neutral — no year-built data available
   } else {
     for (const key of KEY_BT) {
       const f = forecasts.find(x => x.key === key);
-      if (!f) { bigTicket += 5; continue; }
+      if (!f) {
+        // Not in unresolved forecasts (resolved/good condition)
+        bigTicket += 5;
+        continue;
+      }
       if (f.yearsLeft > 5) bigTicket += 5;
       else if (f.yearsLeft > 2) bigTicket += 3;
       else if (f.yearsLeft > 0) bigTicket += 1;
     }
+    // Reward resolved (user-addressed) big-ticket items
+    if (resolvedBigTicketCount > 0) {
+      bigTicket = Math.min(20, bigTicket + resolvedBigTicketCount * 2);
+    }
   }
   bigTicket = Math.min(20, Math.max(0, bigTicket));
 
-  // 4. Overall Home Condition (15 pts)
+  /* ── 4. Profile Completeness (15 pts) ────────────────────────────
+     15% of total. Checks home profile fields AND quiz richness. */
   let condition = 0;
-  if (homeProfile?.yearBuilt) condition += 4;
-  if (homeProfile?.fullAddress?.trim()) condition += 3;
-  if (homeProfile?.bedrooms && homeProfile?.bathrooms) condition += 4;
-  if (hasCalendar) condition += 4;
+  if (homeProfile?.yearBuilt) condition += 3;
+  if (homeProfile?.fullAddress?.trim()) condition += 2;
+  if (homeProfile?.bedrooms && homeProfile?.bathrooms) condition += 2;
+  if (homeProfile?.lastRenovationYear || homeProfile?.mortgageRate) condition += 1;
+  // Quiz completion earns 4 pts (quiz builds the calendar)
+  if (hasCalendar || quizAnswers?.homeType) condition += 4;
+  // Quiz richness: detailed answers filled in
+  const RICH_FIELDS = ["roofType", "waterSource", "sewerSystem", "sqft", "landscaping", "recentUpgrades"];
+  const richCount = RICH_FIELDS.filter(f => quizAnswers?.[f] && quizAnswers[f] !== "").length;
+  condition += richCount >= 4 ? 3 : richCount >= 2 ? 2 : richCount >= 1 ? 1 : 0;
   condition = Math.min(15, condition);
 
   const total = Math.min(100, adherence + docCoverage + bigTicket + condition);
 
-  // Trend: compare with last month's stored score
+  /* ── Trend vs. last month ─────────────────────────────────────── */
   const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   const prevDate = new Date(now.getFullYear(), now.getMonth() - 1);
   const prevKey = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, "0")}`;
   const prevScore = parseInt(localStorage.getItem(`mh_hs_${prevKey}`) ?? "NaN", 10);
   localStorage.setItem(`mh_hs_${monthKey}`, String(total));
+  const trendDelta = !isNaN(prevScore) ? total - prevScore : 0;
   const trend: HealthScore["trend"] =
-    !isNaN(prevScore) && total > prevScore + 2 ? "up" :
-    !isNaN(prevScore) && total < prevScore - 2 ? "down" : "neutral";
+    trendDelta > 2 ? "up" : trendDelta < -2 ? "down" : "neutral";
 
-  // Actionable insights (up to 3)
+  /* ── Actionable insights (top 3) ─────────────────────────────── */
   const insights: HealthInsight[] = [];
+
+  // Adherence insights
   if (!hasCalendar) {
-    insights.push({ text: "Build your personalized AI calendar to start tracking tasks and earn up to 40 adherence points.", route: "/quiz", actionLabel: "Build calendar" });
+    insights.push({
+      text: "Build your AI maintenance calendar to start earning up to 40 Adherence points — it only takes 2 minutes.",
+      route: "/quiz",
+      actionLabel: "Build My Calendar",
+    });
   } else if (thisMonthTotal > 0 && adherence < 32) {
     const rem = thisMonthTotal - thisMonthDone;
-    insights.push({ text: `Complete your ${rem} remaining task${rem !== 1 ? "s" : ""} this month to maximize your Maintenance Adherence score.` });
-  }
-  if (!hasInsurance) {
-    insights.push({ text: "Upload your homeowners insurance policy to earn 15 Document Coverage points immediately.", route: "/", actionLabel: "Upload policy" });
-  } else if (insuranceExpiringSoon) {
-    insights.push({ text: "Your insurance policy is expiring within 60 days — upload the renewal to keep your Document Coverage score intact." });
-  } else if (warrantyCount === 0) {
-    insights.push({ text: "Add an appliance or roof warranty to boost your Document & Warranty Coverage score.", route: "/", actionLabel: "Add warranty" });
-  }
-  const imminentBT = forecasts.filter(f => KEY_BT.includes(f.key) && f.yearsLeft <= 1);
-  if (imminentBT.length > 0) {
-    insights.push({ text: `Your ${imminentBT[0].name} may need replacement within the year — scheduling proactively protects your Big-Ticket score.` });
-  } else if (!homeProfile?.yearBuilt) {
-    insights.push({ text: "Add your home's year built to unlock Big-Ticket Preparedness scoring.", route: "/home-profile", actionLabel: "Add year built" });
+    insights.push({
+      text: `Complete ${rem} remaining task${rem !== 1 ? "s" : ""} this month to maximize your Maintenance Adherence score.`,
+      scrollId: "dashboard-this-month",
+      actionLabel: "View Tasks",
+    });
   }
 
-  return { total, adherence, docCoverage, bigTicket, condition, trend, insights: insights.slice(0, 3) };
+  // Document coverage insights
+  if (docCoverage < 18) {
+    insights.push({
+      text: `Upload more documents — insurance, warranties, receipts, HOA docs — to improve Document Coverage (${docCoverage}/25 pts).`,
+      scrollId: "dashboard-docs",
+      actionLabel: "Go to Documents",
+    });
+  }
+
+  // Big-Ticket insights
+  const imminentBT = forecasts.filter(f => KEY_BT.includes(f.key) && f.yearsLeft <= 2);
+  if (imminentBT.length > 0) {
+    insights.push({
+      text: `${imminentBT[0].name} may need attention within 2 years — addressing it now protects your Big-Ticket score.`,
+      scrollId: "dashboard-big-ticket",
+      actionLabel: "View Big-Ticket Items",
+    });
+  } else if (!homeProfile?.yearBuilt) {
+    insights.push({
+      text: "Add your home's year built to unlock Big-Ticket Preparedness scoring and accurate system forecasts.",
+      route: "/home-profile",
+      actionLabel: "Update Profile",
+    });
+  }
+
+  // Profile completeness insight
+  if (condition < 10) {
+    insights.push({
+      text: "Complete your home profile — add address, year built, and finish the quiz — to boost Profile Completeness.",
+      route: "/home-profile",
+      actionLabel: "Complete Profile",
+    });
+  }
+
+  return { total, adherence, docCoverage, bigTicket, condition, trend, trendDelta, insights: insights.slice(0, 3) };
 }
 
 function ScoreGauge({ score }: { score: number }) {
@@ -271,18 +323,18 @@ function HealthScoreModal({ score, onClose }: { score: HealthScore; onClose: () 
       tip: score.adherence >= 36 ? "All tasks on track this month!" :
            score.adherence >= 20 ? "Keep completing tasks to hit the max." :
            "Complete this month's maintenance tasks to raise this score." },
-    { label: "Document & Warranty Coverage", earned: score.docCoverage, max: 25, weight: "25%",
-      tip: score.docCoverage >= 20 ? "Great document coverage!" :
-           score.docCoverage >= 15 ? "Add warranties to earn more points." :
-           "Upload your insurance policy to earn up to 20 points here." },
+    { label: "Document Coverage", earned: score.docCoverage, max: 25, weight: "25%",
+      tip: score.docCoverage >= 23 ? "Excellent document coverage!" :
+           score.docCoverage >= 14 ? "Upload more documents — warranties, receipts — to earn more points." :
+           "Every document you upload improves this score (7+ docs = full 25 pts)." },
     { label: "Big-Ticket Preparedness", earned: score.bigTicket, max: 20, weight: "20%",
       tip: score.bigTicket >= 18 ? "Major systems are in good shape!" :
            score.bigTicket >= 12 ? "Some systems are approaching end-of-life." :
            "One or more major systems may need attention soon." },
-    { label: "Overall Home Condition", earned: score.condition, max: 15, weight: "15%",
-      tip: score.condition >= 13 ? "Home profile is complete and calendar is active!" :
-           score.condition >= 8 ? "Complete your home profile for full points." :
-           "Add your address, year built, and generate a calendar." },
+    { label: "Profile Completeness", earned: score.condition, max: 15, weight: "15%",
+      tip: score.condition >= 13 ? "Home profile and quiz are fully complete!" :
+           score.condition >= 8 ? "Complete your home profile and quiz for full points." :
+           "Add address, year built, and finish the quiz to earn all 15 pts." },
   ];
   return (
     <motion.div
@@ -850,7 +902,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [resolvingKey, setResolvingKey] = useState<string | null>(null);
   const forecasts = allForecasts.filter((f) => !resolvedKeys.has(f.key));
 
-  // ── Home Health Score (uses forecasts + docs) ─────────────────────────────
+  // ── Home Health Score (uses forecasts + docs + quiz + resolved) ──────────
   const healthScore = computeHealthScore({
     hasCalendar: !!savedCalendar,
     homeProfile,
@@ -859,6 +911,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
     logCount: recentLog.length,
     forecasts,
     documents: scoreDocs,
+    quizAnswers: savedCalendar?.quizAnswers ?? {},
+    resolvedBigTicketCount: resolvedKeys.size,
   });
   const scoreGrade = healthScore.total >= 80
     ? { label: "Excellent", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200", msg: "Your home is well maintained — great work!" }
@@ -1186,8 +1240,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   healthScore.trend === "up" ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600"
                 }`}>
                   {healthScore.trend === "up"
-                    ? <><TrendingUp className="w-3 h-3" /> Rising</>
-                    : <><TrendingDown className="w-3 h-3" /> Falling</>
+                    ? <><TrendingUp className="w-3 h-3" /> +{healthScore.trendDelta} pts</>
+                    : <><TrendingDown className="w-3 h-3" /> {healthScore.trendDelta} pts</>
                   }
                 </span>
               )}
@@ -1210,7 +1264,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <div className="flex-1 min-w-0 text-center sm:text-left">
               <p className={`text-xl font-black ${scoreGrade.color} leading-tight`}>{scoreGrade.msg}</p>
               <p className="text-xs text-slate-500 mt-1 mb-3 leading-snug">
-                Based on <span className="font-semibold text-slate-700">maintenance adherence</span>, <span className="font-semibold text-slate-700">document coverage</span>, <span className="font-semibold text-slate-700">big-ticket preparedness</span>, and <span className="font-semibold text-slate-700">home condition</span>.
+                Based on <span className="font-semibold text-slate-700">maintenance adherence</span>, <span className="font-semibold text-slate-700">document coverage</span>, <span className="font-semibold text-slate-700">big-ticket preparedness</span>, and <span className="font-semibold text-slate-700">profile completeness</span>.
               </p>
 
               {/* Actionable insights */}
@@ -1223,8 +1277,15 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-[11px] text-slate-600 leading-snug">{insight.text}</p>
-                        {insight.route && insight.actionLabel && (
-                          <button onClick={() => navigate(insight.route!)}
+                        {(insight.route || insight.scrollId) && insight.actionLabel && (
+                          <button
+                            onClick={() => {
+                              if (insight.scrollId) {
+                                document.getElementById(insight.scrollId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                              } else {
+                                navigate(insight.route!);
+                              }
+                            }}
                             className="mt-1 text-[11px] font-bold text-primary hover:underline">
                             {insight.actionLabel} →
                           </button>
@@ -1909,6 +1970,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
         {/* ── Home Documents ── */}
         <motion.div
+          id="dashboard-docs"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.15 }}
@@ -1950,6 +2012,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         {/* ── Future Big-Ticket Items (Pro) ── */}
         {userIsPro && (
           <motion.div
+            id="dashboard-big-ticket"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.17 }}

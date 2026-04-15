@@ -444,7 +444,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                           )}
 
                           {/* Message bubble */}
-                          <div className={`px-4 py-3 rounded-2xl text-base leading-relaxed whitespace-pre-wrap ${
+                          <div className={`px-4 py-3 rounded-2xl text-lg sm:text-base leading-relaxed whitespace-pre-wrap ${
                             msg.role === "user"
                               ? "bg-primary text-white rounded-tr-sm"
                               : "bg-slate-100 text-slate-800 rounded-tl-sm"
@@ -533,7 +533,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                       onKeyDown={handleKeyDown}
                       placeholder={pendingFile ? "Add a question about this file (optional)…" : "Ask Maintly anything about your home…"}
                       disabled={isStreaming}
-                      className="flex-1 bg-transparent text-base text-slate-800 placeholder:text-slate-400 outline-none disabled:opacity-60"
+                      className="flex-1 bg-transparent text-lg sm:text-base text-slate-800 placeholder:text-slate-400 outline-none disabled:opacity-60"
                     />
                     <button
                       onClick={() => sendMessage(input)}
@@ -548,7 +548,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                   </div>
 
                   {/* Size hint */}
-                  <p className="text-[10px] text-slate-400 text-center leading-snug">
+                  <p className="text-xs sm:text-[10px] text-slate-400 text-center leading-snug">
                     Photos (JPG/PNG, max 5MB) &amp; PDFs (max 8MB) · Maintly's advice is for guidance only.
                   </p>
 
