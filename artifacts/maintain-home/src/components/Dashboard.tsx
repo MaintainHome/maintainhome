@@ -350,31 +350,22 @@ function ScoreGauge({ score }: { score: number }) {
         );
       })}
 
-      {/* ── Subtle house icon — above the score number ── */}
-      <g transform="translate(100, 72)" opacity="0.18" fill="none" stroke={textColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        {/* Roof */}
-        <polyline points="-14,1 0,-12 14,1" />
-        {/* Walls */}
-        <rect x="-11" y="1" width="22" height="15" />
-        {/* Door */}
-        <rect x="-4" y="8" width="8" height="8" />
-      </g>
-
       {/* ── Score number ── */}
       <text
-        x="100" y="106"
+        x="100" y="114"
         textAnchor="middle"
+        dominantBaseline="middle"
         fill={textColor}
-        fontSize="46"
+        fontSize="54"
         fontWeight="900"
         fontFamily="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
-        letterSpacing="-1"
+        letterSpacing="-2"
       >
         {score}
       </text>
 
       {/* ── "out of 100" label ── */}
-      <text x="100" y="122" textAnchor="middle" fill="#94a3b8" fontSize="10"
+      <text x="100" y="135" textAnchor="middle" fill="#94a3b8" fontSize="11"
         fontFamily="system-ui,-apple-system,sans-serif">
         out of 100
       </text>
