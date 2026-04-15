@@ -1956,6 +1956,28 @@ Click here to get started: ${link}`;
   const avgScore = clients.length > 0
     ? Math.round(clients.reduce((s, c) => s + c.activityScore, 0) / clients.length) : null;
 
+  // Count of birthdays + closing anniversaries this month (for the stat tile)
+  const celebrationCountThisMonth = (() => {
+    const now = new Date();
+    const m = now.getMonth() + 1;
+    const y = now.getFullYear();
+    let count = 0;
+    for (const c of clients) {
+      const parseBdayMonth = (raw: string | null | undefined) => {
+        if (!raw) return null;
+        const p = raw.split("-");
+        return p.length >= 3 ? Number(p[1]) : null;
+      };
+      if (parseBdayMonth(c.clientBirthday1) === m) count++;
+      if (parseBdayMonth(c.clientBirthday2) === m) count++;
+      if (c.closingDate) {
+        const p = c.closingDate.split("-");
+        if (p.length >= 3 && Number(p[1]) === m && Number(p[0]) < y) count++;
+      }
+    }
+    return count;
+  })();
+
   /* ── Client list with optional grouping by agent ─────────────── */
   type ClientListItem =
     | { kind: "separator"; member: TeamMember | null; count: number }
@@ -2298,21 +2320,18 @@ Click here to get started: ${link}`;
             iconColor="#f59e0b"
           />
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow duration-200">
-            {avgScore !== null ? (
-              <ScoreRing score={avgScore} color={scoreColor(avgScore)} />
-            ) : (
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0">
-                <TrendingUp className="w-6 h-6 text-slate-300" />
-              </div>
-            )}
-            <div>
-              <p className="text-sm font-black text-slate-900 leading-tight">
-                {avgScore !== null ? avgScore : "—"}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">Avg. Health Score</p>
+          <button
+            onClick={() => document.getElementById("celebrations-widget")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow duration-200 text-left w-full"
+          >
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 text-xl ${celebrationCountThisMonth > 0 ? "bg-amber-50" : "bg-slate-50"}`}>
+              🎉
             </div>
-          </div>
+            <div>
+              <p className="text-2xl font-black text-slate-900 leading-none">{celebrationCountThisMonth}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">Celebrations This Month</p>
+            </div>
+          </button>
 
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow duration-200">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${imminentClients.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
@@ -2325,141 +2344,25 @@ Click here to get started: ${link}`;
           </div>
         </motion.div>
 
-        {/* ── Client Celebrations This Month ───────────────────────── */}
-        {(() => {
-          const now = new Date();
-          const currentMonth = now.getMonth() + 1;
-          const currentYear = now.getFullYear();
-          const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-          type Celebration = { key: string; name: string; label: string; emoji: string; dayNum: number };
-          const celebrations: Celebration[] = [];
-
-          for (const client of clients) {
-            const displayName = client.name ?? client.email;
-
-            const parseBday = (raw: string | null | undefined): { month: number; day: number } | null => {
-              if (!raw) return null;
-              const parts = raw.split("-");
-              if (parts.length < 3) return null;
-              return { month: Number(parts[1]), day: Number(parts[2]) };
-            };
-
-            const b1 = parseBday(client.clientBirthday1);
-            const b2 = parseBday(client.clientBirthday2);
-            const b1ThisMonth = b1 && b1.month === currentMonth;
-            const b2ThisMonth = b2 && b2.month === currentMonth;
-
-            if (b1ThisMonth && b2ThisMonth) {
-              const earlierDay = Math.min(b1.day, b2.day);
-              celebrations.push({
-                key: `bday-both-${client.id}`,
-                name: displayName,
-                label: `Client 1 Birthday · ${monthNames[b1.month - 1]} ${b1.day}  ·  Client 2 Birthday · ${monthNames[b2.month - 1]} ${b2.day}`,
-                emoji: "🎂",
-                dayNum: earlierDay,
-              });
-            } else {
-              if (b1ThisMonth) {
-                celebrations.push({ key: `bday1-${client.id}`, name: displayName, label: `Client 1 Birthday · ${monthNames[b1.month - 1]} ${b1.day}`, emoji: "🎂", dayNum: b1.day });
-              }
-              if (b2ThisMonth) {
-                celebrations.push({ key: `bday2-${client.id}`, name: displayName, label: `Client 2 Birthday · ${monthNames[b2.month - 1]} ${b2.day}`, emoji: "🎂", dayNum: b2.day });
-              }
-            }
-
-            if (client.closingDate) {
-              const parts = client.closingDate.split("-");
-              if (parts.length >= 3) {
-                const cYear = Number(parts[0]);
-                const cMonth = Number(parts[1]);
-                const cDay = Number(parts[2]);
-                if (cMonth === currentMonth && cYear < currentYear) {
-                  const yearsAgo = currentYear - cYear;
-                  const label = `${yearsAgo === 1 ? "1 Year" : `${yearsAgo} Year`} Closing Anniversary · ${monthNames[cMonth - 1]} ${cDay}`;
-                  celebrations.push({ key: `ann-${client.id}`, name: displayName, label, emoji: "🏡", dayNum: cDay });
-                }
-              }
-            }
-          }
-          celebrations.sort((a, b) => a.dayNum - b.dayNum);
-
-          return (
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.11 }}
-              className="bg-white rounded-2xl border border-amber-200 shadow-sm p-6"
-              style={{ background: "linear-gradient(135deg, #fffbeb 0%, #ffffff 60%)" }}>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl"
-                  style={{ backgroundColor: "#fef3c7", border: "1px solid #fde68a" }}>
-                  🎉
-                </div>
-                <div>
-                  <h2 className="font-bold text-slate-900">Client Celebrations This Month</h2>
-                  <p className="text-xs text-amber-600 font-medium">{monthNames[currentMonth - 1]} {currentYear} · Birthdays &amp; Closing Anniversaries</p>
-                </div>
-              </div>
-
-              {celebrations.length === 0 ? (
-                <div className="text-center py-6">
-                  <div className="text-3xl mb-2">📅</div>
-                  <p className="text-sm font-semibold text-slate-500">No celebrations this month</p>
-                  <p className="text-xs text-slate-400 mt-1">Great time to check in with your clients anyway!</p>
-                  <p className="text-[11px] text-amber-600 mt-3">Add closing dates &amp; birthdays when creating clients to see them here.</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {celebrations.map((c) => (
-                    <div key={c.key}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-100"
-                      style={{ backgroundColor: "#fffbeb" }}>
-                      <span className="text-xl shrink-0">{c.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-900 truncate">{c.name}</p>
-                        <p className="text-xs text-amber-700">{c.label}</p>
-                      </div>
-                      <div className="shrink-0 text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full border border-amber-200">
-                        Reach Out!
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          );
-        })()}
-
-        {/* ── Team Members (Team Leader only) ─────────────────────── */}
-        {isTeamLeader && config && (
-          <TeamMembersPanel accent={accent} teamMembers={teamMembers} onRefresh={load} config={config} />
-        )}
+        {/* ── Pre-Create Client Account ────────────────────────────── */}
+        <PreCreateClientPanel accent={accent} />
 
         {/* ── Team Member Personal Profile ─────────────────────────── */}
         {isTeamMember && membership && (
           <TeamMemberProfilePanel accent={accent} membership={membership} onUpdate={load} />
         )}
 
-        {/* ── Pre-Create Client Account ────────────────────────────── */}
-        <PreCreateClientPanel accent={accent} />
-
-        {/* ── Buy Gift Codes ───────────────────────────────────────── */}
-        <GiftCodePurchasePanel accent={accent} />
-
-        {/* ── Trusted Service Providers ────────────────────────────── */}
-        {!isTeamMember && <TrustedServiceProvidersPanel accent={accent} />}
-
-        {/* ── Invite + Agent Profile row ─────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-          {/* Invite card */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.14 }}
-            className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
-            <div className="flex items-center gap-2 mb-1">
-              <Link2 className="w-5 h-5" style={{ color: accent }} />
-              <h2 className="font-bold text-slate-900">Invite New Client</h2>
-            </div>
-            <p className="text-sm text-slate-500 mb-4 leading-relaxed">
-              Copy the message below and send it to your client — your invite link is already embedded.
-            </p>
+        {/* ── Invite New Client ─────────────────────────────────────── */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.14 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
+          <div className="flex items-center gap-2 mb-1">
+            <Link2 className="w-5 h-5" style={{ color: accent }} />
+            <h2 className="font-bold text-slate-900">Invite New Client to Create Their Own Account</h2>
+          </div>
+          <p className="text-sm text-slate-500 mb-4 leading-relaxed">
+            Share your invite link — clients sign up, see your brand from day one, and stay connected to you through every stage of homeownership.
+          </p>
 
             {/* Pre-written message preview */}
             <div className="relative bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 flex-1">
@@ -2515,80 +2418,8 @@ Click here to get started: ${link}`;
             </p>
           </motion.div>
 
-          {/* Agent Profile card */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.17 }}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col gap-4">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5" style={{ color: accent }} />
-              <h2 className="font-bold text-slate-900">Agent Profile</h2>
-            </div>
-
-            {/* Logo */}
-            {config.logoUrl ? (
-              <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center justify-center border border-slate-100">
-                <img src={config.logoUrl} alt="logo" className="max-h-10 max-w-full object-contain" />
-              </div>
-            ) : (
-              <div className="bg-slate-50 rounded-xl px-4 py-3 flex items-center justify-center border border-slate-100">
-                <Building2 className="w-6 h-6 text-slate-300" />
-              </div>
-            )}
-
-            {/* Agent photo */}
-            {config.agentPhotoUrl ? (
-              <div className="flex items-center gap-3">
-                <img src={config.agentPhotoUrl} alt={config.brokerName}
-                  className="w-12 h-12 rounded-full object-cover border border-slate-200 shrink-0" />
-                <div>
-                  <p className="font-semibold text-slate-800 text-sm">{config.brokerName}</p>
-                  <p className="text-xs text-slate-400 capitalize">{config.type.replace("_", " ")}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 px-3 py-2.5 bg-slate-50 rounded-xl border border-slate-100">
-                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-                  <Camera className="w-5 h-5 text-slate-400" />
-                </div>
-                <p className="text-xs text-slate-400">No headshot uploaded — contact support to update.</p>
-              </div>
-            )}
-
-            {/* Phone */}
-            {config.phoneNumber && (
-              <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
-                <Phone className="w-4 h-4 text-slate-400 shrink-0" />
-                <p className="text-sm font-semibold text-slate-700">{config.phoneNumber}</p>
-              </div>
-            )}
-
-            {/* Tagline */}
-            {config.tagline && (
-              <p className="text-xs text-slate-500 italic border-l-2 pl-3 leading-relaxed"
-                style={{ borderColor: accent + "50" }}>
-                "{config.tagline}"
-              </p>
-            )}
-
-            {/* Model chip */}
-            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-100">
-              <MIcon className="w-4 h-4 text-slate-400 shrink-0" />
-              <div>
-                <p className="text-xs font-semibold text-slate-800 leading-tight">{monetizationLabel}</p>
-                <p className="text-xs text-slate-400">Offer model</p>
-              </div>
-            </div>
-
-            <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border font-bold text-sm hover:opacity-80 transition-colors mt-auto"
-              style={{ borderColor: accent, color: accent }}>
-              <ExternalLink className="w-4 h-4" />Preview Your Brand
-            </button>
-            <p className="text-xs text-slate-400 text-center">
-              To update your profile,{" "}
-              <a href="mailto:support@maintainhome.ai" className="hover:underline" style={{ color: accent }}>contact support</a>
-            </p>
-          </motion.div>
-        </div>
+        {/* ── Buy Gift Codes ───────────────────────────────────────── */}
+        <GiftCodePurchasePanel accent={accent} />
 
         {/* ── Client table ─────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }}
@@ -2876,6 +2707,117 @@ Click here to get started: ${link}`;
               These clients have major home systems due within the next 12 months — consider reaching out proactively.
             </p>
           </motion.div>
+        )}
+
+        {/* ── Client Celebrations This Month ───────────────────────── */}
+        {(() => {
+          const now = new Date();
+          const currentMonth = now.getMonth() + 1;
+          const currentYear = now.getFullYear();
+          const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+          type Celebration = { key: string; name: string; label: string; emoji: string; dayNum: number };
+          const celebrations: Celebration[] = [];
+
+          for (const client of clients) {
+            const displayName = client.name ?? client.email;
+
+            const parseBday = (raw: string | null | undefined): { month: number; day: number } | null => {
+              if (!raw) return null;
+              const parts = raw.split("-");
+              if (parts.length < 3) return null;
+              return { month: Number(parts[1]), day: Number(parts[2]) };
+            };
+
+            const b1 = parseBday(client.clientBirthday1);
+            const b2 = parseBday(client.clientBirthday2);
+            const b1ThisMonth = b1 && b1.month === currentMonth;
+            const b2ThisMonth = b2 && b2.month === currentMonth;
+
+            if (b1ThisMonth && b2ThisMonth) {
+              const earlierDay = Math.min(b1.day, b2.day);
+              celebrations.push({
+                key: `bday-both-${client.id}`,
+                name: displayName,
+                label: `Client 1 Birthday · ${monthNames[b1.month - 1]} ${b1.day}  ·  Client 2 Birthday · ${monthNames[b2.month - 1]} ${b2.day}`,
+                emoji: "🎂",
+                dayNum: earlierDay,
+              });
+            } else {
+              if (b1ThisMonth) {
+                celebrations.push({ key: `bday1-${client.id}`, name: displayName, label: `Client 1 Birthday · ${monthNames[b1.month - 1]} ${b1.day}`, emoji: "🎂", dayNum: b1.day });
+              }
+              if (b2ThisMonth) {
+                celebrations.push({ key: `bday2-${client.id}`, name: displayName, label: `Client 2 Birthday · ${monthNames[b2.month - 1]} ${b2.day}`, emoji: "🎂", dayNum: b2.day });
+              }
+            }
+
+            if (client.closingDate) {
+              const parts = client.closingDate.split("-");
+              if (parts.length >= 3) {
+                const cYear = Number(parts[0]);
+                const cMonth = Number(parts[1]);
+                const cDay = Number(parts[2]);
+                if (cMonth === currentMonth && cYear < currentYear) {
+                  const yearsAgo = currentYear - cYear;
+                  const label = `${yearsAgo === 1 ? "1 Year" : `${yearsAgo} Year`} Closing Anniversary · ${monthNames[cMonth - 1]} ${cDay}`;
+                  celebrations.push({ key: `ann-${client.id}`, name: displayName, label, emoji: "🏡", dayNum: cDay });
+                }
+              }
+            }
+          }
+          celebrations.sort((a, b) => a.dayNum - b.dayNum);
+
+          return (
+            <motion.div id="celebrations-widget" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.22 }}
+              className="bg-white rounded-2xl border border-amber-200 shadow-sm p-6"
+              style={{ background: "linear-gradient(135deg, #fffbeb 0%, #ffffff 60%)" }}>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl"
+                  style={{ backgroundColor: "#fef3c7", border: "1px solid #fde68a" }}>
+                  🎉
+                </div>
+                <div>
+                  <h2 className="font-bold text-slate-900">Client Celebrations This Month</h2>
+                  <p className="text-xs text-amber-600 font-medium">{monthNames[currentMonth - 1]} {currentYear} · Birthdays &amp; Closing Anniversaries</p>
+                </div>
+              </div>
+
+              {celebrations.length === 0 ? (
+                <div className="text-center py-6">
+                  <div className="text-3xl mb-2">📅</div>
+                  <p className="text-sm font-semibold text-slate-500">No celebrations this month</p>
+                  <p className="text-xs text-slate-400 mt-1">Great time to check in with your clients anyway!</p>
+                  <p className="text-[11px] text-amber-600 mt-3">Add closing dates &amp; birthdays when creating clients to see them here.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {celebrations.map((c) => (
+                    <div key={c.key}
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-100"
+                      style={{ backgroundColor: "#fffbeb" }}>
+                      <span className="text-xl shrink-0">{c.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">{c.name}</p>
+                        <p className="text-xs text-amber-700">{c.label}</p>
+                      </div>
+                      <div className="shrink-0 text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full border border-amber-200">
+                        Reach Out!
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          );
+        })()}
+
+        {/* ── Trusted Service Providers ────────────────────────────── */}
+        {!isTeamMember && <TrustedServiceProvidersPanel accent={accent} />}
+
+        {/* ── Team Members (Team Leader only) ─────────────────────── */}
+        {isTeamLeader && config && (
+          <TeamMembersPanel accent={accent} teamMembers={teamMembers} onRefresh={load} config={config} />
         )}
 
         {/* ── How-to guide ──────────────────────────────────────────── */}
