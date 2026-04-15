@@ -640,7 +640,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
           <div>
             <h2 className="font-bold text-slate-900">Gift Codes for Clients</h2>
             <p className="text-sm text-slate-500 mt-0.5">
-              Give your homeowner clients 1 year of Pro access as a closing gift. Each code is $36.
+              Use This Feature When You Want To Pay For the Client's First Year of Membership, But You Know The Client Will Want to Fill Out Their Own Information.
             </p>
           </div>
         </div>
