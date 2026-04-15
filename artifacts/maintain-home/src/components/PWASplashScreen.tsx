@@ -93,7 +93,7 @@ export function PWASplashScreen() {
             <img
               src={`${BASE}images/maintly_thumb.png`}
               alt="Maintly"
-              className="w-20 h-20 object-contain drop-shadow-xl"
+              className="w-40 h-40 object-contain drop-shadow-xl"
             />
           </motion.div>
 

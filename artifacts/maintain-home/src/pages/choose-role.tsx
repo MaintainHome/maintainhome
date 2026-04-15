@@ -2,13 +2,16 @@ import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Building2, HomeIcon, ArrowRight, Loader2, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranding } from "@/contexts/BrandingContext";
 import { useLocation } from "wouter";
 
 const ACCENT = "#1f9e6e";
 const BASE = import.meta.env.BASE_URL;
+const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
 export default function ChooseRole() {
   const { user, loading, logout } = useAuth();
+  const { setPreviewSubdomain } = useBranding();
   const [, navigate] = useLocation();
 
   async function handleSwitchAccount() {
@@ -24,7 +27,21 @@ export default function ChooseRole() {
 
   function chooseHomeowner() {
     sessionStorage.setItem("mh_active_role", "homeowner");
-    navigate("/");
+    // For broker users, load their own white-label config so the homeowner
+    // dashboard shows their branding (logo, agent info, etc.)
+    if (user?.isBroker) {
+      fetch(`${API_BASE}/api/broker/me`, { credentials: "include" })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.config?.subdomain) {
+            setPreviewSubdomain(data.config.subdomain);
+          }
+        })
+        .catch(() => {})
+        .finally(() => navigate("/"));
+    } else {
+      navigate("/");
+    }
   }
 
   function chooseBroker() {

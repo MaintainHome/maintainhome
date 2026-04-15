@@ -2108,7 +2108,7 @@ Click here to get started: ${link}`;
               className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
               <ExternalLink className="w-3.5 h-3.5" />Preview
             </button>
-            <button onClick={() => { sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
+            <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
               className="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
               <HomeIcon className="w-3.5 h-3.5" />My Home
             </button>
