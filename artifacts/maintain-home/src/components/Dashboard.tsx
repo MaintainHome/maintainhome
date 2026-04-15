@@ -288,28 +288,95 @@ function computeHealthScore(params: {
 }
 
 function ScoreGauge({ score }: { score: number }) {
-  const r = 70;
-  const cx = 100;
-  const cy = 98;
-  const arcLength = Math.PI * r;
-  const filled = (score / 100) * arcLength;
-  const color = score >= 80 ? "#1f9e6e" : score >= 60 ? "#f59e0b" : "#ef4444";
-  const trackColor = score >= 80 ? "#d1fae5" : score >= 60 ? "#fef3c7" : "#fee2e2";
-  const d = `M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`;
+  const cx = 100, cy = 107, r = 77;
+
+  // Convert CSS clockwise-from-top angle to SVG x/y
+  function angleToXY(deg: number) {
+    const rad = (deg * Math.PI) / 180;
+    return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };
+  }
+
+  const startDeg = 225;   // 7 o'clock
+  const totalDeg = 270;   // 270° sweep leaving a 90° gap at the bottom
+  const start    = angleToXY(startDeg);
+  const end      = angleToXY(startDeg + totalDeg);
+  // total arc circumference for 270°
+  const fullLen  = 2 * Math.PI * r * (totalDeg / 360); // ≈ 365
+
+  // SVG arc path (large-arc-flag=1 because 270° > 180°, sweep-flag=1 clockwise)
+  const d = `M ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${r} ${r} 0 1 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)}`;
+
+  // Color bands: [startScore, endScore, fillColor]
+  const BANDS: Array<{ s: number; e: number; color: string }> = [
+    { s:  0, e:  50, color: "#ef4444" }, // Red
+    { s: 50, e:  70, color: "#f97316" }, // Orange
+    { s: 70, e:  80, color: "#eab308" }, // Yellow
+    { s: 80, e:  90, color: "#22c55e" }, // Green
+    { s: 90, e: 100, color: "#1f9e6e" }, // Teal (brand)
+  ];
+
+  const textColor =
+    score >= 90 ? "#1f9e6e" :
+    score >= 80 ? "#16a34a" :
+    score >= 70 ? "#d97706" :
+    score >= 50 ? "#f97316" : "#ef4444";
+
   return (
-    <svg viewBox="0 0 200 110" className="w-full max-w-[180px] mx-auto">
-      <path d={d} fill="none" stroke={trackColor} strokeWidth="16" strokeLinecap="round" />
-      <path
-        d={d}
-        fill="none"
-        stroke={color}
-        strokeWidth="16"
-        strokeLinecap="round"
-        strokeDasharray={`${filled} ${arcLength + 1}`}
-        style={{ transition: "stroke-dasharray 0.9s cubic-bezier(0.4,0,0.2,1)" }}
-      />
-      <text x="100" y="88" textAnchor="middle" fill={color} fontSize="32" fontWeight="900" fontFamily="system-ui">
+    <svg viewBox="0 0 200 172" className="w-full max-w-[195px] mx-auto" aria-label={`Home Health Score: ${score} out of 100`}>
+      {/* ── Background track ── */}
+      <path d={d} fill="none" stroke="#e2e8f0" strokeWidth="16" strokeLinecap="round" />
+
+      {/* ── Color band segments ──
+          Each band draws only its portion via strokeDasharray + strokeDashoffset.
+          strokeDashoffset < 0 shifts the dash pattern forward along the path. */}
+      {BANDS.map((band, i) => {
+        const filled    = Math.min(Math.max(score - band.s, 0), band.e - band.s);
+        if (filled <= 0) return null;
+        const bandOffset = (band.s / 100) * fullLen;
+        const bandLen    = ((band.e - band.s) / 100) * fullLen;
+        const filledLen  = (filled / (band.e - band.s)) * bandLen;
+        return (
+          <path
+            key={i}
+            d={d}
+            fill="none"
+            stroke={band.color}
+            strokeWidth="16"
+            strokeLinecap="round"
+            strokeDasharray={`${filledLen.toFixed(1)} ${(fullLen + 200).toFixed(1)}`}
+            strokeDashoffset={(-bandOffset).toFixed(1)}
+            style={{ transition: "stroke-dasharray 0.9s cubic-bezier(0.4,0,0.2,1)" }}
+          />
+        );
+      })}
+
+      {/* ── Subtle house icon — above the score number ── */}
+      <g transform="translate(100, 72)" opacity="0.18" fill="none" stroke={textColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        {/* Roof */}
+        <polyline points="-14,1 0,-12 14,1" />
+        {/* Walls */}
+        <rect x="-11" y="1" width="22" height="15" />
+        {/* Door */}
+        <rect x="-4" y="8" width="8" height="8" />
+      </g>
+
+      {/* ── Score number ── */}
+      <text
+        x="100" y="106"
+        textAnchor="middle"
+        fill={textColor}
+        fontSize="46"
+        fontWeight="900"
+        fontFamily="system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif"
+        letterSpacing="-1"
+      >
         {score}
+      </text>
+
+      {/* ── "out of 100" label ── */}
+      <text x="100" y="122" textAnchor="middle" fill="#94a3b8" fontSize="10"
+        fontFamily="system-ui,-apple-system,sans-serif">
+        out of 100
       </text>
     </svg>
   );
@@ -1255,9 +1322,8 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
           <div className="px-5 py-5 flex flex-col sm:flex-row items-center gap-5 sm:gap-8">
             {/* Gauge */}
-            <div className="shrink-0 w-40 sm:w-44">
+            <div className="shrink-0 w-44 sm:w-48">
               <ScoreGauge score={healthScore.total} />
-              <p className="text-center text-[11px] text-slate-500 -mt-1">out of 100</p>
             </div>
 
             {/* Right side */}
