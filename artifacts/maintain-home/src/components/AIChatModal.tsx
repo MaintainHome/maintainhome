@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Send, User, Loader2, Zap, ChevronRight, Paperclip, FileText, ImageIcon,
+  X, Send, User, Loader2, Zap, Paperclip, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth, isPro } from "@/contexts/AuthContext";
@@ -33,15 +33,6 @@ interface AIChatModalProps {
   quizAnswers?: Record<string, string>;
   initialMessage?: string;
 }
-
-// ── Starter questions ─────────────────────────────────────────────────────
-const STARTER_QUESTIONS = [
-  "My HVAC is making a strange noise — what should I check first?",
-  "How do I know when it's time to replace my water heater?",
-  "What's the best way to prep my home before winter?",
-  "How often should I check my crawl space for moisture?",
-  "My roof is 15 years old — what should I be watching for?",
-];
 
 // ── Helper: format bytes ──────────────────────────────────────────────────
 function fmtBytes(n: number) {
@@ -378,29 +369,18 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
                   {messages.length === 0 ? (
-                    <div className="min-h-full flex flex-col items-center justify-center gap-5 py-4">
-                      <div className="flex flex-row items-center gap-4 w-full max-w-md">
-                        <img src={`${BASE}images/maintly_wrench.png`} alt="Maintly"
-                          className="h-24 sm:h-36 w-auto object-contain shrink-0 drop-shadow-md" />
-                        <div>
-                          <h3 className="font-bold text-slate-900 mb-1">Chat with Maintly</h3>
-                          <p className="text-sm text-slate-500">
-                            Your friendly home maintenance expert. Ask anything, or upload a photo or document for AI analysis.
-                          </p>
-                          <div className="flex items-center gap-1.5 mt-2 text-xs text-primary font-semibold">
-                            <Paperclip className="w-3.5 h-3.5" />
-                            Photos &amp; PDFs supported
-                          </div>
-                        </div>
-                      </div>
-                      <div className="w-full max-w-md space-y-2">
-                        {STARTER_QUESTIONS.map(q => (
-                          <button key={q} onClick={() => sendMessage(q)}
-                            className="w-full text-left px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-primary/5 hover:border-primary/30 transition-all text-base text-slate-700 flex items-center gap-3 group">
-                            <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0 transition-colors" />
-                            <span>{q}</span>
-                          </button>
-                        ))}
+                    <div className="min-h-full flex flex-col items-center justify-center py-8 px-4">
+                      <img src={`${BASE}images/maintly_wrench.png`} alt="Maintly"
+                        className="h-28 sm:h-40 w-auto object-contain drop-shadow-md mb-5" />
+                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 text-center mb-2">
+                        Chat with Maintly
+                      </h3>
+                      <p className="text-sm sm:text-base text-slate-500 text-center max-w-sm leading-relaxed mb-3">
+                        Your friendly home maintenance expert. Ask anything, or upload a photo or document for AI analysis.
+                      </p>
+                      <div className="flex items-center gap-1.5 text-xs text-primary font-semibold">
+                        <Paperclip className="w-3.5 h-3.5" />
+                        Photos &amp; PDFs supported
                       </div>
                     </div>
                   ) : (
@@ -464,7 +444,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                 </div>
 
                 {/* Input area */}
-                <div className="px-4 pb-4 pt-2 border-t border-slate-100 shrink-0 bg-white space-y-2">
+                <div className="px-4 pb-5 pt-3 border-t border-slate-100 shrink-0 bg-white space-y-2">
 
                   {/* File preview bar */}
                   <AnimatePresence>
@@ -510,17 +490,17 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                   </AnimatePresence>
 
                   {/* Input row */}
-                  <div className="flex items-center gap-2 bg-slate-50 rounded-2xl border border-slate-200 px-3 py-2 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+                  <div className="flex items-center gap-2.5 bg-white rounded-2xl border-2 border-slate-200 px-4 py-3 focus-within:border-primary/60 focus-within:ring-4 focus-within:ring-primary/8 shadow-sm transition-all">
                     {/* Paperclip button */}
                     <button
                       type="button"
                       onClick={() => { setFileError(null); fileInputRef.current?.click(); }}
                       disabled={isStreaming}
                       title="Upload a photo or PDF"
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0 ${
+                      className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors shrink-0 ${
                         pendingFile
                           ? "bg-primary text-white"
-                          : "bg-slate-200 hover:bg-slate-300 text-slate-500 disabled:opacity-40"
+                          : "bg-slate-100 hover:bg-slate-200 text-slate-500 disabled:opacity-40"
                       }`}
                     >
                       <Paperclip className="w-4 h-4" />
@@ -533,16 +513,16 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                       onKeyDown={handleKeyDown}
                       placeholder={pendingFile ? "Add a question about this file (optional)…" : "Ask Maintly anything about your home…"}
                       disabled={isStreaming}
-                      className="flex-1 bg-transparent text-lg sm:text-base text-slate-800 placeholder:text-slate-400 outline-none disabled:opacity-60"
+                      className="flex-1 bg-transparent text-lg sm:text-base text-slate-800 placeholder:text-slate-400 outline-none disabled:opacity-60 py-0.5"
                     />
                     <button
                       onClick={() => sendMessage(input)}
                       disabled={isStreaming || (!input.trim() && !pendingFile)}
-                      className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 disabled:bg-slate-200 flex items-center justify-center transition-colors shrink-0"
+                      className="w-9 h-9 rounded-full bg-primary hover:bg-primary/90 disabled:bg-slate-200 flex items-center justify-center transition-colors shrink-0 shadow-sm"
                     >
                       {isStreaming
                         ? <Loader2 className="w-4 h-4 text-white animate-spin" />
-                        : <Send className="w-3.5 h-3.5 text-white" />
+                        : <Send className="w-4 h-4 text-white" />
                       }
                     </button>
                   </div>
