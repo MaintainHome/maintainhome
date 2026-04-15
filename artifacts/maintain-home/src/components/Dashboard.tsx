@@ -1114,22 +1114,22 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-1">
                 <Sparkles className="w-3 h-3 text-primary" />
-                <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Your Dashboard</span>
+                <span className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-wider">Your Dashboard</span>
               </div>
               <h1 className="text-xl sm:text-2xl font-display font-black text-white leading-tight">
                 Welcome back, {firstName}!
               </h1>
-              <p className="text-slate-200 mt-0.5 text-xs sm:text-sm leading-snug font-medium">
+              <p className="text-slate-200 mt-0.5 text-xs sm:text-base leading-snug font-medium">
                 {state
                   ? <>Your plan for <span className="text-primary font-bold">{state}</span>.</>
                   : "Your personalized maintenance plan."}
               </p>
               {branding?.tagline ? (
-                <p className="text-primary text-xs mt-0.5 leading-snug font-semibold">
+                <p className="text-primary text-xs sm:text-sm mt-0.5 leading-snug font-semibold">
                   {branding.tagline}
                 </p>
               ) : (
-                <p className="text-slate-400 text-xs mt-0.5 leading-snug hidden sm:block">
+                <p className="text-slate-400 text-xs sm:text-sm mt-0.5 leading-snug hidden sm:block">
                   Stay ahead of <span className="text-slate-300 font-semibold">costly repairs</span> with smart reminders and <span className="text-slate-300 font-semibold">Maintly's AI guidance</span>.
                 </p>
               )}
@@ -1139,21 +1139,21 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <>
                   <div className="relative">
                     <div
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center"
+                      className="w-10 h-10 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center"
                       style={{
                         background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
                         boxShadow: "0 0 16px rgba(31,158,110,0.45), 0 0 10px rgba(59,130,246,0.3), 0 2px 8px rgba(0,0,0,0.3)",
                       }}
                     >
-                      <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="white" />
+                      <Zap className="w-5 h-5 sm:w-8 sm:h-8 text-white" fill="white" />
                     </div>
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/25 to-transparent pointer-events-none" />
                   </div>
                   <span
-                    className="text-[11px] sm:text-xs font-black text-center leading-tight whitespace-nowrap tracking-tight"
+                    className="text-[11px] sm:text-sm font-black text-center leading-tight whitespace-nowrap tracking-tight"
                     style={{ color: "#4ade80", textShadow: "0 0 10px rgba(74,222,128,0.55)" }}
                   >Pro Member</span>
-                  <span className="text-[10px] font-semibold text-center" style={{ color: "rgba(74,222,128,0.65)" }}>Full access ✓</span>
+                  <span className="text-[10px] sm:text-xs font-semibold text-center" style={{ color: "rgba(74,222,128,0.65)" }}>Full access ✓</span>
                 </>
               ) : (
                 <button
