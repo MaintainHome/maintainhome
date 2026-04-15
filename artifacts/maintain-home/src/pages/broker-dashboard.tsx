@@ -2261,7 +2261,14 @@ Click here to get started: ${link}`;
               transition={{ delay: 0.45, duration: 0.4 }}
               className="flex items-center justify-center gap-3 flex-wrap"
             >
-              <span className="text-white/30 text-xs font-mono">{config.subdomain}.maintainhome.ai</span>
+              <a
+                href={inviteLink ?? `https://maintainhome.ai/${config.subdomain}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/50 hover:text-white/80 text-xs font-mono transition-colors underline-offset-2 hover:underline"
+              >
+                maintainhome.ai/{config.subdomain}
+              </a>
               <span className="text-white/15">·</span>
               <span className="text-xs font-bold px-3 py-1 rounded-full"
                 style={{ backgroundColor: accent + "28", color: accent }}>
