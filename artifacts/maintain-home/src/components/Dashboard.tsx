@@ -365,7 +365,7 @@ function ScoreGauge({ score }: { score: number }) {
       </text>
 
       {/* ── "out of 100" label ── */}
-      <text x="100" y="135" textAnchor="middle" fill="#94a3b8" fontSize="11"
+      <text x="100" y="150" textAnchor="middle" fill="#94a3b8" fontSize="11"
         fontFamily="system-ui,-apple-system,sans-serif">
         out of 100
       </text>
