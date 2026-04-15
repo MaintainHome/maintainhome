@@ -175,16 +175,16 @@ function StatCard({ icon, label, value, iconBg, iconColor, children }: {
 }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 flex items-center gap-4 hover:shadow-md transition-shadow duration-200">
-      <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+      <div className="w-12 h-12 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0"
         style={{ backgroundColor: iconBg }}>
         <span style={{ color: iconColor }}>{icon}</span>
       </div>
       <div className="min-w-0">
         {value !== undefined && (
-          <p className="text-2xl font-black text-slate-900 leading-none">{value}</p>
+          <p className="text-3xl sm:text-2xl font-black text-slate-900 leading-none">{value}</p>
         )}
         {children}
-        <p className="text-xs text-slate-400 font-medium mt-1">{label}</p>
+        <p className="text-sm sm:text-xs text-slate-400 font-medium mt-1.5 sm:mt-1 leading-snug">{label}</p>
       </div>
     </div>
   );
@@ -282,8 +282,8 @@ function TeamMembersPanel({
         className="w-full flex items-center justify-between px-6 py-4 border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5" style={{ color: accent }} />
-          <h2 className="font-bold text-slate-900">Team Members</h2>
-          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">{teamMembers.length}</span>
+          <h2 className="font-bold text-base sm:text-sm text-slate-900">Team Members</h2>
+          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-sm sm:text-xs font-bold">{teamMembers.length}</span>
         </div>
         {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
       </button>
@@ -369,8 +369,8 @@ function TeamMembersPanel({
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-800 truncate">{member.displayName}</p>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          <p className="text-base sm:text-sm font-semibold text-slate-800 truncate">{member.displayName}</p>
+                          <span className={`text-xs sm:text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
                             member.status === "active"
                               ? "bg-green-50 text-green-600 border border-green-200"
                               : "bg-amber-50 text-amber-600 border border-amber-200"
@@ -378,9 +378,9 @@ function TeamMembersPanel({
                             {member.status === "active" ? "Active" : "Invited"}
                           </span>
                         </div>
-                        <p className="text-xs text-slate-400 truncate">{member.email}</p>
+                        <p className="text-sm sm:text-xs text-slate-400 truncate mt-0.5">{member.email}</p>
                         {member.agentHandle && (
-                          <p className="text-[10px] text-slate-400 font-mono">@{member.agentHandle}</p>
+                          <p className="text-xs sm:text-[10px] text-slate-400 font-mono">@{member.agentHandle}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -638,8 +638,8 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         <div className="flex items-center gap-2 mb-1 flex-1 min-w-[200px]">
           <Gift className="w-5 h-5 shrink-0" style={{ color: accent }} />
           <div>
-            <h2 className="font-bold text-slate-900">Gift Codes for Clients</h2>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <h2 className="font-bold text-base sm:text-sm text-slate-900">Gift Codes for Clients</h2>
+            <p className="text-base sm:text-sm text-slate-500 mt-0.5 leading-snug">
               Use This Feature When You Want To Pay For the Client's First Year of Membership, But You Know The Client Will Want to Fill Out Their Own Information.
             </p>
           </div>
@@ -648,7 +648,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         {/* Price callout */}
         <div className="flex items-baseline gap-1 shrink-0">
           <span className="text-3xl font-black text-slate-900">$36</span>
-          <span className="text-slate-400 text-sm">/code</span>
+          <span className="text-slate-400 text-base sm:text-sm">/code</span>
         </div>
       </div>
 
@@ -911,8 +911,8 @@ function TrustedServiceProvidersPanel({ accent }: { accent: string }) {
             <Wrench className="w-5 h-5" style={{ color: accent }} />
           </div>
           <div>
-            <h2 className="font-bold text-slate-900">My Trusted Service Providers</h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <h2 className="font-bold text-base sm:text-sm text-slate-900">My Trusted Service Providers</h2>
+            <p className="text-sm sm:text-xs text-slate-500 mt-0.5 leading-snug">
               Add local vendors your clients can rely on — Maintly will recommend them during AI chats when relevant
             </p>
           </div>
@@ -933,7 +933,7 @@ function TrustedServiceProvidersPanel({ accent }: { accent: string }) {
               {/* Info callout */}
               <div className="flex items-start gap-3 p-4 rounded-xl mb-5" style={{ background: `${accent}0d`, border: `1px solid ${accent}30` }}>
                 <Wrench className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: accent }} />
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-sm sm:text-xs text-slate-600 leading-relaxed">
                   When one of your clients asks Maintly about a home maintenance task — like finding an HVAC technician or a roofer — Maintly will mention your recommended provider for that category. It's always framed as a helpful suggestion, never a hard sell.
                 </p>
               </div>
@@ -963,32 +963,32 @@ function TrustedServiceProvidersPanel({ accent }: { accent: string }) {
                       </div>
                       <div className="divide-y divide-slate-100">
                         {list.map(p => (
-                          <div key={p.id} className="px-4 py-3 flex items-start justify-between gap-3">
+                          <div key={p.id} className="px-4 py-4 sm:py-3 flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm text-slate-900">{p.companyName}</p>
-                              <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1">
+                              <p className="font-semibold text-base sm:text-sm text-slate-900">{p.companyName}</p>
+                              <div className="flex flex-wrap gap-x-3 gap-y-1 sm:gap-y-0.5 mt-1.5 sm:mt-1">
                                 {p.contactName && (
-                                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                                    <User className="w-3 h-3" />{p.contactName}
+                                  <span className="text-sm sm:text-xs text-slate-500 flex items-center gap-1">
+                                    <User className="w-3.5 h-3.5 sm:w-3 sm:h-3" />{p.contactName}
                                   </span>
                                 )}
                                 {p.phone && (
-                                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                                    <Phone className="w-3 h-3" />{p.phone}
+                                  <span className="text-sm sm:text-xs text-slate-500 flex items-center gap-1">
+                                    <Phone className="w-3.5 h-3.5 sm:w-3 sm:h-3" />{p.phone}
                                   </span>
                                 )}
                                 {p.email && (
-                                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                                    <Mail className="w-3 h-3" />{p.email}
+                                  <span className="text-sm sm:text-xs text-slate-500 flex items-center gap-1">
+                                    <Mail className="w-3.5 h-3.5 sm:w-3 sm:h-3" />{p.email}
                                   </span>
                                 )}
                                 {p.website && (
-                                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                                    <Globe className="w-3 h-3" />{p.website}
+                                  <span className="text-sm sm:text-xs text-slate-500 flex items-center gap-1">
+                                    <Globe className="w-3.5 h-3.5 sm:w-3 sm:h-3" />{p.website}
                                   </span>
                                 )}
                               </div>
-                              {p.note && <p className="text-xs text-slate-400 italic mt-1">"{p.note}"</p>}
+                              {p.note && <p className="text-sm sm:text-xs text-slate-400 italic mt-1.5 sm:mt-1">"{p.note}"</p>}
                             </div>
                             <div className="flex items-center gap-1 flex-shrink-0">
                               <button onClick={() => startEdit(p)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
@@ -1267,8 +1267,8 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
               <UserPlus className="w-5 h-5" style={{ color: accent }} />
             </div>
             <div>
-              <h2 className="font-bold text-slate-900">Create Client Account (Pre-Paid Gift)</h2>
-              <p className="text-sm text-slate-500 mt-0.5">
+              <h2 className="font-bold text-base sm:text-sm text-slate-900">Create Client Account (Pre-Paid Gift)</h2>
+              <p className="text-base sm:text-sm text-slate-500 mt-0.5 leading-snug">
                 Pre-build a client's full home dashboard — calendar, documents, and 13 months Pro — ready before they log in.
               </p>
             </div>
@@ -1281,13 +1281,13 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
           <button
             type="button"
             onClick={() => setDuration("1year")}
-            className={`relative flex flex-col gap-1 p-4 rounded-xl border-2 text-left transition-all ${duration === "1year" ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+            className={`relative flex flex-col gap-1.5 p-4 rounded-xl border-2 text-left transition-all ${duration === "1year" ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
           >
             <div className="flex items-baseline gap-1">
               <span className="text-2xl font-black text-slate-900">$36</span>
-              <span className="text-slate-400 text-sm">/ 1 year</span>
+              <span className="text-slate-400 text-base sm:text-sm">/ 1 year</span>
             </div>
-            <p className="text-xs font-semibold" style={{ color: accent }}>13 months Pro · ~$3/mo · 1 month free</p>
+            <p className="text-sm sm:text-xs font-semibold" style={{ color: accent }}>13 months Pro · ~$3/mo · 1 month free</p>
             {duration === "1year" && (
               <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-emerald-500 text-white text-[10px] font-black">✓</span>
             )}
@@ -1297,16 +1297,16 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
           <button
             type="button"
             onClick={() => setDuration("3years")}
-            className={`relative flex flex-col gap-1 p-4 rounded-xl border-2 text-left transition-all ${duration === "3years" ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
+            className={`relative flex flex-col gap-1.5 p-4 rounded-xl border-2 text-left transition-all ${duration === "3years" ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
           >
             <div className="flex items-center gap-2">
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl font-black text-slate-900">$99</span>
-                <span className="text-slate-400 text-sm">/ 3 years</span>
+                <span className="text-slate-400 text-base sm:text-sm">/ 3 years</span>
               </div>
-              <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-500 text-white uppercase tracking-wide">Best Value</span>
+              <span className="text-xs sm:text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-500 text-white uppercase tracking-wide">Best Value</span>
             </div>
-            <p className="text-xs font-semibold text-blue-600">37 months Pro · ~$33/yr · 1 month free</p>
+            <p className="text-sm sm:text-xs font-semibold text-blue-600">37 months Pro · ~$33/yr · 1 month free</p>
             {duration === "3years" && (
               <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-blue-500 text-white text-[10px] font-black">✓</span>
             )}
@@ -1316,13 +1316,13 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
         <div className="mt-3 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setOpen(true)}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
+            className="flex items-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl text-white text-base sm:text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
             style={{ backgroundColor: accent }}
           >
             <PlusCircle className="w-4 h-4" />
             Create Client Account · {duration === "3years" ? "$99" : "$36"}
           </button>
-          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
+          <div className="flex items-center gap-2 text-sm sm:text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>AI calendar pre-generated · Documents pre-loaded · Activation link sent by you</span>
           </div>
@@ -2120,7 +2120,7 @@ Click here to get started: ${link}`;
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6 flex-1">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-6 flex-1">
 
         {/* ════════════════════════════════════════════════════════
             HERO — dark slate, MaintainHome theme
@@ -2249,7 +2249,7 @@ Click here to get started: ${link}`;
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.38, duration: 0.5 }}
-              className="text-white/55 text-sm sm:text-base max-w-lg mx-auto mb-7 leading-relaxed"
+              className="text-white/55 text-base sm:text-base max-w-lg mx-auto mb-7 leading-relaxed"
             >
               Welcome to your branded client retention platform. Help your clients own their homes better — and keep them for life.
             </motion.p>
@@ -2265,16 +2265,16 @@ Click here to get started: ${link}`;
                 href={inviteLink ?? `https://maintainhome.ai/${config.subdomain}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/50 hover:text-white/80 text-xs font-mono transition-colors underline-offset-2 hover:underline"
+                className="text-white/50 hover:text-white/80 text-sm sm:text-xs font-mono transition-colors underline-offset-2 hover:underline"
               >
                 maintainhome.ai/{config.subdomain}
               </a>
               <span className="text-white/15">·</span>
-              <span className="text-xs font-bold px-3 py-1 rounded-full"
+              <span className="text-sm sm:text-xs font-bold px-3 py-1 rounded-full"
                 style={{ backgroundColor: accent + "28", color: accent }}>
                 {config.type === "team_leader" ? "Team Leader" : "Individual Agent"}
               </span>
-              <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white/65">
+              <span className="flex items-center gap-1.5 text-sm sm:text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white/65">
                 <MIcon className="w-3 h-3 shrink-0" />{monetizationLabel}
               </span>
             </motion.div>
@@ -2335,8 +2335,8 @@ Click here to get started: ${link}`;
               🎉
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900 leading-none">{celebrationCountThisMonth}</p>
-              <p className="text-xs text-slate-400 font-medium mt-1">Celebrations This Month</p>
+              <p className="text-3xl sm:text-2xl font-black text-slate-900 leading-none">{celebrationCountThisMonth}</p>
+              <p className="text-sm sm:text-xs text-slate-400 font-medium mt-1.5 sm:mt-1 leading-snug">Celebrations This Month</p>
             </div>
           </button>
 
@@ -2345,8 +2345,8 @@ Click here to get started: ${link}`;
               <AlertTriangle className={`w-6 h-6 ${imminentClients.length > 0 ? "text-red-500" : "text-slate-300"}`} />
             </div>
             <div>
-              <p className="text-2xl font-black text-slate-900 leading-none">{imminentClients.length}</p>
-              <p className="text-xs text-slate-400 font-medium mt-1">Imminent Alerts</p>
+              <p className="text-3xl sm:text-2xl font-black text-slate-900 leading-none">{imminentClients.length}</p>
+              <p className="text-sm sm:text-xs text-slate-400 font-medium mt-1.5 sm:mt-1 leading-snug">Imminent Alerts</p>
             </div>
           </div>
         </motion.div>
@@ -2365,16 +2365,16 @@ Click here to get started: ${link}`;
           className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col">
           <div className="flex items-center gap-2 mb-1">
             <Link2 className="w-5 h-5" style={{ color: accent }} />
-            <h2 className="font-bold text-slate-900">Invite New Client to Create Their Own Account</h2>
+            <h2 className="font-bold text-base sm:text-sm text-slate-900">Invite New Client to Create Their Own Account</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-4 leading-relaxed">
+          <p className="text-base sm:text-sm text-slate-500 mb-4 leading-relaxed">
             Share your invite link — clients sign up, see your brand from day one, and stay connected to you through every stage of homeownership.
           </p>
 
             {/* Pre-written message preview */}
             <div className="relative bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 flex-1">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Ready-to-send message</p>
-              <div className="space-y-3 text-sm text-slate-700 leading-relaxed">
+              <p className="text-sm sm:text-xs font-bold text-slate-400 uppercase tracking-wide mb-3">Ready-to-send message</p>
+              <div className="space-y-3 text-base sm:text-sm text-slate-700 leading-relaxed">
                 <p>Hi <span className="font-semibold text-slate-500 italic">[Client Name]</span>,</p>
                 <p>
                   I wanted to give you this personal gift to help with your new home.{" "}
@@ -2419,7 +2419,7 @@ Click here to get started: ${link}`;
                 {linkCopied ? <><Check className="w-3.5 h-3.5 text-emerald-500" />Copied</> : <><Copy className="w-3.5 h-3.5" />Link only</>}
               </button>
             </div>
-            <p className="text-xs text-slate-400 mt-2 text-center">
+            <p className="text-sm sm:text-xs text-slate-400 mt-2 text-center">
               Short link:{" "}
               <strong className="text-slate-600 font-mono">maintainhome.ai/{config.subdomain}</strong>
             </p>
@@ -2435,9 +2435,9 @@ Click here to get started: ${link}`;
           <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
             <div className="flex items-center gap-2 flex-wrap">
               <Users className="w-5 h-5" style={{ color: accent }} />
-              <h2 className="font-bold text-slate-900">{isTeamMember ? "My Clients" : "Your Clients"}</h2>
+              <h2 className="font-bold text-base sm:text-sm text-slate-900">{isTeamMember ? "My Clients" : "Your Clients"}</h2>
               {clients.length > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs font-bold">{clients.length}</span>
+                <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-sm sm:text-xs font-bold">{clients.length}</span>
               )}
               {isTeamMember && (
                 <span className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
@@ -2526,23 +2526,23 @@ Click here to get started: ${link}`;
                       className="group"
                     >
                       {/* ─ Mobile row ─ */}
-                      <div className="md:hidden flex items-center gap-3 px-6 py-4 hover:bg-slate-50/80 transition-colors">
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
+                      <div className="md:hidden flex items-center gap-3 px-5 py-5 hover:bg-slate-50/80 transition-colors">
+                        <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0 text-base font-black"
                           style={{ backgroundColor: accent + "20", color: accent }}>
                           {(client.name ?? client.email)[0].toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-slate-900 truncate">{client.name ?? "—"}</p>
-                          <p className="text-xs text-slate-400 truncate">{client.email}</p>
+                          <p className="text-base font-semibold text-slate-900 truncate leading-snug">{client.name ?? "—"}</p>
+                          <p className="text-sm text-slate-400 truncate mt-0.5">{client.email}</p>
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {client.hasCalendar && <Calendar className="w-3.5 h-3.5 text-blue-400" />}
-                          {client.imminentAlertCount > 0 && <AlertTriangle className="w-3.5 h-3.5 text-red-500" />}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {client.hasCalendar && <Calendar className="w-4 h-4 text-blue-400" />}
+                          {client.imminentAlertCount > 0 && <AlertTriangle className="w-4 h-4 text-red-500" />}
                           {isPro(client.subscriptionStatus)
-                            ? <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: "#f59e0b18", color: "#d97706" }}>Pro</span>
+                            ? <span className="text-sm font-bold px-2.5 py-1 rounded-full" style={{ backgroundColor: "#f59e0b18", color: "#d97706" }}>Pro</span>
                             : expiry
-                              ? <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${expiry.expired ? "bg-red-50 text-red-500" : "bg-amber-50 text-amber-600"}`}>Gift</span>
-                              : <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">Free</span>
+                              ? <span className={`text-sm font-bold px-2.5 py-1 rounded-full ${expiry.expired ? "bg-red-50 text-red-500" : "bg-amber-50 text-amber-600"}`}>Gift</span>
+                              : <span className="text-sm font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">Free</span>
                           }
                           <button
                             onClick={() => renewClient(client.id, client.email)}
@@ -2684,23 +2684,23 @@ Click here to get started: ${link}`;
               borderLeftColor: "#ef4444",
             }}
           >
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 flex-wrap">
               <AlertTriangle className="w-5 h-5 text-red-500" />
-              <h2 className="font-bold text-red-900">Big-Ticket Alerts Across Your Clients</h2>
-              <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold">{imminentClients.length}</span>
-              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-semibold border border-red-200 ml-1">Imminent — Next 12 Months</span>
+              <h2 className="font-bold text-base sm:text-sm text-red-900">Big-Ticket Alerts Across Your Clients</h2>
+              <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-sm sm:text-xs font-bold">{imminentClients.length}</span>
+              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-xs sm:text-[10px] font-semibold border border-red-200">Imminent — Next 12 Months</span>
             </div>
             <div className="space-y-3">
               {imminentClients.slice(0, 5).map((client) => (
                 <div key={client.id} className="flex items-start gap-3 bg-white rounded-xl p-4 border border-red-100 shadow-sm">
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-xs font-black bg-red-100 text-red-600 mt-0.5">
+                  <div className="w-8 h-8 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 text-sm sm:text-xs font-black bg-red-100 text-red-600 mt-0.5">
                     {(client.name ?? client.email)[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{client.name ?? client.email}</p>
-                    <ul className="mt-1 space-y-0.5">
+                    <p className="text-base sm:text-sm font-semibold text-slate-800 truncate">{client.name ?? client.email}</p>
+                    <ul className="mt-1.5 sm:mt-1 space-y-1 sm:space-y-0.5">
                       {client.imminentAlerts.map((alert, i) => (
-                        <li key={i} className="text-xs text-red-700 flex items-start gap-1.5">
+                        <li key={i} className="text-sm sm:text-xs text-red-700 flex items-start gap-1.5">
                           <span className="text-red-400 mt-0.5 shrink-0">•</span>
                           {alert}
                         </li>
@@ -2710,7 +2710,7 @@ Click here to get started: ${link}`;
                 </div>
               ))}
             </div>
-            <p className="text-xs text-red-600 mt-3 text-center">
+            <p className="text-sm sm:text-xs text-red-600 mt-3 text-center">
               These clients have major home systems due within the next 12 months — consider reaching out proactively.
             </p>
           </motion.div>
@@ -2785,8 +2785,8 @@ Click here to get started: ${link}`;
                   🎉
                 </div>
                 <div>
-                  <h2 className="font-bold text-slate-900">Client Celebrations This Month</h2>
-                  <p className="text-xs text-amber-600 font-medium">{monthNames[currentMonth - 1]} {currentYear} · Birthdays &amp; Closing Anniversaries</p>
+                  <h2 className="font-bold text-base sm:text-sm text-slate-900">Client Celebrations This Month</h2>
+                  <p className="text-sm sm:text-xs text-amber-600 font-medium mt-0.5">{monthNames[currentMonth - 1]} {currentYear} · Birthdays &amp; Closing Anniversaries</p>
                 </div>
               </div>
 
@@ -2801,14 +2801,14 @@ Click here to get started: ${link}`;
                 <div className="space-y-2">
                   {celebrations.map((c) => (
                     <div key={c.key}
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl border border-amber-100"
+                      className="flex items-center gap-3 px-4 py-4 sm:py-3 rounded-xl border border-amber-100"
                       style={{ backgroundColor: "#fffbeb" }}>
-                      <span className="text-xl shrink-0">{c.emoji}</span>
+                      <span className="text-2xl sm:text-xl shrink-0">{c.emoji}</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-900 truncate">{c.name}</p>
-                        <p className="text-xs text-amber-700">{c.label}</p>
+                        <p className="text-base sm:text-sm font-bold text-slate-900 truncate">{c.name}</p>
+                        <p className="text-sm sm:text-xs text-amber-700 mt-0.5">{c.label}</p>
                       </div>
-                      <div className="shrink-0 text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-1 rounded-full border border-amber-200">
+                      <div className="shrink-0 text-xs sm:text-[10px] font-bold text-amber-600 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-200">
                         Reach Out!
                       </div>
                     </div>
@@ -2843,13 +2843,13 @@ Click here to get started: ${link}`;
               { step: "3", title: "They build their plan", desc: "Clients complete the home quiz, get their AI maintenance calendar, and track everything about their most important investment — all under your brand." },
             ].map((item) => (
               <div key={item.step} className="flex gap-3">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
+                <div className="w-8 h-8 sm:w-7 sm:h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5"
                   style={{ backgroundColor: accent + "30" }}>
-                  <span className="font-black text-xs" style={{ color: accent }}>{item.step}</span>
+                  <span className="font-black text-sm sm:text-xs" style={{ color: accent }}>{item.step}</span>
                 </div>
                 <div>
-                  <p className="font-bold text-sm mb-1">{item.title}</p>
-                  <p className="text-white/50 text-xs leading-relaxed">{item.desc}</p>
+                  <p className="font-bold text-base sm:text-sm mb-1.5 sm:mb-1">{item.title}</p>
+                  <p className="text-white/50 text-sm sm:text-xs leading-relaxed">{item.desc}</p>
                 </div>
               </div>
             ))}
