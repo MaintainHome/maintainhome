@@ -1796,21 +1796,6 @@ export default function BrokerDashboard() {
     load();
   }, [authLoading, user]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const vw = window.innerWidth;
-      document.querySelectorAll('*').forEach(el => {
-        const rect = el.getBoundingClientRect();
-        if (rect.right > vw + 4) {
-          const classes = (el as HTMLElement).className?.toString?.()?.substring?.(0, 120) ?? "";
-          const tag = el.tagName;
-          console.warn('[OVERFLOW]', tag, classes, '| right:', Math.round(rect.right), '| width:', Math.round(rect.width));
-        }
-      });
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, []);
-
   const load = useCallback(async () => {
     setLoading(true); setError(null);
     try {
