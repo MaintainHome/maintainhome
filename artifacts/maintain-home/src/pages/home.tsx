@@ -93,15 +93,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background selection:bg-primary/20">
-      {/* Top Trust Banner — hidden when a broker subdomain is active */}
-      {!branding && (
-        <div className="w-full bg-slate-950 text-white py-3 px-4 text-center text-sm font-medium flex items-center justify-center gap-2 relative z-50">
-          <Sparkles className="w-4 h-4 text-yellow-300" />
-          <span>Beta testing — testers get first year FREE!</span>
-          <Sparkles className="w-4 h-4 text-yellow-300 hidden sm:block" />
-        </div>
-      )}
-
       {/* Broker welcome message banner — shown once per user per subdomain */}
       <AnimatePresence>
         {brokerWelcomeBanner && branding?.welcomeMessage && (
