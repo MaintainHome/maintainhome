@@ -174,17 +174,17 @@ function StatCard({ icon, label, value, iconBg, iconColor, children }: {
   iconBg: string; iconColor?: string; children?: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-5 flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow duration-200">
-      <div className="w-14 h-14 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0"
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 hover:shadow-md transition-shadow duration-200 text-center sm:text-left">
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
         style={{ backgroundColor: iconBg }}>
-        <span className="scale-125 sm:scale-100 block" style={{ color: iconColor }}>{icon}</span>
+        <span className="block" style={{ color: iconColor }}>{icon}</span>
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 w-full">
         {value !== undefined && (
-          <p className="text-4xl sm:text-2xl font-black text-slate-900 leading-none">{value}</p>
+          <p className="text-2xl font-black text-slate-900 leading-none">{value}</p>
         )}
         {children}
-        <p className="text-base sm:text-xs text-slate-400 font-semibold mt-2 sm:mt-1 leading-snug">{label}</p>
+        <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">{label}</p>
       </div>
     </div>
   );
@@ -357,50 +357,54 @@ function TeamMembersPanel({
                 return (
                   <div key={member.id}
                     className="rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors overflow-hidden">
-                    <div className="flex items-center gap-3.5 sm:gap-3 p-4">
-                      {member.headshotUrl ? (
-                        <img src={member.headshotUrl} alt={member.displayName}
-                          className="w-12 h-12 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-200 shrink-0" />
-                      ) : (
-                        <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 text-base sm:text-sm font-black"
-                          style={{ backgroundColor: accent + "20", color: accent }}>
-                          {member.displayName[0].toUpperCase()}
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="text-sm font-semibold text-slate-800 truncate">{member.displayName}</p>
-                          <span className={`text-sm sm:text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                            member.status === "active"
-                              ? "bg-green-50 text-green-600 border border-green-200"
-                              : "bg-amber-50 text-amber-600 border border-amber-200"
-                          }`}>
-                            {member.status === "active" ? "Active" : "Invited"}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-400 truncate mt-0.5">{member.email}</p>
-                        {member.agentHandle && (
-                          <p className="text-base sm:text-[10px] text-slate-400 font-mono">@{member.agentHandle}</p>
+                    <div className="p-4 space-y-2">
+                      {/* Top: avatar + name */}
+                      <div className="flex items-center gap-3">
+                        {member.headshotUrl ? (
+                          <img src={member.headshotUrl} alt={member.displayName}
+                            className="w-9 h-9 rounded-full object-cover border border-slate-200 shrink-0" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
+                            style={{ backgroundColor: accent + "20", color: accent }}>
+                            {member.displayName[0].toUpperCase()}
+                          </div>
                         )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="text-sm font-semibold text-slate-800 truncate">{member.displayName}</p>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                              member.status === "active"
+                                ? "bg-green-50 text-green-600 border border-green-200"
+                                : "bg-amber-50 text-amber-600 border border-amber-200"
+                            }`}>
+                              {member.status === "active" ? "Active" : "Invited"}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-400 truncate">{member.email}</p>
+                          {member.agentHandle && (
+                            <p className="text-[10px] text-slate-400 font-mono">@{member.agentHandle}</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 sm:gap-1.5 shrink-0">
+                      {/* Bottom: actions */}
+                      <div className="flex items-center gap-2 justify-end">
                         {member.status === "invited" && (
                           <button
                             onClick={() => copyLink(joinLink, member.inviteToken)}
                             title="Copy team join link"
-                            className="flex items-center gap-1.5 sm:gap-1 px-4 sm:px-2.5 py-2.5 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-lg border border-slate-200 text-base sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
                             {copiedToken === member.inviteToken
-                              ? <><Check className="w-4 h-4 sm:w-3 sm:h-3 text-emerald-500" />Copied</>
-                              : <><Link2 className="w-4 h-4 sm:w-3 sm:h-3" />Resend</>}
+                              ? <><Check className="w-3 h-3 text-emerald-500" />Copied</>
+                              : <><Link2 className="w-3 h-3" />Resend</>}
                           </button>
                         )}
                         <button
                           onClick={() => handleRemoveMember(member.id)}
                           disabled={removingId === member.id}
-                          className="p-2.5 sm:p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 min-h-[44px] sm:min-h-0 flex items-center justify-center">
+                          className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 flex items-center justify-center">
                           {removingId === member.id
-                            ? <Loader2 className="w-5 h-5 sm:w-4 sm:h-4 animate-spin" />
-                            : <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />}
+                            ? <Loader2 className="w-4 h-4 animate-spin" />
+                            : <Trash2 className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
@@ -634,20 +638,20 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
       transition={{ duration: 0.4, delay: 0.18 }}
       className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
     >
-      <div className="flex items-start gap-4 flex-wrap">
-        <div className="flex items-center gap-2 mb-1 flex-1 min-w-[200px]">
-          <Gift className="w-6 h-6 sm:w-5 sm:h-5 shrink-0" style={{ color: accent }} />
+      <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+        <div className="flex items-center gap-2 flex-1">
+          <Gift className="w-5 h-5 shrink-0" style={{ color: accent }} />
           <div>
             <h2 className="font-bold text-sm text-slate-900">Gift Codes for Clients</h2>
             <p className="text-sm text-slate-500 mt-0.5 leading-snug">
-              Use This Feature When You Want To Pay For the Client's First Year of Membership, But You Know The Client Will Want to Fill Out Their Own Information.
+              Pay for a client's first year — they fill in their own info.
             </p>
           </div>
         </div>
 
         {/* Price callout */}
-        <div className="flex items-baseline gap-1 shrink-0">
-          <span className="text-3xl font-black text-slate-900">$36</span>
+        <div className="flex items-baseline gap-1 sm:shrink-0">
+          <span className="text-2xl font-black text-slate-900">$36</span>
           <span className="text-slate-400 text-sm">/code</span>
         </div>
       </div>
@@ -1260,18 +1264,16 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
         transition={{ duration: 0.4, delay: 0.19 }}
         className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
       >
-        <div className="flex items-start gap-4 flex-wrap justify-between">
-          <div className="flex items-center gap-3 flex-1 min-w-[220px]">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: accent + "18" }}>
-              <UserPlus className="w-5 h-5" style={{ color: accent }} />
-            </div>
-            <div>
-              <h2 className="font-bold text-sm text-slate-900">Create Client Account (Pre-Paid Gift)</h2>
-              <p className="text-sm text-slate-500 mt-0.5 leading-snug">
-                Pre-build a client's full home dashboard — calendar, documents, and 13 months Pro — ready before they log in.
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+            style={{ backgroundColor: accent + "18" }}>
+            <UserPlus className="w-4 h-4" style={{ color: accent }} />
+          </div>
+          <div>
+            <h2 className="font-bold text-sm text-slate-900">Create Client Account (Pre-Paid Gift)</h2>
+            <p className="text-sm text-slate-500 mt-0.5 leading-snug">
+              Pre-build a client's dashboard — calendar, docs, and 13 months Pro.
+            </p>
           </div>
         </div>
 
@@ -2331,24 +2333,24 @@ Click here to get started: ${link}`;
 
           <button
             onClick={() => document.getElementById("celebrations-widget")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-5 flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow duration-200 text-left w-full"
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 hover:shadow-md transition-shadow duration-200 text-center sm:text-left w-full"
           >
-            <div className={`w-14 h-14 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 text-2xl sm:text-xl ${celebrationCountThisMonth > 0 ? "bg-amber-50" : "bg-slate-50"}`}>
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl ${celebrationCountThisMonth > 0 ? "bg-amber-50" : "bg-slate-50"}`}>
               🎉
             </div>
-            <div>
-              <p className="text-4xl sm:text-2xl font-black text-slate-900 leading-none">{celebrationCountThisMonth}</p>
-              <p className="text-base sm:text-xs text-slate-400 font-semibold mt-2 sm:mt-1 leading-snug">Celebrations This Month</p>
+            <div className="min-w-0 w-full">
+              <p className="text-2xl font-black text-slate-900 leading-none">{celebrationCountThisMonth}</p>
+              <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">Celebrations This Month</p>
             </div>
           </button>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-5 flex items-center gap-3 sm:gap-4 hover:shadow-md transition-shadow duration-200">
-            <div className={`w-14 h-14 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 ${imminentClients.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
-              <AlertTriangle className={`w-7 h-7 sm:w-6 sm:h-6 ${imminentClients.length > 0 ? "text-red-500" : "text-slate-300"}`} />
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 hover:shadow-md transition-shadow duration-200">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${imminentClients.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
+              <AlertTriangle className={`w-5 h-5 ${imminentClients.length > 0 ? "text-red-500" : "text-slate-300"}`} />
             </div>
-            <div>
-              <p className="text-4xl sm:text-2xl font-black text-slate-900 leading-none">{imminentClients.length}</p>
-              <p className="text-base sm:text-xs text-slate-400 font-semibold mt-2 sm:mt-1 leading-snug">Imminent Alerts</p>
+            <div className="min-w-0 w-full text-center sm:text-left">
+              <p className="text-2xl font-black text-slate-900 leading-none">{imminentClients.length}</p>
+              <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">Imminent Alerts</p>
             </div>
           </div>
         </motion.div>
@@ -2528,35 +2530,39 @@ Click here to get started: ${link}`;
                       className="group"
                     >
                       {/* ─ Mobile row ─ */}
-                      <div className="md:hidden flex items-center gap-4 px-5 py-5 hover:bg-slate-50/80 transition-colors">
-                        <div className="w-14 h-14 rounded-full flex items-center justify-center shrink-0 text-xl font-black"
-                          style={{ backgroundColor: accent + "20", color: accent }}>
-                          {(client.name ?? client.email)[0].toUpperCase()}
+                      <div className="md:hidden px-4 py-4 hover:bg-slate-50/80 transition-colors space-y-3">
+                        {/* Top: avatar + name/email */}
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
+                            style={{ backgroundColor: accent + "20", color: accent }}>
+                            {(client.name ?? client.email)[0].toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-slate-900 truncate">{client.name ?? "—"}</p>
+                            <p className="text-xs text-slate-400 truncate mt-0.5">{client.email}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xl font-semibold text-slate-900 truncate leading-snug">{client.name ?? "—"}</p>
-                          <p className="text-base text-slate-400 truncate mt-1">{client.email}</p>
-                        </div>
-                        <div className="flex flex-col items-end gap-2 shrink-0">
-                          <div className="flex items-center gap-1.5">
-                            {client.hasCalendar && <Calendar className="w-5 h-5 text-blue-400" />}
-                            {client.imminentAlertCount > 0 && <AlertTriangle className="w-5 h-5 text-red-500" />}
+                        {/* Bottom: status + action */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {client.hasCalendar && <Calendar className="w-4 h-4 text-blue-400" />}
+                            {client.imminentAlertCount > 0 && <AlertTriangle className="w-4 h-4 text-red-500" />}
                             {isPro(client.subscriptionStatus)
-                              ? <span className="text-base font-bold px-3 py-1 rounded-full" style={{ backgroundColor: "#f59e0b18", color: "#d97706" }}>Pro</span>
+                              ? <span className="text-xs font-bold px-2.5 py-0.5 rounded-full" style={{ backgroundColor: "#f59e0b18", color: "#d97706" }}>Pro</span>
                               : expiry
-                                ? <span className={`text-base font-bold px-3 py-1 rounded-full ${expiry.expired ? "bg-red-50 text-red-500" : "bg-amber-50 text-amber-600"}`}>Gift</span>
-                                : <span className="text-base font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-500">Free</span>
+                                ? <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${expiry.expired ? "bg-red-50 text-red-500" : "bg-amber-50 text-amber-600"}`}>Gift</span>
+                                : <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Free</span>
                             }
                           </div>
                           <button
                             onClick={() => renewClient(client.id, client.email)}
                             disabled={renewingClientId === client.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-bold hover:bg-emerald-100 transition-all disabled:opacity-50"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-bold hover:bg-emerald-100 transition-all disabled:opacity-50 shrink-0"
                             title="Renew 1 year Pro for this client"
                           >
                             {renewingClientId === client.id
-                              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              : <RefreshCw className="w-3.5 h-3.5" />}
+                              ? <Loader2 className="w-3 h-3 animate-spin" />
+                              : <RefreshCw className="w-3 h-3" />}
                             Renew $36
                           </button>
                         </div>
