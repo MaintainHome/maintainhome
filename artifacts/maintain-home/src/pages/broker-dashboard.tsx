@@ -1316,13 +1316,13 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
         <div className="mt-3 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setOpen(true)}
-            className="flex items-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl text-white text-xl sm:text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl text-white text-base sm:text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
             style={{ backgroundColor: accent }}
           >
-            <PlusCircle className="w-4 h-4" />
+            <PlusCircle className="w-4 h-4 shrink-0" />
             Create Client Account · {duration === "3years" ? "$99" : "$36"}
           </button>
-          <div className="flex items-center gap-2 text-lg sm:text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5">
+          <div className="flex items-center gap-2 text-base sm:text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 sm:py-2.5 w-full sm:w-auto">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>AI calendar pre-generated · Documents pre-loaded · Activation link sent by you</span>
           </div>
