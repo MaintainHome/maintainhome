@@ -2057,7 +2057,7 @@ Click here to get started: ${link}`;
      Dashboard render
   ════════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden w-full">
 
       {/* ── Sticky header ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-white/98 backdrop-blur-sm border-b border-slate-200 shadow-sm">
@@ -2259,24 +2259,26 @@ Click here to get started: ${link}`;
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.45, duration: 0.4 }}
-              className="flex items-center justify-center gap-3 flex-wrap"
+              className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-3 flex-wrap max-w-full"
             >
               <a
                 href={inviteLink ?? `https://maintainhome.ai/${config.subdomain}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-white/50 hover:text-white/80 text-lg sm:text-xs font-mono transition-colors underline-offset-2 hover:underline"
+                className="text-white/50 hover:text-white/80 text-base sm:text-xs font-mono transition-colors underline-offset-2 hover:underline max-w-full truncate px-1"
               >
                 maintainhome.ai/{config.subdomain}
               </a>
-              <span className="text-white/15">·</span>
-              <span className="text-lg sm:text-xs font-bold px-3 py-1 rounded-full"
-                style={{ backgroundColor: accent + "28", color: accent }}>
-                {config.type === "team_leader" ? "Team Leader" : "Individual Agent"}
-              </span>
-              <span className="flex items-center gap-1.5 text-lg sm:text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white/65">
-                <MIcon className="w-3 h-3 shrink-0" />{monetizationLabel}
-              </span>
+              <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+                <span className="hidden sm:inline text-white/15">·</span>
+                <span className="text-base sm:text-xs font-bold px-3 py-1 rounded-full"
+                  style={{ backgroundColor: accent + "28", color: accent }}>
+                  {config.type === "team_leader" ? "Team Leader" : "Individual Agent"}
+                </span>
+                <span className="flex items-center gap-1.5 text-base sm:text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white/65">
+                  <MIcon className="w-3 h-3 shrink-0" />{monetizationLabel}
+                </span>
+              </div>
             </motion.div>
 
             {/* Quick-action buttons inside hero */}
@@ -2419,7 +2421,7 @@ Click here to get started: ${link}`;
                 {linkCopied ? <><Check className="w-3.5 h-3.5 text-emerald-500" />Copied</> : <><Copy className="w-3.5 h-3.5" />Link only</>}
               </button>
             </div>
-            <p className="text-lg sm:text-xs text-slate-400 mt-2 text-center">
+            <p className="text-base sm:text-xs text-slate-400 mt-2 text-center break-all">
               Short link:{" "}
               <strong className="text-slate-600 font-mono">maintainhome.ai/{config.subdomain}</strong>
             </p>
