@@ -2057,7 +2057,7 @@ Click here to get started: ${link}`;
      Dashboard render
   ════════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden w-full">
+    <div className="min-h-screen bg-slate-50 flex flex-col w-full" style={{ overflowX: 'clip', maxWidth: '100%' }}>
 
       {/* ── Sticky header ─────────────────────────────────────────── */}
       <div className="sticky top-0 z-30 bg-white/98 backdrop-blur-sm border-b border-slate-200 shadow-sm">
@@ -2120,7 +2120,7 @@ Click here to get started: ${link}`;
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-8 space-y-10 sm:space-y-6 flex-1">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-8 space-y-10 sm:space-y-6 flex-1 min-w-0 overflow-x-hidden">
 
         {/* ════════════════════════════════════════════════════════
             HERO — dark slate, MaintainHome theme
