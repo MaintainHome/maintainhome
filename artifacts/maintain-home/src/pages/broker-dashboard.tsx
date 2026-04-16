@@ -428,7 +428,7 @@ function TeamMembersPanel({
                             : <><Copy className="w-4 h-4 sm:w-3 sm:h-3" />Copy</>}
                         </button>
                       </div>
-                      <p className="text-sm sm:text-[10px] text-slate-400 mt-1.5 sm:mt-1 pl-1">Client invite link</p>
+                      <p className="text-xs text-slate-400 mt-1.5 sm:mt-1 pl-1">Client invite link</p>
                     </div>
                   </div>
                 );
@@ -666,7 +666,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
               className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-lg transition-colors"
               disabled={qty <= 1}
             >−</button>
-            <span className="w-12 sm:w-10 text-center text-lg font-black text-slate-900 tabular-nums">{qty}</span>
+            <span className="w-10 text-center text-lg font-black text-slate-900 tabular-nums">{qty}</span>
             <button
               onClick={() => setQty((q) => Math.min(50, q + 1))}
               className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-lg transition-colors"
@@ -1306,7 +1306,7 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                 <span className="text-2xl font-black text-slate-900">$99</span>
                 <span className="text-slate-400 text-sm">/ 3 years</span>
               </div>
-              <span className="text-sm sm:text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-500 text-white uppercase tracking-wide">Best Value</span>
+              <span className="text-xs font-black px-2 py-0.5 rounded-full bg-blue-500 text-white uppercase tracking-wide">Best Value</span>
             </div>
             <p className="text-xs font-semibold text-blue-600">37 months Pro · ~$33/yr · 1 month free</p>
             {duration === "3years" && (
@@ -1795,6 +1795,21 @@ export default function BrokerDashboard() {
     if (!user.isBroker) { navigate("/choose-role"); return; }
     load();
   }, [authLoading, user]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const vw = window.innerWidth;
+      document.querySelectorAll('*').forEach(el => {
+        const rect = el.getBoundingClientRect();
+        if (rect.right > vw + 4) {
+          const classes = (el as HTMLElement).className?.toString?.()?.substring?.(0, 120) ?? "";
+          const tag = el.tagName;
+          console.warn('[OVERFLOW]', tag, classes, '| right:', Math.round(rect.right), '| width:', Math.round(rect.width));
+        }
+      });
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -2697,7 +2712,7 @@ Click here to get started: ${link}`;
               <AlertTriangle className="w-5 h-5 text-red-500" />
               <h2 className="font-bold text-sm text-red-900">Big-Ticket Alerts Across Your Clients</h2>
               <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-bold">{imminentClients.length}</span>
-              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-sm sm:text-[10px] font-semibold border border-red-200">Imminent — Next 12 Months</span>
+              <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-xs font-semibold border border-red-200">Imminent — Next 12 Months</span>
             </div>
             <div className="space-y-3">
               {imminentClients.slice(0, 5).map((client) => (
@@ -2817,7 +2832,7 @@ Click here to get started: ${link}`;
                         <p className="text-sm font-bold text-slate-900 truncate">{c.name}</p>
                         <p className="text-xs text-amber-700 mt-0.5">{c.label}</p>
                       </div>
-                      <div className="shrink-0 text-sm sm:text-[10px] font-bold text-amber-600 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-200">
+                      <div className="shrink-0 text-xs font-bold text-amber-600 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-200">
                         Reach Out!
                       </div>
                     </div>
