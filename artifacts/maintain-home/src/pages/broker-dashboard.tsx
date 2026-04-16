@@ -279,62 +279,62 @@ function TeamMembersPanel({
       className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-6 py-4 border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5" style={{ color: accent }} />
+        className="w-full flex items-center justify-between px-6 py-5 sm:py-4 border-b border-slate-100 hover:bg-slate-50/50 transition-colors min-h-[60px] sm:min-h-0">
+        <div className="flex items-center gap-2.5 sm:gap-2">
+          <Users className="w-6 h-6 sm:w-5 sm:h-5" style={{ color: accent }} />
           <h2 className="font-bold text-xl sm:text-sm text-slate-900">Team Members</h2>
-          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-lg sm:text-xs font-bold">{teamMembers.length}</span>
+          <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-lg sm:text-xs font-bold">{teamMembers.length}</span>
         </div>
-        {open ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+        {open ? <ChevronUp className="w-5 h-5 sm:w-4 sm:h-4 text-slate-400" /> : <ChevronDown className="w-5 h-5 sm:w-4 sm:h-4 text-slate-400" />}
       </button>
 
       {open && (
-        <div className="px-6 py-5 space-y-5">
+        <div className="px-6 py-6 sm:py-5 space-y-6 sm:space-y-5">
           {/* Invite form */}
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
-            <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Invite a New Agent</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="bg-slate-50 rounded-2xl p-5 sm:p-4 border border-slate-200 space-y-4 sm:space-y-3">
+            <p className="text-base sm:text-sm font-bold text-slate-700 uppercase tracking-wide">Invite a New Agent</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
               <div>
-                <label className="block text-sm text-slate-500 mb-1">Agent Name</label>
+                <label className="block text-base sm:text-sm text-slate-500 mb-1.5 sm:mb-1">Agent Name</label>
                 <input
                   type="text"
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
                   placeholder="Jane Smith"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                  className="w-full px-4 sm:px-3 py-3.5 sm:py-2 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-500 mb-1">Agent Email</label>
+                <label className="block text-base sm:text-sm text-slate-500 mb-1.5 sm:mb-1">Agent Email</label>
                 <input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="agent@example.com"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                  className="w-full px-4 sm:px-3 py-3.5 sm:py-2 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
                 />
               </div>
             </div>
             {inviteError && (
-              <p className="text-sm text-red-500">{inviteError}</p>
+              <p className="text-base sm:text-sm text-red-500">{inviteError}</p>
             )}
             <button
               onClick={handleInvite}
               disabled={inviting}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90"
+              className="flex items-center gap-2 px-5 sm:px-4 py-3.5 sm:py-2 min-h-[48px] sm:min-h-0 rounded-xl text-white text-base sm:text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90"
               style={{ backgroundColor: accent }}>
               {inviting ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
               Generate Invite Link
             </button>
             {inviteLink && (
-              <div className="mt-2 p-3 rounded-xl bg-green-50 border border-green-200">
-                <p className="text-sm font-bold text-green-700 mb-2">Invite link created! Share with the agent:</p>
+              <div className="mt-2 p-4 sm:p-3 rounded-xl bg-green-50 border border-green-200">
+                <p className="text-base sm:text-sm font-bold text-green-700 mb-2.5 sm:mb-2">Invite link created! Share with the agent:</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-green-800 font-mono break-all flex-1 truncate">{inviteLink}</span>
+                  <span className="text-base sm:text-sm text-green-800 font-mono break-all flex-1 truncate">{inviteLink}</span>
                   <button
                     onClick={() => { navigator.clipboard.writeText(inviteLink); }}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-700 text-white text-sm font-bold hover:bg-green-800 transition-colors shrink-0">
-                    <Copy className="w-3 h-3" />Copy
+                    className="flex items-center gap-1.5 sm:gap-1 px-4 sm:px-2.5 py-2.5 sm:py-1.5 rounded-lg bg-green-700 text-white text-base sm:text-sm font-bold hover:bg-green-800 transition-colors shrink-0 min-h-[44px] sm:min-h-0">
+                    <Copy className="w-4 h-4 sm:w-3 sm:h-3" />Copy
                   </button>
                 </div>
               </div>
@@ -343,13 +343,13 @@ function TeamMembersPanel({
 
           {/* Members list */}
           {teamMembers.length === 0 ? (
-            <div className="text-center py-8 text-slate-400">
-              <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No team members yet.</p>
-              <p className="text-sm mt-1">Invite an agent above to get started.</p>
+            <div className="text-center py-10 sm:py-8 text-slate-400">
+              <Users className="w-12 h-12 sm:w-10 sm:h-10 mx-auto mb-3 opacity-30" />
+              <p className="text-base sm:text-sm">No team members yet.</p>
+              <p className="text-base sm:text-sm mt-1">Invite an agent above to get started.</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3 sm:space-y-2">
               {teamMembers.map((member) => {
                 const joinLink = getMemberJoinLink(member);
                 const clientLink = getMemberClientInviteLink(member);
@@ -357,12 +357,12 @@ function TeamMembersPanel({
                 return (
                   <div key={member.id}
                     className="rounded-2xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors overflow-hidden">
-                    <div className="flex items-center gap-3 p-4">
+                    <div className="flex items-center gap-3.5 sm:gap-3 p-4">
                       {member.headshotUrl ? (
                         <img src={member.headshotUrl} alt={member.displayName}
-                          className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0" />
+                          className="w-12 h-12 sm:w-10 sm:h-10 rounded-full object-cover border border-slate-200 shrink-0" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-sm font-black"
+                        <div className="w-12 h-12 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shrink-0 text-base sm:text-sm font-black"
                           style={{ backgroundColor: accent + "20", color: accent }}>
                           {member.displayName[0].toUpperCase()}
                         </div>
@@ -370,7 +370,7 @@ function TeamMembersPanel({
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-xl sm:text-sm font-semibold text-slate-800 truncate">{member.displayName}</p>
-                          <span className={`text-xs sm:text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          <span className={`text-sm sm:text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
                             member.status === "active"
                               ? "bg-green-50 text-green-600 border border-green-200"
                               : "bg-amber-50 text-amber-600 border border-amber-200"
@@ -380,51 +380,51 @@ function TeamMembersPanel({
                         </div>
                         <p className="text-lg sm:text-xs text-slate-400 truncate mt-0.5">{member.email}</p>
                         {member.agentHandle && (
-                          <p className="text-sm sm:text-[10px] text-slate-400 font-mono">@{member.agentHandle}</p>
+                          <p className="text-base sm:text-[10px] text-slate-400 font-mono">@{member.agentHandle}</p>
                         )}
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex items-center gap-2 sm:gap-1.5 shrink-0">
                         {member.status === "invited" && (
                           <button
                             onClick={() => copyLink(joinLink, member.inviteToken)}
                             title="Copy team join link"
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
+                            className="flex items-center gap-1.5 sm:gap-1 px-4 sm:px-2.5 py-2.5 sm:py-1.5 min-h-[44px] sm:min-h-0 rounded-lg border border-slate-200 text-base sm:text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors">
                             {copiedToken === member.inviteToken
-                              ? <><Check className="w-3 h-3 text-emerald-500" />Copied</>
-                              : <><Link2 className="w-3 h-3" />Resend</>}
+                              ? <><Check className="w-4 h-4 sm:w-3 sm:h-3 text-emerald-500" />Copied</>
+                              : <><Link2 className="w-4 h-4 sm:w-3 sm:h-3" />Resend</>}
                           </button>
                         )}
                         <button
                           onClick={() => handleRemoveMember(member.id)}
                           disabled={removingId === member.id}
-                          className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
+                          className="p-2.5 sm:p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50 min-h-[44px] sm:min-h-0 flex items-center justify-center">
                           {removingId === member.id
-                            ? <Loader2 className="w-4 h-4 animate-spin" />
-                            : <Trash2 className="w-4 h-4" />}
+                            ? <Loader2 className="w-5 h-5 sm:w-4 sm:h-4 animate-spin" />
+                            : <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />}
                         </button>
                       </div>
                     </div>
                     {/* Client invite link row (always shown) */}
-                    <div className="px-4 pb-3">
-                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200">
-                        <Link2 className="w-3 h-3 shrink-0" style={{ color: accent }} />
-                        <span className="text-[11px] text-slate-500 font-mono flex-1 truncate min-w-0">
+                    <div className="px-4 pb-4 sm:pb-3">
+                      <div className="flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-xl bg-white border border-slate-200">
+                        <Link2 className="w-4 h-4 sm:w-3 sm:h-3 shrink-0" style={{ color: accent }} />
+                        <span className="text-sm sm:text-[11px] text-slate-500 font-mono flex-1 truncate min-w-0">
                           {clientLink.replace(/^https?:\/\//, "")}
                         </span>
                         <button
                           onClick={() => copyLink(clientLink, clientCopyId)}
-                          className="flex items-center gap-1 px-2 py-1 rounded-lg text-sm font-bold shrink-0 transition-colors"
+                          className="flex items-center gap-1.5 sm:gap-1 px-3 sm:px-2 py-2 sm:py-1 rounded-lg text-base sm:text-sm font-bold shrink-0 transition-colors min-h-[40px] sm:min-h-0"
                           style={{
                             backgroundColor: copiedToken === clientCopyId ? "#d1fae5" : accent + "18",
                             color: copiedToken === clientCopyId ? "#059669" : accent,
                           }}
                         >
                           {copiedToken === clientCopyId
-                            ? <><Check className="w-3 h-3" />Copied</>
-                            : <><Copy className="w-3 h-3" />Copy</>}
+                            ? <><Check className="w-4 h-4 sm:w-3 sm:h-3" />Copied</>
+                            : <><Copy className="w-4 h-4 sm:w-3 sm:h-3" />Copy</>}
                         </button>
                       </div>
-                      <p className="text-[10px] text-slate-400 mt-1 pl-1">Client invite link</p>
+                      <p className="text-sm sm:text-[10px] text-slate-400 mt-1.5 sm:mt-1 pl-1">Client invite link</p>
                     </div>
                   </div>
                 );
@@ -636,7 +636,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
     >
       <div className="flex items-start gap-4 flex-wrap">
         <div className="flex items-center gap-2 mb-1 flex-1 min-w-[200px]">
-          <Gift className="w-5 h-5 shrink-0" style={{ color: accent }} />
+          <Gift className="w-6 h-6 sm:w-5 sm:h-5 shrink-0" style={{ color: accent }} />
           <div>
             <h2 className="font-bold text-xl sm:text-sm text-slate-900">Gift Codes for Clients</h2>
             <p className="text-xl sm:text-sm text-slate-500 mt-0.5 leading-snug">
@@ -652,29 +652,29 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         </div>
       </div>
 
-      <div className="mt-5 flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+      <div className="mt-6 sm:mt-5 flex flex-col sm:flex-row gap-4 sm:gap-3 items-start sm:items-end">
         {/* Qty selector */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-bold text-slate-600 uppercase tracking-wide">Quantity</label>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-1.5 sm:gap-1">
+          <label className="text-base sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Quantity</label>
+          <div className="flex items-center gap-3 sm:gap-2">
             <button
               onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-lg transition-colors"
+              className="w-12 h-12 sm:w-9 sm:h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-2xl sm:text-lg transition-colors"
               disabled={qty <= 1}
             >−</button>
-            <span className="w-10 text-center text-lg font-black text-slate-900 tabular-nums">{qty}</span>
+            <span className="w-12 sm:w-10 text-center text-2xl sm:text-lg font-black text-slate-900 tabular-nums">{qty}</span>
             <button
               onClick={() => setQty((q) => Math.min(50, q + 1))}
-              className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-lg transition-colors"
+              className="w-12 h-12 sm:w-9 sm:h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-2xl sm:text-lg transition-colors"
               disabled={qty >= 50}
             >+</button>
           </div>
         </div>
 
         {/* Total */}
-        <div className="flex flex-col gap-1">
-          <label className="text-sm font-bold text-slate-600 uppercase tracking-wide">Total</label>
-          <div className="h-9 flex items-center px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-black tabular-nums">
+        <div className="flex flex-col gap-1.5 sm:gap-1">
+          <label className="text-base sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Total</label>
+          <div className="h-12 sm:h-9 flex items-center px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-lg sm:text-base font-black tabular-nums">
             ${(qty * 36).toFixed(2)}
           </div>
         </div>
@@ -683,7 +683,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         <button
           onClick={handlePurchase}
           disabled={loading}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-sm h-9"
+          className="flex items-center gap-2 px-7 sm:px-6 py-3.5 sm:py-2.5 min-h-[48px] sm:min-h-0 rounded-xl text-white text-base sm:text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-sm"
           style={{ backgroundColor: accent }}
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
@@ -693,7 +693,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         {/* View existing codes toggle */}
         <button
           onClick={() => { setShowCodes((v) => !v); if (!codesLoaded) loadCodes(); }}
-          className="h-9 flex items-center gap-1.5 px-4 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="min-h-[48px] sm:min-h-0 sm:h-9 flex items-center gap-2 sm:gap-1.5 px-5 sm:px-4 py-3 sm:py-0 rounded-xl border border-slate-200 text-base sm:text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
         >
           <Gift className="w-4 h-4" />
           My Codes
@@ -713,38 +713,38 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
             <p className="text-sm text-slate-400 text-center py-3">No gift codes purchased yet.</p>
           ) : (
             <>
-              <div className="flex items-center gap-3 mb-3">
-                <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">Your Gift Codes</p>
-                <span className="text-sm px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">{available} available</span>
-                {redeemed > 0 && <span className="text-sm px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">{redeemed} used</span>}
+              <div className="flex items-center gap-3 mb-4 sm:mb-3">
+                <p className="text-base sm:text-sm font-bold text-slate-500 uppercase tracking-wide">Your Gift Codes</p>
+                <span className="text-base sm:text-sm px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">{available} available</span>
+                {redeemed > 0 && <span className="text-base sm:text-sm px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">{redeemed} used</span>}
               </div>
-              <div className="grid gap-2 max-h-72 overflow-y-auto pr-1">
+              <div className="grid gap-3 sm:gap-2 max-h-72 overflow-y-auto pr-1">
                 {existingCodes.map((c) => (
-                  <div key={c.code} className={`flex items-start justify-between gap-3 px-4 py-3 rounded-xl border ${c.redeemedAt ? "bg-slate-50 border-slate-100" : "bg-white border-slate-200"}`}>
+                  <div key={c.code} className={`flex items-start justify-between gap-3 px-4 py-3.5 sm:py-3 rounded-xl border ${c.redeemedAt ? "bg-slate-50 border-slate-100" : "bg-white border-slate-200"}`}>
                     <div className="flex-1 min-w-0">
-                      <span className={`font-mono font-semibold text-sm tracking-widest block ${c.redeemedAt ? "text-slate-400 line-through" : "text-slate-800"}`}>{c.code}</span>
+                      <span className={`font-mono font-semibold text-base sm:text-sm tracking-widest block ${c.redeemedAt ? "text-slate-400 line-through" : "text-slate-800"}`}>{c.code}</span>
                       {c.redeemedAt && (
-                        <div className="mt-1">
-                          <p className="text-sm text-slate-500 font-medium">
+                        <div className="mt-1.5 sm:mt-1">
+                          <p className="text-base sm:text-sm text-slate-500 font-medium">
                             Redeemed by{" "}
                             <span className="font-semibold text-slate-700">
                               {c.redeemerName || c.redeemerEmail || "a homeowner"}
                             </span>
                           </p>
                           {c.redeemerEmail && c.redeemerName && (
-                            <p className="text-sm text-slate-400">{c.redeemerEmail}</p>
+                            <p className="text-base sm:text-sm text-slate-400">{c.redeemerEmail}</p>
                           )}
-                          <p className="text-sm text-slate-400">
+                          <p className="text-base sm:text-sm text-slate-400">
                             {new Date(c.redeemedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                           </p>
                         </div>
                       )}
                     </div>
                     {c.redeemedAt ? (
-                      <span className="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold shrink-0 mt-0.5">Used</span>
+                      <span className="text-base sm:text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full font-semibold shrink-0 mt-0.5">Used</span>
                     ) : (
-                      <button onClick={() => copyCode(c.code)} className="text-slate-400 hover:text-primary transition-colors shrink-0 mt-0.5" title="Copy code">
-                        {copiedCode === c.code ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
+                      <button onClick={() => copyCode(c.code)} className="p-2 sm:p-0 text-slate-400 hover:text-primary transition-colors shrink-0 mt-0.5 min-h-[44px] sm:min-h-0 flex items-center" title="Copy code">
+                        {copiedCode === c.code ? <Check className="w-5 h-5 sm:w-4 sm:h-4 text-primary" /> : <Copy className="w-5 h-5 sm:w-4 sm:h-4" />}
                       </button>
                     )}
                   </div>
@@ -2060,12 +2060,12 @@ Click here to get started: ${link}`;
     <div className="min-h-screen bg-slate-50 flex flex-col">
 
       {/* ── Sticky header ─────────────────────────────────────────── */}
-      <div className="sticky top-0 z-30 bg-white/95 backdrop-blur-sm border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+      <div className="sticky top-0 z-30 bg-white/98 backdrop-blur-sm border-b border-slate-200 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 sm:h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             {config.logoUrl
-              ? <img src={config.logoUrl} alt={config.brokerName} className="h-7 max-w-[110px] object-contain" />
-              : <img src={`${BASE}images/logo-icon.png`} alt="MaintainHome" className="w-7 h-7 object-contain" />
+              ? <img src={config.logoUrl} alt={config.brokerName} className="h-9 sm:h-7 max-w-[120px] sm:max-w-[110px] object-contain shrink-0" />
+              : <img src={`${BASE}images/logo-icon.png`} alt="MaintainHome" className="w-9 h-9 sm:w-7 sm:h-7 object-contain shrink-0" />
             }
             {config.agentPhotoUrl && (
               <img src={config.agentPhotoUrl} alt={config.brokerName}
@@ -2094,9 +2094,9 @@ Click here to get started: ${link}`;
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={copyInviteLink}
-              className="flex items-center gap-1.5 text-sm font-bold px-4 py-2.5 rounded-xl text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
+              className="flex items-center gap-1.5 text-base sm:text-sm font-bold px-5 sm:px-4 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
               style={{ backgroundColor: accent }}>
-              {linkCopied ? <><Check className="w-3.5 h-3.5" />Copied!</> : <><Link2 className="w-3.5 h-3.5" />Invite Client</>}
+              {linkCopied ? <><Check className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Copied!</> : <><Link2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Invite Client</>}
             </button>
             {!isTeamMember && (
               <button onClick={openEditModal}
@@ -2113,14 +2113,14 @@ Click here to get started: ${link}`;
               <HomeIcon className="w-3.5 h-3.5" />My Home
             </button>
             <button onClick={async () => { await logout(); navigate("/"); }}
-              className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors">
-              <LogOut className="w-3.5 h-3.5" /><span className="hidden sm:inline">Sign Out</span>
+              className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 rounded-xl transition-colors">
+              <LogOut className="w-4.5 h-4.5 sm:w-3.5 sm:h-3.5" /><span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-8 sm:space-y-6 flex-1">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-8 space-y-10 sm:space-y-6 flex-1">
 
         {/* ════════════════════════════════════════════════════════
             HERO — dark slate, MaintainHome theme
