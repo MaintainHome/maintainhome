@@ -292,48 +292,48 @@ function TeamMembersPanel({
         <div className="px-6 py-6 sm:py-5 space-y-6 sm:space-y-5">
           {/* Invite form */}
           <div className="bg-slate-50 rounded-2xl p-5 sm:p-4 border border-slate-200 space-y-4 sm:space-y-3">
-            <p className="text-base sm:text-sm font-bold text-slate-700 uppercase tracking-wide">Invite a New Agent</p>
+            <p className="text-sm font-bold text-slate-700 uppercase tracking-wide">Invite a New Agent</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-3">
               <div>
-                <label className="block text-base sm:text-sm text-slate-500 mb-1.5 sm:mb-1">Agent Name</label>
+                <label className="block text-sm text-slate-500 mb-1">Agent Name</label>
                 <input
                   type="text"
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
                   placeholder="Jane Smith"
-                  className="w-full px-4 sm:px-3 py-3.5 sm:py-2 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
                 />
               </div>
               <div>
-                <label className="block text-base sm:text-sm text-slate-500 mb-1.5 sm:mb-1">Agent Email</label>
+                <label className="block text-sm text-slate-500 mb-1">Agent Email</label>
                 <input
                   type="email"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="agent@example.com"
-                  className="w-full px-4 sm:px-3 py-3.5 sm:py-2 rounded-xl border border-slate-200 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
                 />
               </div>
             </div>
             {inviteError && (
-              <p className="text-base sm:text-sm text-red-500">{inviteError}</p>
+              <p className="text-sm text-red-500">{inviteError}</p>
             )}
             <button
               onClick={handleInvite}
               disabled={inviting}
-              className="flex items-center gap-2 px-5 sm:px-4 py-3.5 sm:py-2 min-h-[48px] sm:min-h-0 rounded-xl text-white text-base sm:text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-white text-sm font-bold disabled:opacity-50 transition-all hover:opacity-90"
               style={{ backgroundColor: accent }}>
               {inviting ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
               Generate Invite Link
             </button>
             {inviteLink && (
               <div className="mt-2 p-4 sm:p-3 rounded-xl bg-green-50 border border-green-200">
-                <p className="text-base sm:text-sm font-bold text-green-700 mb-2.5 sm:mb-2">Invite link created! Share with the agent:</p>
+                <p className="text-sm font-bold text-green-700 mb-2">Invite link created! Share with the agent:</p>
                 <div className="flex items-center gap-2">
-                  <span className="text-base sm:text-sm text-green-800 font-mono break-all flex-1 truncate">{inviteLink}</span>
+                  <span className="text-sm text-green-800 font-mono break-all flex-1 truncate">{inviteLink}</span>
                   <button
                     onClick={() => { navigator.clipboard.writeText(inviteLink); }}
-                    className="flex items-center gap-1.5 sm:gap-1 px-4 sm:px-2.5 py-2.5 sm:py-1.5 rounded-lg bg-green-700 text-white text-base sm:text-sm font-bold hover:bg-green-800 transition-colors shrink-0 min-h-[44px] sm:min-h-0">
+                    className="flex items-center gap-1.5 sm:gap-1 px-4 sm:px-2.5 py-2.5 sm:py-1.5 rounded-lg bg-green-700 text-white text-sm font-bold hover:bg-green-800 transition-colors shrink-0">
                     <Copy className="w-4 h-4 sm:w-3 sm:h-3" />Copy
                   </button>
                 </div>
@@ -345,8 +345,8 @@ function TeamMembersPanel({
           {teamMembers.length === 0 ? (
             <div className="text-center py-10 sm:py-8 text-slate-400">
               <Users className="w-12 h-12 sm:w-10 sm:h-10 mx-auto mb-3 opacity-30" />
-              <p className="text-base sm:text-sm">No team members yet.</p>
-              <p className="text-base sm:text-sm mt-1">Invite an agent above to get started.</p>
+              <p className="text-sm">No team members yet.</p>
+              <p className="text-sm mt-1">Invite an agent above to get started.</p>
             </div>
           ) : (
             <div className="space-y-3 sm:space-y-2">
@@ -410,14 +410,14 @@ function TeamMembersPanel({
                     </div>
                     {/* Client invite link row (always shown) */}
                     <div className="px-4 pb-4 sm:pb-3">
-                      <div className="flex items-center gap-2 px-3 py-2.5 sm:py-2 rounded-xl bg-white border border-slate-200">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200">
                         <Link2 className="w-4 h-4 sm:w-3 sm:h-3 shrink-0" style={{ color: accent }} />
-                        <span className="text-sm sm:text-[11px] text-slate-500 font-mono flex-1 truncate min-w-0">
+                        <span className="text-xs text-slate-500 font-mono flex-1 truncate min-w-0">
                           {clientLink.replace(/^https?:\/\//, "")}
                         </span>
                         <button
                           onClick={() => copyLink(clientLink, clientCopyId)}
-                          className="flex items-center gap-1.5 sm:gap-1 px-3 sm:px-2 py-2 sm:py-1 rounded-lg text-base sm:text-sm font-bold shrink-0 transition-colors min-h-[40px] sm:min-h-0"
+                          className="flex items-center gap-1.5 sm:gap-1 px-3 sm:px-2 py-2 sm:py-1 rounded-lg text-sm font-bold shrink-0 transition-colors"
                           style={{
                             backgroundColor: copiedToken === clientCopyId ? "#d1fae5" : accent + "18",
                             color: copiedToken === clientCopyId ? "#059669" : accent,
@@ -659,17 +659,17 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
       <div className="mt-6 sm:mt-5 flex flex-col sm:flex-row gap-4 sm:gap-3 items-start sm:items-end">
         {/* Qty selector */}
         <div className="flex flex-col gap-1.5 sm:gap-1">
-          <label className="text-base sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Quantity</label>
+          <label className="text-sm font-bold text-slate-600 uppercase tracking-wide">Quantity</label>
           <div className="flex items-center gap-3 sm:gap-2">
             <button
               onClick={() => setQty((q) => Math.max(1, q - 1))}
-              className="w-12 h-12 sm:w-9 sm:h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-2xl sm:text-lg transition-colors"
+              className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-lg transition-colors"
               disabled={qty <= 1}
             >−</button>
-            <span className="w-12 sm:w-10 text-center text-2xl sm:text-lg font-black text-slate-900 tabular-nums">{qty}</span>
+            <span className="w-12 sm:w-10 text-center text-lg font-black text-slate-900 tabular-nums">{qty}</span>
             <button
               onClick={() => setQty((q) => Math.min(50, q + 1))}
-              className="w-12 h-12 sm:w-9 sm:h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-2xl sm:text-lg transition-colors"
+              className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 font-bold text-lg transition-colors"
               disabled={qty >= 50}
             >+</button>
           </div>
@@ -677,8 +677,8 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
 
         {/* Total */}
         <div className="flex flex-col gap-1.5 sm:gap-1">
-          <label className="text-base sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Total</label>
-          <div className="h-12 sm:h-9 flex items-center px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-lg sm:text-base font-black tabular-nums">
+          <label className="text-sm font-bold text-slate-600 uppercase tracking-wide">Total</label>
+          <div className="h-9 flex items-center px-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 text-base font-black tabular-nums">
             ${(qty * 36).toFixed(2)}
           </div>
         </div>
@@ -687,7 +687,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         <button
           onClick={handlePurchase}
           disabled={loading}
-          className="flex items-center gap-2 px-7 sm:px-6 py-3.5 sm:py-2.5 min-h-[48px] sm:min-h-0 rounded-xl text-white text-base sm:text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-sm"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-sm"
           style={{ backgroundColor: accent }}
         >
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
@@ -697,7 +697,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
         {/* View existing codes toggle */}
         <button
           onClick={() => { setShowCodes((v) => !v); if (!codesLoaded) loadCodes(); }}
-          className="min-h-[48px] sm:min-h-0 sm:h-9 flex items-center gap-2 sm:gap-1.5 px-5 sm:px-4 py-3 sm:py-0 rounded-xl border border-slate-200 text-base sm:text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
+          className="min-h-[48px] sm:min-h-0 sm:h-9 flex items-center gap-2 sm:gap-1.5 px-4 py-3 sm:py-0 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors"
         >
           <Gift className="w-4 h-4" />
           My Codes
@@ -718,36 +718,36 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
           ) : (
             <>
               <div className="flex items-center gap-3 mb-4 sm:mb-3">
-                <p className="text-base sm:text-sm font-bold text-slate-500 uppercase tracking-wide">Your Gift Codes</p>
-                <span className="text-base sm:text-sm px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">{available} available</span>
-                {redeemed > 0 && <span className="text-base sm:text-sm px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">{redeemed} used</span>}
+                <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">Your Gift Codes</p>
+                <span className="text-sm px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">{available} available</span>
+                {redeemed > 0 && <span className="text-sm px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500 font-semibold">{redeemed} used</span>}
               </div>
               <div className="grid gap-3 sm:gap-2 max-h-72 overflow-y-auto pr-1">
                 {existingCodes.map((c) => (
                   <div key={c.code} className={`flex items-start justify-between gap-3 px-4 py-3.5 sm:py-3 rounded-xl border ${c.redeemedAt ? "bg-slate-50 border-slate-100" : "bg-white border-slate-200"}`}>
                     <div className="flex-1 min-w-0">
-                      <span className={`font-mono font-semibold text-base sm:text-sm tracking-widest block ${c.redeemedAt ? "text-slate-400 line-through" : "text-slate-800"}`}>{c.code}</span>
+                      <span className={`font-mono font-semibold text-sm tracking-widest block ${c.redeemedAt ? "text-slate-400 line-through" : "text-slate-800"}`}>{c.code}</span>
                       {c.redeemedAt && (
                         <div className="mt-1.5 sm:mt-1">
-                          <p className="text-base sm:text-sm text-slate-500 font-medium">
+                          <p className="text-sm text-slate-500 font-medium">
                             Redeemed by{" "}
                             <span className="font-semibold text-slate-700">
                               {c.redeemerName || c.redeemerEmail || "a homeowner"}
                             </span>
                           </p>
                           {c.redeemerEmail && c.redeemerName && (
-                            <p className="text-base sm:text-sm text-slate-400">{c.redeemerEmail}</p>
+                            <p className="text-sm text-slate-400">{c.redeemerEmail}</p>
                           )}
-                          <p className="text-base sm:text-sm text-slate-400">
+                          <p className="text-sm text-slate-400">
                             {new Date(c.redeemedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                           </p>
                         </div>
                       )}
                     </div>
                     {c.redeemedAt ? (
-                      <span className="text-base sm:text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full font-semibold shrink-0 mt-0.5">Used</span>
+                      <span className="text-sm text-emerald-600 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full font-semibold shrink-0 mt-0.5">Used</span>
                     ) : (
-                      <button onClick={() => copyCode(c.code)} className="p-2 sm:p-0 text-slate-400 hover:text-primary transition-colors shrink-0 mt-0.5 min-h-[44px] sm:min-h-0 flex items-center" title="Copy code">
+                      <button onClick={() => copyCode(c.code)} className="p-2 sm:p-0 text-slate-400 hover:text-primary transition-colors shrink-0 mt-0.5 flex items-center" title="Copy code">
                         {copiedCode === c.code ? <Check className="w-5 h-5 sm:w-4 sm:h-4 text-primary" /> : <Copy className="w-5 h-5 sm:w-4 sm:h-4" />}
                       </button>
                     )}
@@ -1318,13 +1318,13 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
         <div className="mt-3 flex flex-col sm:flex-row gap-3">
           <button
             onClick={() => setOpen(true)}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 sm:py-2.5 rounded-xl text-white text-base sm:text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-all hover:opacity-90 active:scale-[0.98] shadow-sm"
             style={{ backgroundColor: accent }}
           >
             <PlusCircle className="w-4 h-4 shrink-0" />
             Create Client Account · {duration === "3years" ? "$99" : "$36"}
           </button>
-          <div className="flex items-center gap-2 text-base sm:text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 sm:py-2.5 w-full sm:w-auto">
+          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 w-full sm:w-auto">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>AI calendar pre-generated · Documents pre-loaded · Activation link sent by you</span>
           </div>
@@ -2096,7 +2096,7 @@ Click here to get started: ${link}`;
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <button onClick={copyInviteLink}
-              className="flex items-center gap-1.5 text-base sm:text-sm font-bold px-5 sm:px-4 py-3 sm:py-2.5 min-h-[44px] sm:min-h-0 rounded-xl text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
+              className="flex items-center gap-1.5 text-sm font-bold px-4 py-2.5 rounded-xl text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
               style={{ backgroundColor: accent }}>
               {linkCopied ? <><Check className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Copied!</> : <><Link2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Invite Client</>}
             </button>
@@ -2115,7 +2115,7 @@ Click here to get started: ${link}`;
               <HomeIcon className="w-3.5 h-3.5" />My Home
             </button>
             <button onClick={async () => { await logout(); navigate("/"); }}
-              className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2.5 sm:py-2 min-h-[44px] sm:min-h-0 rounded-xl transition-colors">
+              className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors">
               <LogOut className="w-4.5 h-4.5 sm:w-3.5 sm:h-3.5" /><span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
@@ -2162,7 +2162,7 @@ Click here to get started: ${link}`;
               style={{ backgroundColor: accent + "30", border: `1px solid ${accent}50` }}
             >
               <Star className="w-3 h-3" style={{ color: accent }} />
-              <span className="text-sm font-bold uppercase tracking-widest" style={{ color: accent }}>
+              <span className="text-xs font-bold uppercase tracking-wide" style={{ color: accent }}>
                 Pioneer Partner · Approved
               </span>
             </motion.div>
@@ -2273,11 +2273,11 @@ Click here to get started: ${link}`;
               </a>
               <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
                 <span className="hidden sm:inline text-white/15">·</span>
-                <span className="text-base sm:text-xs font-bold px-3 py-1 rounded-full"
+                <span className="text-xs font-bold px-3 py-1 rounded-full"
                   style={{ backgroundColor: accent + "28", color: accent }}>
                   {config.type === "team_leader" ? "Team Leader" : "Individual Agent"}
                 </span>
-                <span className="flex items-center gap-1.5 text-base sm:text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white/65">
+                <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-white/10 text-white/65">
                   <MIcon className="w-3 h-3 shrink-0" />{monetizationLabel}
                 </span>
               </div>
@@ -2423,7 +2423,7 @@ Click here to get started: ${link}`;
                 {linkCopied ? <><Check className="w-3.5 h-3.5 text-emerald-500" />Copied</> : <><Copy className="w-3.5 h-3.5" />Link only</>}
               </button>
             </div>
-            <p className="text-base sm:text-xs text-slate-400 mt-2 text-center break-all">
+            <p className="text-xs text-slate-400 mt-2 text-center break-all">
               Short link:{" "}
               <strong className="text-slate-600 font-mono">maintainhome.ai/{config.subdomain}</strong>
             </p>
@@ -2857,7 +2857,7 @@ Click here to get started: ${link}`;
                   <span className="font-black text-xs" style={{ color: accent }}>{item.step}</span>
                 </div>
                 <div>
-                  <p className="font-bold text-sm mb-1.5 sm:mb-1">{item.title}</p>
+                  <p className="font-bold text-sm mb-1">{item.title}</p>
                   <p className="text-white/50 text-xs leading-relaxed">{item.desc}</p>
                 </div>
               </div>
