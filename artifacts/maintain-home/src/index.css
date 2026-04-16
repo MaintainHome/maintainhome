@@ -166,6 +166,7 @@
     @apply font-sans antialiased bg-background text-foreground selection:bg-primary/20 selection:text-primary;
     overflow-wrap: break-word;
     word-break: break-word;
+    position: relative; /* Required: makes overflow-x: hidden create a real clip on iOS Safari */
   }
 
   h1, h2, h3, h4, h5, h6 {
