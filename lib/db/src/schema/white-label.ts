@@ -16,6 +16,8 @@ export const whiteLabelConfigsTable = pgTable("white_label_configs", {
   giftDuration: text("gift_duration").$type<"1year" | "3years" | null>(),
   status: text("status").$type<"pending" | "approved" | "rejected">().default("pending").notNull(),
   rejectionReason: text("rejection_reason"),
+  accountType: text("account_type").$type<"broker" | "builder">().default("broker").notNull(),
+  warrantyPeriodMonths: integer("warranty_period_months").default(12),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

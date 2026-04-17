@@ -355,8 +355,8 @@ export default function InviteLanding() {
                   color: ACCENT,
                 }}
               >
-                <span className="text-base">🎁</span>
-                A Special Gift from {displayName}
+                <span className="text-base">{branding.accountType === "builder" ? "🏗️" : "🎁"}</span>
+                {branding.accountType === "builder" ? `Your New Home from ${displayName}` : `A Special Gift from ${displayName}`}
               </div>
             </motion.div>
 
@@ -387,8 +387,9 @@ export default function InviteLanding() {
               transition={{ delay: 0.22, duration: 0.45 }}
               className="text-white/60 text-base sm:text-lg mb-8 text-center lg:text-left leading-relaxed"
             >
-              Give your clients the ultimate homeownership advantage —
-              powered by <span className="font-bold text-white/80">MaintainHome.ai</span>
+              {branding.accountType === "builder"
+                ? <>Your new home comes with <span className="font-bold text-white/80">1-year warranty tracking</span>, AI support, and a complete care plan — powered by MaintainHome.ai</>
+                : <>Give your clients the ultimate homeownership advantage — powered by <span className="font-bold text-white/80">MaintainHome.ai</span></>}
             </motion.p>
 
             {/* ── Maintly + speech bubble (points at CTA below) ── */}

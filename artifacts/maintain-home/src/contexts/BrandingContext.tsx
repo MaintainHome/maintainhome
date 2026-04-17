@@ -10,6 +10,8 @@ export interface BrandingConfig {
   welcomeMessage: string | null;
   type: "individual_agent" | "team_leader";
   contactEmail: string | null;
+  accountType?: "broker" | "builder";
+  warrantyPeriodMonths?: number | null;
 }
 
 interface BrandingContextType {

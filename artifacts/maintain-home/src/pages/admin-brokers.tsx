@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   CheckCircle2, XCircle, Trash2, Clock, RefreshCw, Eye, EyeOff,
-  Building2, User, ChevronDown, ChevronUp, Loader2, Shield, Phone
+  Building2, User, ChevronDown, ChevronUp, Loader2, Shield, Phone,
+  HardHat,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -19,13 +20,16 @@ interface BrokerRequest {
   welcomeMessage: string | null;
   contactEmail: string;
   type: "individual_agent" | "team_leader";
+  accountType: "broker" | "builder";
+  warrantyPeriodMonths: number | null;
   status: "pending" | "approved" | "rejected";
   rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-type Tab = "pending" | "approved" | "rejected";
+type StatusTab = "pending" | "approved" | "rejected";
+type AccountTab = "brokers" | "builders";
 
 export default function AdminBrokers() {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) ?? "");
@@ -36,7 +40,8 @@ export default function AdminBrokers() {
 
   const [requests, setRequests] = useState<BrokerRequest[]>([]);
   const [loading, setLoading] = useState(false);
-  const [tab, setTab] = useState<Tab>("pending");
+  const [accountTab, setAccountTab] = useState<AccountTab>("brokers");
+  const [statusTab, setStatusTab] = useState<StatusTab>("pending");
   const [expanded, setExpanded] = useState<number | null>(null);
 
   const [actionLoading, setActionLoading] = useState<number | null>(null);
@@ -177,20 +182,29 @@ export default function AdminBrokers() {
     );
   }
 
-  const filtered = requests.filter((r) => r.status === tab);
+  /* ── Filter by account type first, then by status ── */
+  const accountFiltered = requests.filter((r) => {
+    const at = r.accountType ?? "broker";
+    return accountTab === "builders" ? at === "builder" : at !== "builder";
+  });
 
-  const tabCounts: Record<Tab, number> = {
-    pending: requests.filter((r) => r.status === "pending").length,
-    approved: requests.filter((r) => r.status === "approved").length,
-    rejected: requests.filter((r) => r.status === "rejected").length,
+  const filtered = accountFiltered.filter((r) => r.status === statusTab);
+
+  const statusCounts: Record<StatusTab, number> = {
+    pending: accountFiltered.filter((r) => r.status === "pending").length,
+    approved: accountFiltered.filter((r) => r.status === "approved").length,
+    rejected: accountFiltered.filter((r) => r.status === "rejected").length,
   };
+
+  const brokerCount = requests.filter((r) => (r.accountType ?? "broker") !== "builder").length;
+  const builderCount = requests.filter((r) => r.accountType === "builder").length;
 
   return (
     <div className="min-h-screen bg-slate-950 py-10 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-black text-white">Broker White-Label Requests</h1>
+            <h1 className="text-2xl font-black text-white">White-Label Applications</h1>
             <p className="text-slate-400 text-sm mt-1">{requests.length} total applications</p>
           </div>
           <button
@@ -203,17 +217,46 @@ export default function AdminBrokers() {
           </button>
         </div>
 
+        {/* ── Account type tabs (Brokers / Builders) ── */}
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => { setAccountTab("brokers"); setExpanded(null); }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${accountTab === "brokers" ? "bg-white text-slate-900" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+          >
+            <Building2 className="w-4 h-4" />
+            Brokers
+            {brokerCount > 0 && (
+              <span className={`px-1.5 py-0.5 rounded-full text-xs ${accountTab === "brokers" ? "bg-slate-900 text-white" : "bg-slate-600 text-slate-300"}`}>
+                {brokerCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => { setAccountTab("builders"); setExpanded(null); }}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${accountTab === "builders" ? "bg-white text-slate-900" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+          >
+            <HardHat className="w-4 h-4" />
+            Builders
+            {builderCount > 0 && (
+              <span className={`px-1.5 py-0.5 rounded-full text-xs ${accountTab === "builders" ? "bg-slate-900 text-white" : "bg-slate-600 text-slate-300"}`}>
+                {builderCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* ── Status sub-tabs ── */}
         <div className="flex gap-2 mb-6">
-          {(["pending", "approved", "rejected"] as Tab[]).map((t) => (
+          {(["pending", "approved", "rejected"] as StatusTab[]).map((t) => (
             <button
               key={t}
-              onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${tab === t ? "bg-white text-slate-900" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
+              onClick={() => { setStatusTab(t); setExpanded(null); }}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${statusTab === t ? "bg-primary text-white" : "bg-slate-800 text-slate-400 hover:bg-slate-700"}`}
             >
               {t.charAt(0).toUpperCase() + t.slice(1)}
-              {tabCounts[t] > 0 && (
-                <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${tab === t ? "bg-slate-900 text-white" : "bg-slate-600 text-slate-300"}`}>
-                  {tabCounts[t]}
+              {statusCounts[t] > 0 && (
+                <span className={`ml-2 px-1.5 py-0.5 rounded-full text-xs ${statusTab === t ? "bg-white/20 text-white" : "bg-slate-600 text-slate-300"}`}>
+                  {statusCounts[t]}
                 </span>
               )}
             </button>
@@ -227,7 +270,9 @@ export default function AdminBrokers() {
         )}
 
         {!loading && filtered.length === 0 && (
-          <div className="text-center py-16 text-slate-500">No {tab} requests</div>
+          <div className="text-center py-16 text-slate-500">
+            No {statusTab} {accountTab === "builders" ? "builder" : "broker"} applications
+          </div>
         )}
 
         <div className="space-y-3">
@@ -235,6 +280,7 @@ export default function AdminBrokers() {
             const isExpanded = expanded === req.id;
             const isBusy = actionLoading === req.id;
             const edits = editFields[req.id] ?? {};
+            const isBuilder = (req.accountType ?? "broker") === "builder";
 
             return (
               <motion.div
@@ -248,12 +294,21 @@ export default function AdminBrokers() {
                   onClick={() => setExpanded(isExpanded ? null : req.id)}
                 >
                   <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                    {req.type === "team_leader"
-                      ? <Building2 className="w-4 h-4 text-primary" />
-                      : <User className="w-4 h-4 text-primary" />}
+                    {isBuilder
+                      ? <HardHat className="w-4 h-4 text-primary" />
+                      : req.type === "team_leader"
+                        ? <Building2 className="w-4 h-4 text-primary" />
+                        : <User className="w-4 h-4 text-primary" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-white text-sm">{req.brokerName}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold text-white text-sm">{req.brokerName}</p>
+                      {isBuilder && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-400 border border-amber-700/30">
+                          Builder
+                        </span>
+                      )}
+                    </div>
                     <p className="text-slate-400 text-xs">{req.subdomain}.maintainhome.ai · {req.contactEmail}</p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -275,16 +330,26 @@ export default function AdminBrokers() {
                   <div className="border-t border-slate-800 px-5 py-5 space-y-5">
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
+                        <p className="text-slate-500 text-xs mb-1">Account Type</p>
+                        <p className="text-white capitalize">{isBuilder ? "🏗️ Builder" : "🏡 Broker"}</p>
+                      </div>
+                      <div>
                         <p className="text-slate-500 text-xs mb-1">Type</p>
                         <p className="text-white capitalize">{req.type.replace("_", " ")}</p>
                       </div>
+                      {isBuilder && req.warrantyPeriodMonths && (
+                        <div>
+                          <p className="text-slate-500 text-xs mb-1">Warranty Period</p>
+                          <p className="text-white">{req.warrantyPeriodMonths} months</p>
+                        </div>
+                      )}
                       <div>
                         <p className="text-slate-500 text-xs mb-1">Logo URL</p>
                         <p className="text-white truncate">{req.logoUrl ?? "—"}</p>
                       </div>
                       {req.agentPhotoUrl && (
                         <div>
-                          <p className="text-slate-500 text-xs mb-1">Agent Photo</p>
+                          <p className="text-slate-500 text-xs mb-1">{isBuilder ? "Contact Photo" : "Agent Photo"}</p>
                           <img src={req.agentPhotoUrl} alt="Agent" className="w-10 h-10 rounded-full object-cover border border-slate-700" />
                         </div>
                       )}
@@ -312,7 +377,7 @@ export default function AdminBrokers() {
                       )}
                     </div>
 
-                    {tab === "pending" && (
+                    {statusTab === "pending" && (
                       <div className="space-y-3 pt-2 border-t border-slate-800">
                         <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider">Override before approving (optional)</p>
                         <div className="grid grid-cols-2 gap-3">
@@ -374,15 +439,15 @@ export default function AdminBrokers() {
                       </div>
                     )}
 
-                    {(tab === "approved" || tab === "rejected") && (
+                    {(statusTab === "approved" || statusTab === "rejected") && (
                       <div className="flex justify-between items-center pt-2 border-t border-slate-800">
                         <div className="flex items-center gap-2">
-                          {tab === "approved"
+                          {statusTab === "approved"
                             ? <><CheckCircle2 className="w-4 h-4 text-green-500" /><span className="text-green-400 text-sm font-semibold">Approved</span></>
                             : <><XCircle className="w-4 h-4 text-red-400" /><span className="text-red-400 text-sm font-semibold">Rejected</span></>}
                         </div>
                         <div className="flex gap-2">
-                          {tab === "rejected" && (
+                          {statusTab === "rejected" && (
                             <button
                               onClick={() => approve(req)}
                               disabled={isBusy}
@@ -391,7 +456,7 @@ export default function AdminBrokers() {
                               <CheckCircle2 className="w-3.5 h-3.5" /> Re-approve
                             </button>
                           )}
-                          {tab === "approved" && (
+                          {statusTab === "approved" && (
                             <button
                               onClick={() => reject(req)}
                               disabled={isBusy}

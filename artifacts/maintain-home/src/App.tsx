@@ -42,6 +42,7 @@ import Quiz from "@/pages/quiz";
 import HomeProfile from "@/pages/home-profile";
 import CalendarPage from "@/pages/calendar-page";
 import BrokerOnboard from "@/pages/broker-onboard";
+import BuilderOnboard from "@/pages/builder-onboard";
 import AdminBrokers from "@/pages/admin-brokers";
 import BrokerDashboard from "@/pages/broker-dashboard";
 import ChooseRole from "@/pages/choose-role";
@@ -143,6 +144,7 @@ function Router() {
       <Route path="/home-profile" component={HomeProfile} />
       <Route path="/calendar" component={CalendarPage} />
       <Route path="/broker-onboard" component={BrokerOnboard} />
+      <Route path="/builder-onboard" component={BuilderOnboard} />
       <Route path="/admin/brokers" component={AdminBrokers} />
       <Route path="/broker-dashboard" component={BrokerDashboard} />
       <Route path="/choose-role" component={ChooseRole} />

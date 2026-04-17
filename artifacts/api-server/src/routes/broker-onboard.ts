@@ -58,7 +58,7 @@ router.post("/photo-upload", imageUpload.single("photo"), async (req: Request, r
 });
 
 const SUBDOMAIN_RE = /^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/;
-const RESERVED = new Set(["www", "app", "api", "admin", "mail", "support", "help", "broker"]);
+const RESERVED = new Set(["www", "app", "api", "admin", "mail", "support", "help", "broker", "builder"]);
 
 router.post("/broker-onboard", async (req: Request, res: Response) => {
   try {
@@ -74,6 +74,8 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       type,
       monetizationModel,
       giftDuration,
+      accountType,
+      warrantyPeriodMonths,
     } = req.body as Record<string, string>;
 
     if (!subdomain || !brokerName || !contactEmail || !type) {
@@ -137,6 +139,15 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
         ? (giftDuration as "1year" | "3years")
         : null;
 
+    const validAccountType: "broker" | "builder" =
+      accountType === "builder" ? "builder" : "broker";
+
+    const parsedWarranty = parseInt(warrantyPeriodMonths, 10);
+    const validWarrantyMonths =
+      validAccountType === "builder" && !isNaN(parsedWarranty) && parsedWarranty > 0
+        ? parsedWarranty
+        : 12;
+
     await db.insert(whiteLabelConfigsTable).values({
       subdomain: cleanSub,
       brokerName: brokerName.trim(),
@@ -149,6 +160,8 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       type: type as "individual_agent" | "team_leader",
       monetizationModel: validMonetization,
       giftDuration: validGiftDuration,
+      accountType: validAccountType,
+      warrantyPeriodMonths: validWarrantyMonths,
       status: "pending",
     });
 

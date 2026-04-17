@@ -1,0 +1,45 @@
+Add support for a Builder-specific white-label version (slightly different from brokers).
+
+1. Database Change:
+   - Add a new column to white_label_configs table: account_type (string, default 'broker', values: 'broker' or 'builder').
+
+2. Builder Application Page:
+   - Create a new page at /builder-onboard (similar to /broker-onboard).
+   - Headline: "The Ultimate New Home Buyer Experience Tool"
+   - Subheadline: "Give your buyers a branded 1-year home care package with warranty tracking, document vault, and AI maintenance support."
+   - Form fields: Same as broker (name, desired handle, logo upload, headshot, phone, tagline, welcome message) + one new optional field: "Primary Builder Warranty Period (months)" default 12.
+   - Add a note: "Builder accounts focus on new construction warranties and 1-year post-closing support."
+   - On submit, set account_type = 'builder' and go to pending queue.
+
+3. Admin Dashboard Update (/admin/brokers):
+   - Add a second tab: "Builders" (separate from "Brokers").
+   - Show pending/approved builders with their account_type clearly labeled.
+   - Keep approval flow the same.
+
+4. Dashboard Differentiation:
+   - When account_type = 'builder':
+     - Change dashboard title from "Partner Dashboard" to "Builder Dashboard".
+     - Hero headline: "Welcome to your Branded New Home Buyer Experience Platform"
+     - Update stat tiles to be more relevant: Total Homes Delivered, Active 1-Year Warranties, Upcoming Warranty Expirations, etc.
+     - Emphasize the "Create Client Account (Pre-Paid Gift)" as "Deliver 1-Year Builder Care Package".
+     - In the new construction section, make builder warranty dates and specs more prominent with automatic reminders set for the 1-year window.
+     - Keep all core functionality (Maintly, calendar, documents, history) but adjust default messaging to focus on new home + warranty support.
+
+5. Invite Landing Page for Builders:
+   - When a builder handle is used, show slightly different welcome messaging focused on "Your new home from [Builder Name]" and 1-year warranty support.
+
+Technical Notes:
+- Reuse as much existing white-label code as possible (branding, routing, client assignment).
+- Use account_type to conditionally render text, stat tiles, and emphasis areas.
+- Keep the path format the same: maintainhome.ai/[handle]
+
+After implementing, confirm:
+- /builder-onboard page exists and submits with account_type = 'builder'.
+- Admin page has separate "Builders" tab.
+- Builder dashboard looks different from broker dashboard (titles, emphasis on warranties).
+- Existing broker accounts continue to work unchanged.
+
+Test:
+- Submit a test builder application.
+- Approve it in admin.
+- View the builder dashboard and a sample invite page.

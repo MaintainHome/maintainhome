@@ -44,6 +44,8 @@ interface BrokerConfig {
   giftDuration: "1year" | "3years" | null;
   status: string;
   createdAt: string;
+  accountType?: "broker" | "builder";
+  warrantyPeriodMonths?: number | null;
 }
 
 interface Client {
@@ -2009,6 +2011,7 @@ Click here to get started: ${link}`;
 
   const accent = MH_PRIMARY;
   const isGift = config?.monetizationModel === "closing_gift";
+  const isBuilder = config?.accountType === "builder";
   const inviteLink = getPersonalInviteLink();
 
   /* ── Loading ─────────────────────────────────────────────────────── */
@@ -2073,7 +2076,7 @@ Click here to get started: ${link}`;
               <img src={config.agentPhotoUrl} alt={config.brokerName}
                 className="w-7 h-7 rounded-full object-cover border border-slate-200 hidden sm:block" />
             )}
-            <span className="font-bold text-slate-900 text-sm hidden sm:block">Partner Dashboard</span>
+            <span className="font-bold text-slate-900 text-sm hidden sm:block">{isBuilder ? "Builder Dashboard" : "Partner Dashboard"}</span>
             <span className="text-slate-300 hidden sm:block">·</span>
             <span className="text-sm font-semibold truncate hidden sm:block" style={{ color: accent }}>
               {isTeamMember && membership ? membership.displayName : config.brokerName}
@@ -2098,7 +2101,7 @@ Click here to get started: ${link}`;
             <button onClick={copyInviteLink}
               className="flex items-center gap-1.5 text-sm font-bold px-4 py-2.5 rounded-xl text-white shadow-sm hover:opacity-90 active:scale-[0.98] transition-all"
               style={{ backgroundColor: accent }}>
-              {linkCopied ? <><Check className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Copied!</> : <><Link2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Invite Client</>}
+              {linkCopied ? <><Check className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Copied!</> : isBuilder ? <><Link2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Assign Package</> : <><Link2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" />Invite Client</>}
             </button>
             {!isTeamMember && (
               <button onClick={openEditModal}
@@ -2163,7 +2166,7 @@ Click here to get started: ${link}`;
             >
               <Star className="w-3 h-3" style={{ color: accent }} />
               <span className="text-xs font-bold uppercase tracking-wide" style={{ color: accent }}>
-                Pioneer Partner · Approved
+                {isBuilder ? "Builder Account · Approved" : "Pioneer Partner · Approved"}
               </span>
             </motion.div>
 
@@ -2253,7 +2256,9 @@ Click here to get started: ${link}`;
               transition={{ delay: 0.38, duration: 0.5 }}
               className="text-white/55 text-base sm:text-base max-w-lg mx-auto mb-7 leading-relaxed"
             >
-              Welcome to your branded client retention platform. Help your clients own their homes better — and keep them for life.
+              {isBuilder
+                ? "Welcome to your Branded New Home Buyer Experience Platform. Deliver 1-year care packages to buyers at closing and track every warranty automatically."
+                : "Welcome to your branded client retention platform. Help your clients own their homes better — and keep them for life."}
             </motion.p>
 
             {/* Subdomain + type + model chips */}
@@ -2299,7 +2304,11 @@ Click here to get started: ${link}`;
                   color: "#fff",
                 }}
               >
-                {linkCopied ? <><Check className="w-4 h-4" />Copied!</> : <><Copy className="w-4 h-4" />Copy Invite Link</>}
+                {linkCopied
+                  ? <><Check className="w-4 h-4" />Copied!</>
+                  : isBuilder
+                    ? <><Copy className="w-4 h-4" />Copy Buyer Link</>
+                    : <><Copy className="w-4 h-4" />Copy Invite Link</>}
               </button>
               <button
                 onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
@@ -2317,7 +2326,7 @@ Click here to get started: ${link}`;
 
           <StatCard
             icon={<Users className="w-6 h-6" />}
-            label="Total Clients"
+            label={isBuilder ? "Total Homes Delivered" : "Total Clients"}
             value={clients.length}
             iconBg={accent + "18"}
             iconColor={accent}
@@ -2325,7 +2334,7 @@ Click here to get started: ${link}`;
 
           <StatCard
             icon={<Zap className="w-6 h-6" />}
-            label="Active Pro"
+            label={isBuilder ? "Active 1-Yr Warranties" : "Active Pro"}
             value={proClients.length}
             iconBg="#fef3c7"
             iconColor="#f59e0b"
