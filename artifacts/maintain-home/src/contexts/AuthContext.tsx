@@ -11,6 +11,7 @@ export interface AuthUser {
   fullAccess: boolean;
   subscriptionStatus: SubscriptionStatus;
   isBroker: boolean;
+  isBuilder: boolean;
   smsEnabled: boolean;
   smsPhone: string | null;
   hasSeenDashboardTour: boolean;

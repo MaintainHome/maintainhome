@@ -23,6 +23,11 @@ export default function ChooseRole() {
     if (loading) return;
     if (!user) { navigate("/"); return; }
     if (!user.isBroker) { navigate("/"); return; }
+    // Builders have no homeowner account — send them straight to their dashboard
+    if (user.isBuilder) {
+      sessionStorage.setItem("mh_active_role", "broker");
+      navigate("/broker-dashboard");
+    }
   }, [loading, user]);
 
   function chooseHomeowner() {

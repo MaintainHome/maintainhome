@@ -37,6 +37,7 @@ export default function Home() {
 
   // Dual-role routing: if this user is also an approved broker and hasn't chosen
   // the homeowner role for this session, send them to the role selection screen.
+  // Builders bypass the choice entirely — they go straight to the dashboard.
   useEffect(() => {
     if (authLoading) return;
     if (!user) return;
@@ -55,8 +56,15 @@ export default function Home() {
       return;
     }
 
+    // Builders don't have a homeowner account — skip choose-role and go straight to dashboard
+    if (user.isBuilder) {
+      sessionStorage.setItem("mh_active_role", "broker");
+      navigate("/broker-dashboard");
+      return;
+    }
+
     navigate("/choose-role");
-  }, [authLoading, user?.id, user?.isBroker]);
+  }, [authLoading, user?.id, user?.isBroker, user?.isBuilder]);
 
   // Show broker welcome message on first login under a branded subdomain
   useEffect(() => {

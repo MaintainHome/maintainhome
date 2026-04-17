@@ -327,7 +327,7 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
 
   // Check if this user also has an approved broker account (team leader / individual agent)
   const [brokerRecord] = await db
-    .select({ id: whiteLabelConfigsTable.id })
+    .select({ id: whiteLabelConfigsTable.id, accountType: whiteLabelConfigsTable.accountType })
     .from(whiteLabelConfigsTable)
     .where(
       and(
@@ -352,6 +352,7 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
   res.json({
     ...user,
     isBroker: !!brokerRecord || !!teamMembership,
+    isBuilder: brokerRecord?.accountType === "builder",
     isTeamMember: !!teamMembership,
   });
 });
