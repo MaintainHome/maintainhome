@@ -2076,8 +2076,8 @@ Click here to get started: ${link}`;
               <img src={config.agentPhotoUrl} alt={config.brokerName}
                 className="w-7 h-7 rounded-full object-cover border border-slate-200 hidden sm:block" />
             )}
-            <span className="font-bold text-slate-900 text-sm hidden sm:block">{isBuilder ? "Builder Dashboard" : "Partner Dashboard"}</span>
-            <span className="text-slate-300 hidden sm:block">·</span>
+            <span className="font-bold text-slate-900 text-sm hidden sm:block whitespace-nowrap shrink-0">{isBuilder ? "Builder Dashboard" : "Partner Dashboard"}</span>
+            <span className="text-slate-300 hidden sm:block shrink-0">·</span>
             <span className="text-sm font-semibold truncate hidden sm:block" style={{ color: accent }}>
               {isTeamMember && membership ? membership.displayName : config.brokerName}
             </span>
@@ -2089,11 +2089,6 @@ Click here to get started: ${link}`;
             {isTeamLeader && (
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 shrink-0">
                 <Users className="w-3 h-3" />Team Leader
-              </span>
-            )}
-            {config.phoneNumber && (
-              <span className="hidden lg:flex items-center gap-1 text-sm text-slate-400">
-                <Phone className="w-3 h-3" />{config.phoneNumber}
               </span>
             )}
           </div>

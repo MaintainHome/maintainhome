@@ -59,7 +59,7 @@ export default function InviteLanding() {
   }, [params?.subdomain, params?.teamHandle, params?.agentHandle]);
 
   const { setPreviewSubdomain, branding, loading: brandingLoading } = useBranding();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, isBroker } = useAuth();
   const [, navigate] = useLocation();
 
   const [showAuth, setShowAuth] = useState(false);
@@ -103,8 +103,8 @@ export default function InviteLanding() {
   }, [subdomain, routeAgentHandle]);
 
   useEffect(() => {
-    if (!authLoading && user) navigate("/");
-  }, [user, authLoading, navigate]);
+    if (!authLoading && user && !isBroker) navigate("/");
+  }, [user, authLoading, isBroker, navigate]);
 
   function openSignup() { setAuthInitialMode("signup"); setShowAuth(true); }
   function openSignin() { setAuthInitialMode("signin"); setShowAuth(true); }
