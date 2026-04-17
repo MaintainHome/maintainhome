@@ -2087,7 +2087,7 @@ Click here to get started: ${link}`;
               </span>
             )}
             {isTeamLeader && (
-              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 shrink-0">
+              <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100 shrink-0 mr-3">
                 <Users className="w-3 h-3" />Team Leader
               </span>
             )}
