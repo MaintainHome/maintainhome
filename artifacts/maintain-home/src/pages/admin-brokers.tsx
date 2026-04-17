@@ -309,7 +309,7 @@ export default function AdminBrokers() {
                         </span>
                       )}
                     </div>
-                    <p className="text-slate-400 text-xs">{req.subdomain}.maintainhome.ai · {req.contactEmail}</p>
+                    <p className="text-slate-400 text-xs">maintainhome.ai/{req.subdomain} · {req.contactEmail}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     {req.agentPhotoUrl && (
