@@ -228,10 +228,12 @@ export default function HistoryPage() {
           transition={{ duration: 0.4 }}
         >
           {/* Header */}
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <ClipboardList className="w-5 h-5 text-primary" />
-            </div>
+          <div className="flex items-end gap-4 mb-2">
+            <img
+              src={`${import.meta.env.BASE_URL}images/maintly_maintain.png`}
+              alt="Maintly"
+              className="h-20 w-auto object-contain shrink-0 drop-shadow-sm"
+            />
             <div>
               <h1 className="text-2xl font-display font-black text-foreground">
                 My Maintenance History
