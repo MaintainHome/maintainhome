@@ -1924,7 +1924,16 @@ export default function BrokerDashboard() {
   function copyFullMessage() {
     if (!config) return;
     const link = getPersonalInviteLink();
-    const msg = `Hi [Client Name],
+    const isBuilderAccount = config.accountType === "builder";
+    const msg = isBuilderAccount
+      ? `Hi [Client Name],
+
+Congratulations on your new home from ${config.brokerName}! As part of your post-closing experience, we're providing you with complimentary access to MaintainHome.ai — your personal warranty assistant for the first year of homeownership.
+
+Maintly, your AI home assistant, will help you navigate your 1-year warranty window, track maintenance tasks, store important documents, and stay on top of everything related to your new home.
+
+Click here to get started: ${link}`
+      : `Hi [Client Name],
 
 I wanted to give you this personal gift to help with your new home. MaintainHome.ai is an app that will streamline your homeownership experience. You'll be able to track maintenance, talk to your AI assistant Maintly, keep all your documents in one place, and stay on top of everything about your most important investment.
 
