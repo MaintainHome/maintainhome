@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import {
   Home, Save, CheckCircle2, AlertCircle, Edit2,
-  MapPin, Bed, Bath, Layers, Waves, Calendar, Percent,
+  MapPin, Bed, Bath, Layers, Waves, Calendar, Percent, Car,
   TrendingDown, TrendingUp, Info, RefreshCw, Zap, X, CreditCard, Trash2, Shield,
   ExternalLink, MessageSquare, Phone, Bell, BellOff, ToggleLeft, ToggleRight, Gift, Loader2, Mail,
 } from "lucide-react";
@@ -128,6 +128,10 @@ export default function HomeProfilePage() {
   const [isNewConstruction, setIsNewConstruction] = useState(false);
   const [newConstructionData, setNewConstructionData] = useState<NewConstructionData>(emptyNewConstruction);
 
+  const [hasGarage, setHasGarage] = useState("");
+  const [garageType, setGarageType] = useState("");
+  const [garageSpaces, setGarageSpaces] = useState("");
+
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState<Record<string, string>>({});
   const [editSaving, setEditSaving] = useState(false);
@@ -249,6 +253,9 @@ export default function HomeProfilePage() {
           pastPestIssues: prof.pastPestIssues ?? "",
           pastPestIssuesNotes: prof.pastPestIssuesNotes ?? "",
         });
+        if (prof.hasGarage) setHasGarage(prof.hasGarage);
+        if (prof.garageType) setGarageType(prof.garageType);
+        if (prof.garageSpaces != null) setGarageSpaces(String(prof.garageSpaces));
         if (prof.newConstructionData) {
           setIsNewConstruction(true);
           setNewConstructionData({ ...emptyNewConstruction, ...(prof.newConstructionData as Partial<NewConstructionData>) });
@@ -282,6 +289,9 @@ export default function HomeProfilePage() {
           sidingType: profile.sidingType || null,
           pastPestIssues: profile.pastPestIssues || null,
           pastPestIssuesNotes: profile.pastPestIssues === "yes" ? (profile.pastPestIssuesNotes || null) : null,
+          hasGarage: hasGarage || null,
+          garageType: hasGarage === "yes" ? (garageType || null) : null,
+          garageSpaces: hasGarage === "yes" && garageSpaces ? parseInt(garageSpaces) : null,
           newConstructionData: isNewConstruction ? newConstructionData : null,
         }),
       });
@@ -891,6 +901,57 @@ export default function HomeProfilePage() {
                   ))}
                 </div>
               </div>
+            </div>
+
+            {/* Garage */}
+            <div>
+              <label className="flex items-center gap-1.5 text-base sm:text-sm font-semibold text-slate-700 mb-2 sm:mb-1.5">
+                <Car className="w-4 h-4 text-slate-400" />
+                Garage?
+              </label>
+              <div className="flex gap-2 mb-3">
+                {["yes", "no"].map(v => (
+                  <button
+                    key={v}
+                    onClick={() => { setHasGarage(prev => prev === v ? "" : v); }}
+                    className={`flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all ${
+                      hasGarage === v
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                    }`}
+                  >
+                    {v === "yes" ? "Yes" : "No"}
+                  </button>
+                ))}
+              </div>
+              {hasGarage === "yes" && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-slate-600 mb-1.5 block">Attached or Detached?</label>
+                    <select
+                      value={garageType}
+                      onChange={e => setGarageType(e.target.value)}
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all bg-white"
+                    >
+                      <option value="">Select…</option>
+                      <option value="Attached">Attached</option>
+                      <option value="Detached">Detached</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-600 mb-1.5 block">Number of Spaces</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={10}
+                      value={garageSpaces}
+                      onChange={e => setGarageSpaces(e.target.value)}
+                      placeholder="e.g. 2"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm text-slate-800 transition-all"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Year Built + Last Renovation Year */}

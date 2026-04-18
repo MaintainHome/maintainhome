@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Hammer, Calendar, Layers, Paintbrush2, Package, Plus, Trash2, FileText, Car, TreePine } from "lucide-react";
+import { Hammer, Calendar, Layers, Paintbrush2, Package, Plus, Trash2, FileText, TreePine } from "lucide-react";
 
 export interface NewConstructionData {
   warrantyDates: { label: string; date: string }[];
@@ -11,7 +11,6 @@ export interface NewConstructionData {
   misc1: { description: string };
   misc2: { description: string };
   appliances: { brand: string; modelSerial: string }[];
-  garage: { hasGarage: boolean; type: "" | "Detached" | "Attached"; spaces: string };
   porches: { hasFront: boolean; hasRear: boolean; screened: boolean; materials: string };
 }
 
@@ -35,7 +34,6 @@ export const emptyNewConstruction: NewConstructionData = {
   misc1: { description: "" },
   misc2: { description: "" },
   appliances: [],
-  garage: { hasGarage: false, type: "", spaces: "" },
   porches: { hasFront: false, hasRear: false, screened: false, materials: "" },
 };
 
@@ -150,42 +148,6 @@ export function NewConstructionSection({ data, onChange, accent = "#1f9e6e", onD
             </div>
           ))}
         </div>
-      </SubSection>
-
-      {/* Garage */}
-      <SubSection icon={<Car className="w-3.5 h-3.5 text-slate-400" />} title="Garage">
-        <Checkbox
-          checked={safe.garage.hasGarage}
-          onChange={v => onChange({ ...safe, garage: { ...safe.garage, hasGarage: v } })}
-          label="Has Garage?"
-          accent={accent}
-        />
-        {safe.garage.hasGarage && (
-          <div className="grid grid-cols-2 gap-3 mt-2 pl-7">
-            <Field label="Detached or Attached?">
-              <select
-                value={safe.garage.type}
-                onChange={e => onChange({ ...safe, garage: { ...safe.garage, type: e.target.value as "" | "Detached" | "Attached" } })}
-                className={selectCls}
-              >
-                <option value="">Select…</option>
-                <option value="Detached">Detached</option>
-                <option value="Attached">Attached</option>
-              </select>
-            </Field>
-            <Field label="Number of Spaces">
-              <input
-                type="number"
-                min={1}
-                max={10}
-                value={safe.garage.spaces}
-                onChange={e => onChange({ ...safe, garage: { ...safe.garage, spaces: e.target.value } })}
-                placeholder="e.g. 2"
-                className={inputCls}
-              />
-            </Field>
-          </div>
-        )}
       </SubSection>
 
       {/* Porches */}

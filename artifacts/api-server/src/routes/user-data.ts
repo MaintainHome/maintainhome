@@ -257,6 +257,7 @@ router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, re
     lastRenovationYear, yearBuilt, mortgageRate,
     grassType, foundationType, crawlSpaceSealed, hvacType, roofAgeYear,
     sidingType, pastPestIssues, pastPestIssuesNotes,
+    hasGarage, garageType, garageSpaces,
     newConstructionData,
   } = req.body;
 
@@ -278,6 +279,9 @@ router.put("/user/home-profile", requireAuth as any, async (req: AuthRequest, re
     sidingType: sidingType ?? null,
     pastPestIssues: pastPestIssues ?? null,
     pastPestIssuesNotes: pastPestIssuesNotes ?? null,
+    hasGarage: hasGarage ?? null,
+    garageType: garageType ?? null,
+    garageSpaces: garageSpaces != null ? Number(garageSpaces) : null,
     newConstructionData: newConstructionData ?? null,
     updatedAt: new Date(),
   };

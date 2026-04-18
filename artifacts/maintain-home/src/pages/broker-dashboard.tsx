@@ -1131,6 +1131,9 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
     sidingType: "",
     pastPestIssues: "no",
     pastPestIssuesNotes: "",
+    hasGarage: "",
+    garageType: "",
+    garageSpaces: "",
   });
 
   const [docs, setDocs] = useState<DocEntry[]>([]);
@@ -1213,6 +1216,9 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
       sidingType: form.sidingType || null,
       pastPestIssues: form.pastPestIssues || null,
       pastPestIssuesNotes: form.pastPestIssues === "yes" ? (form.pastPestIssuesNotes || null) : null,
+      hasGarage: form.hasGarage || null,
+      garageType: form.hasGarage === "yes" ? (form.garageType || null) : null,
+      garageSpaces: form.hasGarage === "yes" && form.garageSpaces ? parseInt(form.garageSpaces) : null,
     };
 
     setLoading(true);
@@ -1649,6 +1655,61 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                         className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
                         style={{ "--tw-ring-color": accent } as React.CSSProperties}
                       />
+                    </div>
+                  )}
+                </div>
+
+                {/* Garage */}
+                <div className="space-y-3">
+                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wide">Garage <span className="font-normal normal-case text-slate-400">(optional)</span></p>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1">Has Garage?</label>
+                    <div className="flex gap-2">
+                      {["yes", "no"].map(v => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setField("hasGarage", form.hasGarage === v ? "" : v)}
+                          className={`flex-1 py-2 rounded-xl border text-sm font-semibold transition-all ${
+                            form.hasGarage === v
+                              ? "border-emerald-500 bg-emerald-50 text-emerald-700"
+                              : "border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                          }`}
+                          style={form.hasGarage === v ? { borderColor: accent, backgroundColor: `${accent}18`, color: accent } : {}}
+                        >
+                          {v === "yes" ? "Yes" : "No"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {form.hasGarage === "yes" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1">Attached or Detached?</label>
+                        <select
+                          value={form.garageType}
+                          onChange={(e) => setField("garageType", e.target.value)}
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:border-transparent bg-white"
+                          style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                        >
+                          <option value="">Select…</option>
+                          <option value="Attached">Attached</option>
+                          <option value="Detached">Detached</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-slate-600 uppercase tracking-wide mb-1">Number of Spaces</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={10}
+                          value={form.garageSpaces}
+                          onChange={(e) => setField("garageSpaces", e.target.value)}
+                          placeholder="e.g. 2"
+                          className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:border-transparent"
+                          style={{ "--tw-ring-color": accent } as React.CSSProperties}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
