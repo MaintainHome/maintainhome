@@ -40,13 +40,11 @@ function fmtBytes(n: number) {
 }
 
 // ── Avatar component ──────────────────────────────────────────────────────
-function MaintlyAvatar({ variant = "thumb" }: { variant?: "wrench" | "thumb" }) {
-  const src = variant === "wrench"
-    ? `${BASE}images/maintly_wrench.png`
-    : `${BASE}images/maintly_thumb.png`;
+function MaintlyAvatar({ size = "sm" }: { size?: "sm" | "md"; variant?: "wrench" | "thumb" }) {
+  const dim = size === "md" ? "w-10 h-10" : "w-8 h-8";
   return (
-    <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white border border-slate-100 shadow-sm">
-      <img src={src} alt="Maintly" className="w-full"
+    <div className={`${dim} rounded-full overflow-hidden shrink-0 bg-white border border-slate-100 shadow-sm`}>
+      <img src={`${BASE}images/maintly_phone.png`} alt="Maintly" className="w-full"
         style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }} />
     </div>
   );
@@ -317,7 +315,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
             {/* Header */}
             <div className="flex items-center gap-3 px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-primary/5 to-blue-500/5 shrink-0">
               <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 bg-white border border-primary/20 shadow-sm">
-                <img src={`${BASE}images/maintly_wrench.png`} alt="Maintly" className="w-full"
+                <img src={`${BASE}images/maintly_phone.png`} alt="Maintly" className="w-full"
                   style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }} />
               </div>
               <div className="flex-1 min-w-0">
@@ -345,7 +343,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
             {!userIsPro ? (
               /* Pro gate */
               <div className="flex-1 flex flex-col items-center justify-center px-8 py-8 text-center gap-6">
-                <img src={`${BASE}images/maintly_wrench.png`} alt="Maintly"
+                <img src={`${BASE}images/maintly_phone.png`} alt="Maintly"
                   className="w-32 h-32 object-contain drop-shadow-md" />
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Meet Maintly — Pro Members Only</h3>
@@ -370,7 +368,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                 <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
                   {messages.length === 0 ? (
                     <div className="min-h-full flex flex-col items-center justify-center py-8 px-4">
-                      <img src={`${BASE}images/maintly_wrench.png`} alt="Maintly"
+                      <img src={`${BASE}images/maintly_phone.png`} alt="Maintly"
                         className="h-28 sm:h-40 w-auto object-contain drop-shadow-md mb-5" />
                       <h3 className="text-xl sm:text-2xl font-bold text-slate-900 text-center mb-2">
                         Chat with Maintly
@@ -393,7 +391,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                           </div>
                         ) : (
                           <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 bg-white border border-slate-100 shadow-sm">
-                            <img src={`${BASE}images/maintly_thumb.png`} alt="Maintly" className="w-full"
+                            <img src={`${BASE}images/maintly_phone.png`} alt="Maintly" className="w-full"
                               style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }} />
                           </div>
                         )}

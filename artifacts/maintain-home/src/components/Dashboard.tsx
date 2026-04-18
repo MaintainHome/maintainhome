@@ -1189,7 +1189,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             >
               <div className="w-14 h-16 overflow-hidden shrink-0">
                 <img
-                  src={`${BASE}images/maintly_wrench.png`}
+                  src={`${BASE}images/maintly_phone.png`}
                   alt="Maintly"
                   className="w-14"
                   style={{ height: "240%", objectFit: "cover", objectPosition: "top center" }}
@@ -1210,7 +1210,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             >
               <div className="w-14 h-16 overflow-hidden shrink-0 relative">
                 <img
-                  src={`${BASE}images/maintly_wrench.png`}
+                  src={`${BASE}images/maintly_phone.png`}
                   alt="Maintly"
                   className="w-14 grayscale opacity-50"
                   style={{ height: "240%", objectFit: "cover", objectPosition: "top center" }}
@@ -1639,7 +1639,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   <div className="relative flex items-end gap-4 sm:gap-6 px-5 pt-5 pb-6">
                     {/* Pointing avatar — stands at bottom, points right toward bubble */}
                     <img
-                      src={`${BASE}images/maintly_point.png`}
+                      src={`${BASE}images/maintly_phone.png`}
                       alt="Maintly"
                       className="w-28 sm:w-36 h-auto object-contain shrink-0 self-end drop-shadow-2xl"
                     />
@@ -1655,7 +1655,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                         <div className="flex items-center gap-2 mb-2">
                           <div className="w-6 h-6 rounded-full overflow-hidden border border-primary/20 shadow-sm shrink-0">
                             <img
-                              src={`${BASE}images/maintly_thumb.png`}
+                              src={`${BASE}images/maintly_phone.png`}
                               alt="Maintly"
                               className="w-full"
                               style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
@@ -1680,7 +1680,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   <div className="flex items-center gap-3 px-5 py-3 border-b border-slate-100">
                     <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 bg-white border border-primary/20 shadow-sm">
                       <img
-                        src={`${BASE}images/maintly_thumb.png`}
+                        src={`${BASE}images/maintly_phone.png`}
                         alt="Maintly"
                         className="w-full"
                         style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
@@ -1712,7 +1712,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                           ) : (
                             <div className="w-8 h-8 rounded-full overflow-hidden shrink-0 mt-0.5 bg-white border border-slate-100 shadow-sm">
                               <img
-                                src={`${BASE}images/maintly_thumb.png`}
+                                src={`${BASE}images/maintly_phone.png`}
                                 alt="Maintly"
                                 className="w-full"
                                 style={{ height: "190%", objectFit: "cover", objectPosition: "top center" }}
@@ -1856,7 +1856,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <div className="relative overflow-hidden">
               <div className="flex items-end gap-4 px-5 pt-5 pb-4 bg-gradient-to-br from-slate-100 to-slate-50">
                 <img
-                  src={`${BASE}images/maintly_point.png`}
+                  src={`${BASE}images/maintly_phone.png`}
                   alt="Maintly"
                   className="w-24 h-auto object-contain shrink-0 self-end grayscale opacity-40"
                 />
@@ -1983,23 +1983,11 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
 
               <div className="px-5 py-5 flex flex-col sm:flex-row items-center gap-5">
                 {/* Maintly avatar */}
-                <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-primary/30 shadow-md shrink-0">
+                <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-primary/30 shadow-md shrink-0 bg-white">
                   <img
-                    src={`${import.meta.env.BASE_URL}images/maintly-avatar.png`}
+                    src={`${BASE}images/maintly_maintain.png`}
                     alt="Maintly"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const el = e.currentTarget;
-                      el.style.display = "none";
-                      const parent = el.parentElement;
-                      if (parent) {
-                        parent.style.background = "linear-gradient(135deg, #1f9e6e20, #1f9e6e40)";
-                        parent.style.display = "flex";
-                        parent.style.alignItems = "center";
-                        parent.style.justifyContent = "center";
-                        parent.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#1f9e6e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-8 h-8"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
-                      }
-                    }}
+                    className="w-full h-full object-contain"
                   />
                 </div>
 

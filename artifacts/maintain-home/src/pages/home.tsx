@@ -377,7 +377,7 @@ export default function Home() {
                 {/* Mobile-only: Maintly intro card — shows above buttons */}
                 <button onClick={handleTryNow} className="sm:hidden w-full flex items-center gap-5 bg-white rounded-2xl border border-slate-100 shadow-md px-6 py-5 text-left active:scale-[0.98] transition-transform">
                   <img
-                    src={`${import.meta.env.BASE_URL}images/maintly_thumb.png`}
+                    src={`${import.meta.env.BASE_URL}images/maintly_phone.png`}
                     alt="Maintly"
                     className="w-24 h-24 object-contain flex-shrink-0"
                   />
@@ -449,7 +449,7 @@ export default function Home() {
                            aria-label="Sign up to chat with Maintly"
                          >
                            <img
-                             src={`${import.meta.env.BASE_URL}images/maintly_point.png`}
+                             src={`${import.meta.env.BASE_URL}images/maintly_phone.png`}
                              alt="Maintly"
                              className="h-28 w-auto object-contain object-top drop-shadow-sm cursor-pointer"
                            />
