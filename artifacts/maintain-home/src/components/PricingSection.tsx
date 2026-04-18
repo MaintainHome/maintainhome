@@ -18,7 +18,7 @@ const PRO_FEATURES = [
   "Seasonal alerts & big-ticket warnings",
   "View history + custom notes + document uploads",
   "Upload documents (warranties, invoices, receipts, photos)",
-  "Professional export for resale (PDF & CSV — coming soon)",
+  "Professional export for resale (PDF & CSV)",
   "Priority support",
 ];
 

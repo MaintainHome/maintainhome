@@ -1,9 +1,27 @@
 import { Router, type Response } from "express";
-import { db, savedCalendarsTable, maintenanceLogTable, maintenanceNotesTable, maintenanceDocumentsTable, homeProfilesTable } from "@workspace/db";
+import { db, savedCalendarsTable, maintenanceLogTable, maintenanceNotesTable, maintenanceDocumentsTable, homeProfilesTable, usersTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
+import PDFDocument from "pdfkit";
 import { requireAuth, requirePro, type AuthRequest } from "../middleware/requireAuth";
 
 const router = Router();
+
+/* ── CSV + PDF helpers for export ──────────────────────────────────────── */
+function csvEscape(v: unknown): string {
+  if (v === null || v === undefined) return "";
+  const s = String(v);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+function csvRow(cells: unknown[]): string {
+  return cells.map(csvEscape).join(",");
+}
+function fmtDate(d: Date | string | null | undefined): string {
+  if (!d) return "";
+  const dt = typeof d === "string" ? new Date(d) : d;
+  if (isNaN(dt.getTime())) return "";
+  return dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+}
 
 // ─── Calendar ────────────────────────────────────────────────────────────────
 
@@ -236,8 +254,188 @@ router.post("/user/big-ticket/unresolve", requireAuth as any, async (req: AuthRe
 
 // ─── Export (Pro only) ───────────────────────────────────────────────────────
 
+async function loadExportData(userId: number) {
+  const [userRow] = await db.select().from(usersTable).where(eq(usersTable.id, userId)).limit(1);
+  const [profile] = await db
+    .select()
+    .from(homeProfilesTable)
+    .where(eq(homeProfilesTable.userId, userId))
+    .limit(1);
+  const logs = await db
+    .select()
+    .from(maintenanceLogTable)
+    .where(eq(maintenanceLogTable.userId, userId))
+    .orderBy(desc(maintenanceLogTable.completedAt));
+  const notes = await db
+    .select()
+    .from(maintenanceNotesTable)
+    .where(eq(maintenanceNotesTable.userId, userId))
+    .orderBy(desc(maintenanceNotesTable.noteDate));
+  const documents = await db
+    .select()
+    .from(maintenanceDocumentsTable)
+    .where(eq(maintenanceDocumentsTable.userId, userId))
+    .orderBy(desc(maintenanceDocumentsTable.uploadedAt));
+
+  return { user: userRow, profile, logs, notes, documents };
+}
+
+// CSV export
+router.get("/user/export.csv", requireAuth as any, requirePro as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const { user, profile, logs, notes, documents } = await loadExportData(req.userId!);
+    const lines: string[] = [];
+
+    lines.push("MaintainHome.ai — Maintenance History Export");
+    lines.push(csvRow(["Owner", user?.email ?? ""]));
+    if (profile?.fullAddress) lines.push(csvRow(["Property", profile.fullAddress]));
+    lines.push(csvRow(["Generated", new Date().toISOString()]));
+    lines.push("");
+
+    lines.push("=== COMPLETED TASKS ===");
+    lines.push(csvRow(["Date Completed", "Task", "Month", "ZIP Code", "Notes"]));
+    for (const l of logs) {
+      lines.push(csvRow([fmtDate(l.completedAt), l.taskName, l.month, l.zipCode ?? "", l.notes ?? ""]));
+    }
+    lines.push("");
+
+    lines.push("=== CUSTOM NOTES ===");
+    lines.push(csvRow(["Note Date", "Title", "Content", "Created"]));
+    for (const n of notes) {
+      lines.push(csvRow([fmtDate(n.noteDate), n.title, n.content, fmtDate(n.createdAt)]));
+    }
+    lines.push("");
+
+    lines.push("=== DOCUMENTS ===");
+    lines.push(csvRow(["Uploaded", "File Name", "Type", "Size (bytes)"]));
+    for (const d of documents) {
+      lines.push(csvRow([fmtDate(d.uploadedAt), d.fileName, d.contentType, d.fileSizeBytes ?? ""]));
+    }
+
+    const csv = lines.join("\r\n");
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="maintainhome-history-${new Date().toISOString().slice(0, 10)}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    console.error("[user-data] /user/export.csv error:", err);
+    res.status(500).json({ error: "Failed to generate CSV export." });
+  }
+});
+
+// PDF export
+router.get("/user/export.pdf", requireAuth as any, requirePro as any, async (req: AuthRequest, res: Response) => {
+  try {
+    const { user, profile, logs, notes, documents } = await loadExportData(req.userId!);
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename="maintainhome-history-${new Date().toISOString().slice(0, 10)}.pdf"`);
+
+    const doc = new PDFDocument({ size: "LETTER", margin: 50 });
+    doc.pipe(res);
+
+    const ACCENT = "#1f9e6e";
+    const SLATE_DARK = "#0f172a";
+    const SLATE = "#475569";
+    const SLATE_LIGHT = "#94a3b8";
+
+    // Header
+    doc.fillColor(ACCENT).fontSize(22).font("Helvetica-Bold").text("MaintainHome.ai", { continued: false });
+    doc.moveDown(0.2);
+    doc.fillColor(SLATE_DARK).fontSize(16).font("Helvetica-Bold").text("Maintenance History Report");
+    doc.moveDown(0.5);
+
+    // Meta line
+    doc.fillColor(SLATE).fontSize(10).font("Helvetica");
+    doc.text(`Owner: ${user?.email ?? ""}`);
+    if (profile?.fullAddress) doc.text(`Property: ${profile.fullAddress}`);
+    doc.text(`Generated: ${new Date().toLocaleString("en-US")}`);
+    doc.moveDown(0.5);
+
+    // Accent divider
+    const dividerY = doc.y;
+    doc.moveTo(50, dividerY).lineTo(562, dividerY).strokeColor(ACCENT).lineWidth(2).stroke();
+    doc.moveDown(1);
+
+    // Summary stats box
+    doc.fillColor(SLATE_DARK).fontSize(11).font("Helvetica-Bold")
+      .text(`Summary: ${logs.length} completed task${logs.length === 1 ? "" : "s"}, ${notes.length} note${notes.length === 1 ? "" : "s"}, ${documents.length} document${documents.length === 1 ? "" : "s"}.`);
+    doc.moveDown(1);
+
+    function sectionHeader(title: string) {
+      if (doc.y > 700) doc.addPage();
+      doc.fillColor(ACCENT).fontSize(13).font("Helvetica-Bold").text(title);
+      doc.moveDown(0.3);
+      const y = doc.y;
+      doc.moveTo(50, y).lineTo(562, y).strokeColor(ACCENT).lineWidth(0.5).stroke();
+      doc.moveDown(0.5);
+    }
+
+    // Tasks
+    sectionHeader("Completed Tasks");
+    if (logs.length === 0) {
+      doc.fillColor(SLATE_LIGHT).fontSize(10).font("Helvetica-Oblique").text("No completed tasks yet.");
+    } else {
+      doc.fontSize(10).font("Helvetica");
+      for (const l of logs) {
+        if (doc.y > 720) doc.addPage();
+        doc.fillColor(SLATE_DARK).font("Helvetica-Bold").text(`${l.taskName}`, { continued: true });
+        doc.fillColor(SLATE).font("Helvetica").text(`  ·  ${fmtDate(l.completedAt)}  ·  ${l.month}${l.zipCode ? `  ·  ZIP ${l.zipCode}` : ""}`);
+        if (l.notes) {
+          doc.fillColor(SLATE_LIGHT).fontSize(9).font("Helvetica-Oblique").text(l.notes, { indent: 12 }).fontSize(10);
+        }
+        doc.moveDown(0.4);
+      }
+    }
+    doc.moveDown(0.6);
+
+    // Notes
+    sectionHeader("Custom Notes");
+    if (notes.length === 0) {
+      doc.fillColor(SLATE_LIGHT).fontSize(10).font("Helvetica-Oblique").text("No custom notes yet.");
+    } else {
+      doc.fontSize(10).font("Helvetica");
+      for (const n of notes) {
+        if (doc.y > 700) doc.addPage();
+        doc.fillColor(SLATE_DARK).font("Helvetica-Bold").text(n.title, { continued: true });
+        doc.fillColor(SLATE).font("Helvetica").text(`  ·  ${fmtDate(n.noteDate)}`);
+        doc.fillColor(SLATE).fontSize(10).font("Helvetica").text(n.content, { indent: 12 });
+        doc.moveDown(0.4);
+      }
+    }
+    doc.moveDown(0.6);
+
+    // Documents
+    sectionHeader("Documents");
+    if (documents.length === 0) {
+      doc.fillColor(SLATE_LIGHT).fontSize(10).font("Helvetica-Oblique").text("No documents uploaded.");
+    } else {
+      doc.fontSize(10).font("Helvetica");
+      for (const d of documents) {
+        if (doc.y > 730) doc.addPage();
+        doc.fillColor(SLATE_DARK).font("Helvetica-Bold").text(d.fileName, { continued: true });
+        const sizeMb = d.fileSizeBytes ? `${(Number(d.fileSizeBytes) / 1024 / 1024).toFixed(2)} MB` : "—";
+        doc.fillColor(SLATE).font("Helvetica").text(`  ·  ${fmtDate(d.uploadedAt)}  ·  ${d.contentType}  ·  ${sizeMb}`);
+        doc.moveDown(0.3);
+      }
+    }
+
+    // Footer on last page
+    doc.moveDown(2);
+    doc.fillColor(SLATE_LIGHT).fontSize(8).font("Helvetica-Oblique")
+      .text("Generated by MaintainHome.ai — your AI-powered home ownership assistant.", { align: "center" });
+
+    doc.end();
+  } catch (err) {
+    console.error("[user-data] /user/export.pdf error:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Failed to generate PDF export." });
+    }
+  }
+});
+
+// Legacy stub kept for backwards-compat (returns metadata pointing to new endpoints)
 router.get("/user/export", requireAuth as any, requirePro as any, async (_req: AuthRequest, res: Response) => {
-  res.json({ status: "coming_soon", message: "PDF & CSV export coming soon for Pro users." });
+  res.json({ status: "ready", csvUrl: "/api/user/export.csv", pdfUrl: "/api/user/export.pdf" });
 });
 
 // ─── Home Profile ─────────────────────────────────────────────────────────────

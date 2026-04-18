@@ -51,7 +51,7 @@ export default function HistoryPage() {
 
   // Export state
   const [exportMsg, setExportMsg] = useState<string | null>(null);
-  const [exportLoading, setExportLoading] = useState(false);
+  const [exportLoading, setExportLoading] = useState<null | "csv" | "pdf">(null);
 
   // Note form state
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -88,17 +88,30 @@ export default function HistoryPage() {
     navigate("/");
   };
 
-  const handleExport = async () => {
-    setExportLoading(true);
+  const handleExport = async (format: "csv" | "pdf") => {
+    setExportLoading(format);
     setExportMsg(null);
     try {
-      const res = await fetch("/api/user/export", { credentials: "include" });
-      const data = await res.json();
-      setExportMsg(data.message ?? "PDF & CSV export coming soon for Pro users.");
+      const res = await fetch(`/api/user/export.${format}`, { credentials: "include" });
+      if (!res.ok) {
+        const ct = res.headers.get("content-type") ?? "";
+        const msg = ct.includes("json") ? (await res.json()).error : "Export failed. Please try again.";
+        setExportMsg(msg ?? "Export failed. Please try again.");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `maintainhome-history-${new Date().toISOString().slice(0, 10)}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
     } catch {
-      setExportMsg("PDF & CSV export coming soon for Pro users.");
+      setExportMsg("Export failed. Please try again.");
     } finally {
-      setExportLoading(false);
+      setExportLoading(null);
     }
   };
 
@@ -307,37 +320,60 @@ export default function HistoryPage() {
 
                     {/* Export — Pro only */}
                     {userIsPro && (
-                      <button
-                        onClick={handleExport}
-                        disabled={exportLoading}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/40 bg-white text-primary hover:bg-primary/5 transition-colors"
-                      >
-                        {exportLoading
-                          ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          : <FileDown className="w-3.5 h-3.5" />}
-                        Export History for Resale
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleExport("pdf")}
+                          disabled={exportLoading !== null}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-primary/40 bg-white text-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
+                          title="Download a polished PDF of your maintenance history (great for resale)"
+                        >
+                          {exportLoading === "pdf"
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <FileDown className="w-3.5 h-3.5" />}
+                          Export PDF
+                        </button>
+                        <button
+                          onClick={() => handleExport("csv")}
+                          disabled={exportLoading !== null}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                          title="Download a spreadsheet (CSV) of every task, note, and document"
+                        >
+                          {exportLoading === "csv"
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <FileDown className="w-3.5 h-3.5" />}
+                          Export CSV
+                        </button>
+                      </>
                     )}
                   </div>
 
-                  {/* Export coming-soon message */}
+                  {/* Export error message */}
                   {exportMsg && (
-                    <div className="mt-3 flex items-center gap-2 bg-primary/5 border border-primary/20 rounded-xl px-3 py-2">
-                      <Zap className="w-4 h-4 text-primary shrink-0" />
-                      <p className="text-xs text-primary font-medium">{exportMsg}</p>
+                    <div className="mt-3 flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                      <AlertTriangle className="w-4 h-4 text-red-500 shrink-0" />
+                      <p className="text-xs text-red-700 font-medium">{exportMsg}</p>
                       <button onClick={() => setExportMsg(null)} className="ml-auto text-slate-400 hover:text-slate-600">
                         <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   )}
 
-                  {/* Free user upgrade nudge for documents */}
+                  {/* Free user upgrade nudge for documents + export */}
                   {!userIsPro && (
-                    <div className="mt-3 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                      <Lock className="w-4 h-4 text-amber-500 shrink-0" />
-                      <p className="text-xs text-amber-800">
-                        <span className="font-semibold">Pro feature:</span> Upload documents (warranties, invoices, receipts, photos) and export your full history.
-                      </p>
+                    <div className="mt-3 flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5">
+                      <Lock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-xs text-amber-800">
+                          <span className="font-semibold">Pro feature:</span> Upload documents (warranties, invoices, receipts, photos) and export your full history as a polished PDF or CSV — perfect for resale.
+                        </p>
+                        <button
+                          onClick={() => navigate("/#pricing")}
+                          className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold transition-colors"
+                        >
+                          <Zap className="w-3 h-3" />
+                          Upgrade to Pro
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
