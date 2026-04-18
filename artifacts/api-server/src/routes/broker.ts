@@ -946,6 +946,78 @@ router.get("/broker/precreations", requireAuth as any, async (req: AuthRequest, 
   }
 });
 
+// ── Builder warranty milestone injection ──────────────────────────────────────
+
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+function injectBuilderWarrantyMilestones(
+  calendarData: Record<string, unknown>,
+  warrantyPeriodMonths: number,
+  closingDate?: string | null,
+): Record<string, unknown> {
+  const calendar = calendarData.calendar as Array<{ month: string; tasks: unknown[] }> | undefined;
+  if (!Array.isArray(calendar) || calendar.length === 0) return calendarData;
+
+  const cappedWarrantyMonths = Math.max(warrantyPeriodMonths ?? 12, 1);
+
+  let baseMonthIdx = 0;
+  if (closingDate) {
+    const d = new Date(closingDate);
+    if (!isNaN(d.getTime())) {
+      baseMonthIdx = d.getUTCMonth();
+    }
+  }
+
+  const lastMilestoneOffset = Math.min(cappedWarrantyMonths - 1, 11);
+  const lastMilestoneLabel = lastMilestoneOffset === 11
+    ? "11-month warranty expiration review"
+    : `${lastMilestoneOffset}-month warranty expiration review`;
+
+  const milestones = [
+    {
+      offsetMonths: 1,
+      task: "30-day builder warranty walkthrough",
+      why: "Catch defects while builder warranty is still active",
+      tip: "Document all issues with photos before the walkthrough",
+    },
+    {
+      offsetMonths: 6,
+      task: "6-month check-in",
+      why: "Inspect for settling cracks and leaks at mid-warranty",
+      tip: "Check door alignment, grout, and caulking for gaps",
+    },
+    {
+      offsetMonths: lastMilestoneOffset,
+      task: lastMilestoneLabel,
+      why: "Final chance to file warranty claims before expiration",
+      tip: "Hire an independent inspector to uncover hidden issues",
+    },
+  ];
+
+  const updatedCalendar = calendar.map((entry) => ({ ...entry, tasks: [...entry.tasks] }));
+
+  for (const milestone of milestones) {
+    const targetMonthIdx = (baseMonthIdx + milestone.offsetMonths) % 12;
+    const targetMonthName = MONTH_NAMES[targetMonthIdx];
+    const calEntry = updatedCalendar.find((m) => m.month === targetMonthName);
+    if (calEntry) {
+      calEntry.tasks.unshift({
+        task: milestone.task,
+        difficulty: "Pro",
+        cost: "$0",
+        why: milestone.why,
+        tip: milestone.tip,
+        isWarrantyMilestone: true,
+      });
+    }
+  }
+
+  return { ...calendarData, calendar: updatedCalendar };
+}
+
 // ── Internal: process broker precreation after payment ────────────────────────
 export async function processBrokerPrecreation(
   precreationId: number,
@@ -1025,6 +1097,23 @@ export async function processBrokerPrecreation(
         poolOrHotTub: propData?.poolOrHotTub as string | undefined,
         lastRenovationYear: propData?.lastRenovationYear as number | undefined,
       });
+
+      // For builder accounts, inject warranty milestone tasks into the calendar
+      const brokerConfig = await db
+        .select({ accountType: whiteLabelConfigsTable.accountType, warrantyPeriodMonths: whiteLabelConfigsTable.warrantyPeriodMonths })
+        .from(whiteLabelConfigsTable)
+        .where(eq(whiteLabelConfigsTable.subdomain, brokerSubdomain))
+        .limit(1)
+        .then((rows) => rows[0] ?? null);
+
+      if (brokerConfig?.accountType === "builder") {
+        calendarData = injectBuilderWarrantyMilestones(
+          calendarData,
+          brokerConfig.warrantyPeriodMonths ?? 12,
+          precreation.closingDate,
+        );
+        console.log(`[broker] Builder warranty milestones injected for client ${clientEmail} (${brokerConfig.warrantyPeriodMonths ?? 12}-month warranty)`);
+      }
 
       await db.insert(savedCalendarsTable).values({
         userId: clientUserId,
