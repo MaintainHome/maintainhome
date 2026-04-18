@@ -254,6 +254,13 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
       const imminentAlerts: string[] = yearBuilt ? computeImminentForecasts(yearBuilt, currentYear, recentUpgradesArr) : [];
       const imminentAlertCount = imminentAlerts.length;
 
+      let warrantyExpiresAt: string | null = null;
+      if (ctx.config.accountType === "builder" && ctx.config.warrantyPeriodMonths) {
+        const d = new Date(c.createdAt);
+        d.setMonth(d.getMonth() + ctx.config.warrantyPeriodMonths);
+        warrantyExpiresAt = d.toISOString();
+      }
+
       return {
         ...c,
         hasCalendar,
@@ -267,6 +274,7 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         closingDate,
         clientBirthday1,
         clientBirthday2,
+        warrantyExpiresAt,
       };
     });
 
