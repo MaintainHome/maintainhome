@@ -779,11 +779,30 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
       transition={{ duration: 0.4, delay: 0.18 }}
       className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
     >
-      <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-        <div className="flex items-center gap-2 flex-1">
-          <Gift className="w-5 h-5 shrink-0" style={{ color: accent }} />
-          <div>
-            <h2 className="font-bold text-sm text-slate-900">Gift Codes for Clients</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="flex items-center gap-4 flex-1">
+          {/* Celebratory closing-gift Maintly */}
+          <div className="relative shrink-0">
+            <div
+              className="absolute inset-0 rounded-full blur-2xl opacity-70 -z-0"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.25) 55%, transparent 75%)",
+              }}
+            />
+            <motion.img
+              src={`${BASE}images/maintly_gift.png`}
+              alt="Maintly with gift code"
+              className="relative h-20 sm:h-24 w-auto object-contain drop-shadow-md"
+              animate={{ y: [0, -3, 0], rotate: [1.5, -1.5, 1.5] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <Gift className="w-5 h-5 shrink-0" style={{ color: accent }} />
+              <h2 className="font-bold text-sm text-slate-900">Gift Codes for Clients</h2>
+            </div>
             <p className="text-sm text-slate-500 mt-0.5 leading-snug">
               Pay for a client's first year — they fill in their own info.
             </p>
@@ -1411,10 +1430,23 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
         transition={{ duration: 0.4, delay: 0.19 }}
         className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{ backgroundColor: accent + "18" }}>
-            <UserPlus className="w-4 h-4" style={{ color: accent }} />
+        <div className="flex items-center gap-4">
+          {/* Celebratory closing-gift Maintly */}
+          <div className="relative shrink-0">
+            <div
+              className="absolute inset-0 rounded-full blur-2xl opacity-70 -z-0"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.25) 55%, transparent 75%)",
+              }}
+            />
+            <motion.img
+              src={`${BASE}images/maintly_gift.png`}
+              alt="Maintly with closing gift"
+              className="relative h-20 sm:h-24 w-auto object-contain drop-shadow-md"
+              animate={{ y: [0, -3, 0], rotate: [-1.5, 1.5, -1.5] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
           </div>
           <div>
             <h2 className="font-bold text-sm text-slate-900">Create Client Account (Pre-Paid Gift)</h2>

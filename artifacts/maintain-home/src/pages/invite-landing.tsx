@@ -340,6 +340,34 @@ export default function InviteLanding() {
           ════════════════════════════════════════════════════════ */}
           <div className="flex-1 min-w-0 flex flex-col">
 
+            {/* ── Closing-gift Maintly hero (gift contexts only) ─── */}
+            {branding.accountType !== "builder" && (
+              <motion.div
+                className="relative flex justify-center lg:justify-start mb-3"
+                initial={{ opacity: 0, scale: 0.8, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.02, duration: 0.5, ease: "easeOut" }}
+              >
+                <div className="relative">
+                  {/* Golden celebratory glow */}
+                  <div
+                    className="absolute inset-0 rounded-full blur-3xl opacity-80 -z-0"
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.30) 50%, transparent 75%)",
+                    }}
+                  />
+                  <motion.img
+                    src={`${BASE}images/maintly_gift.png`}
+                    alt="Maintly with your closing gift"
+                    className="relative h-32 sm:h-40 lg:h-48 w-auto object-contain drop-shadow-2xl"
+                    animate={{ y: [0, -6, 0], rotate: [-1.5, 1.5, -1.5] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                </div>
+              </motion.div>
+            )}
+
             {/* ── Gift badge ───────────────────────────────────── */}
             <motion.div
               className="flex justify-center lg:justify-start mb-5"
