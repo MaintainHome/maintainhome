@@ -261,6 +261,67 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         warrantyExpiresAt = d.toISOString();
       }
 
+      // Warranty milestone badges for builder accounts
+      // Milestones: 30-day, 6-month, 11-month walkthroughs
+      // Show badge when the milestone falls in the current or next month
+      const WARRANTY_MILESTONES = [
+        { label: "30-Day Walkthrough", months: 1 },
+        { label: "6-Month Walkthrough", months: 6 },
+        { label: "11-Month Walkthrough", months: 11 },
+      ];
+
+      type CalendarTask = { task: string; difficulty?: string; cost?: string; why?: string; tip?: string };
+      type WarrantyMilestone = {
+        label: string;
+        date: string;
+        monthsFromStart: number;
+        calendarMonthName: string;
+        monthTasks: CalendarTask[];
+      };
+      let warrantyMilestones: WarrantyMilestone[] = [];
+
+      if (ctx.config.accountType === "builder") {
+        const now = new Date();
+        const curYear = now.getFullYear();
+        const curMonth = now.getMonth();
+        const nextRef = new Date(curYear, curMonth + 1, 1);
+        const nextYear = nextRef.getFullYear();
+        const nextMonth = nextRef.getMonth();
+
+        // Prefer closingDate as the warranty start, fall back to account createdAt
+        const startDate = closingDate
+          ? new Date(closingDate + "T00:00:00")
+          : new Date(c.createdAt);
+
+        // Extract calendar months array from saved calendar data (if available)
+        const calMonths = (calData?.calendar as Array<{ month: string; tasks: CalendarTask[] }> | undefined) ?? [];
+
+        for (const m of WARRANTY_MILESTONES) {
+          const mDate = new Date(startDate);
+          mDate.setMonth(mDate.getMonth() + m.months);
+          const mYear = mDate.getFullYear();
+          const mMonthIdx = mDate.getMonth();
+          if (
+            (mYear === curYear && mMonthIdx === curMonth) ||
+            (mYear === nextYear && mMonthIdx === nextMonth)
+          ) {
+            // Month name as it appears in the AI-generated calendar (e.g. "April")
+            const calendarMonthName = mDate.toLocaleDateString("en-US", { month: "long" });
+            // Pull the matching month's tasks from the saved calendar
+            const monthEntry = calMonths.find(
+              (entry) => entry.month.toLowerCase() === calendarMonthName.toLowerCase(),
+            );
+            warrantyMilestones.push({
+              label: m.label,
+              date: mDate.toISOString(),
+              monthsFromStart: m.months,
+              calendarMonthName,
+              monthTasks: monthEntry?.tasks ?? [],
+            });
+          }
+        }
+      }
+
       return {
         ...c,
         hasCalendar,
@@ -275,6 +336,7 @@ router.get("/broker/clients", requireAuth as any, async (req: AuthRequest, res: 
         clientBirthday1,
         clientBirthday2,
         warrantyExpiresAt,
+        warrantyMilestones,
       };
     });
 

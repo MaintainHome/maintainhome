@@ -48,6 +48,22 @@ interface BrokerConfig {
   warrantyPeriodMonths?: number | null;
 }
 
+interface CalendarTask {
+  task: string;
+  difficulty?: string;
+  cost?: string;
+  why?: string;
+  tip?: string;
+}
+
+interface WarrantyMilestone {
+  label: string;
+  date: string;
+  monthsFromStart: number;
+  calendarMonthName: string;
+  monthTasks: CalendarTask[];
+}
+
 interface Client {
   id: number;
   email: string;
@@ -68,6 +84,7 @@ interface Client {
   clientBirthday1?: string | null;
   clientBirthday2?: string | null;
   warrantyExpiresAt?: string | null;
+  warrantyMilestones?: WarrantyMilestone[];
 }
 
 interface TeamMember {
@@ -190,6 +207,127 @@ function StatCard({ icon, label, value, iconBg, iconColor, children }: {
         <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">{label}</p>
       </div>
     </div>
+  );
+}
+
+/* ─── Warranty milestone helpers ──────────────────────────────────── */
+function milestoneColor(months: number): { bg: string; text: string; border: string } {
+  if (months <= 1)  return { bg: "#eff6ff", text: "#2563eb", border: "#bfdbfe" };
+  if (months <= 6)  return { bg: "#fffbeb", text: "#d97706", border: "#fde68a" };
+  return              { bg: "#fff7ed", text: "#ea580c", border: "#fed7aa" };
+}
+
+function milestoneShortLabel(months: number): string {
+  if (months <= 1) return "30d";
+  if (months <= 6) return "6mo";
+  return "11mo";
+}
+
+/* ─── Warranty milestone badge (click to open modal) ─────────────── */
+function WarrantyMilestoneBadge({
+  milestone,
+  onClick,
+}: {
+  milestone: WarrantyMilestone;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  const colors = milestoneColor(milestone.monthsFromStart);
+  const fullDate = new Date(milestone.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return (
+    <button
+      onClick={onClick}
+      title={`${milestone.label} — ${fullDate} · Click to view ${milestone.calendarMonthName} calendar`}
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-all hover:opacity-80 shrink-0"
+      style={{ backgroundColor: colors.bg, color: colors.text, borderColor: colors.border }}
+    >
+      <ShieldCheck className="w-3 h-3 shrink-0" />
+      {milestoneShortLabel(milestone.monthsFromStart)}
+    </button>
+  );
+}
+
+/* ─── Warranty calendar modal ─────────────────────────────────────── */
+function WarrantyCalendarModal({
+  clientName,
+  milestone,
+  onClose,
+}: {
+  clientName: string;
+  milestone: WarrantyMilestone;
+  onClose: () => void;
+}) {
+  const colors = milestoneColor(milestone.monthsFromStart);
+  const fullDate = new Date(milestone.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm px-0 sm:px-4"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <motion.div
+        initial={{ y: 40, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: 40, opacity: 0 }}
+        className="bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-lg max-h-[85vh] overflow-y-auto"
+      >
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between rounded-t-3xl sm:rounded-t-3xl z-10">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: colors.bg, border: `1px solid ${colors.border}` }}>
+              <ShieldCheck className="w-5 h-5" style={{ color: colors.text }} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-900 truncate">{milestone.label}</p>
+              <p className="text-xs text-slate-500 truncate">{clientName} · Due {fullDate}</p>
+            </div>
+          </div>
+          <button onClick={onClose}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors shrink-0 ml-2">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Month label */}
+        <div className="px-6 pt-5 pb-2 flex items-center gap-2">
+          <Calendar className="w-4 h-4 text-slate-400 shrink-0" />
+          <h3 className="text-sm font-bold text-slate-700">{milestone.calendarMonthName} — Scheduled Maintenance</h3>
+        </div>
+
+        {/* Tasks */}
+        <div className="px-6 pb-6 space-y-2">
+          {milestone.monthTasks.length === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <Calendar className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No calendar tasks for {milestone.calendarMonthName}.</p>
+              <p className="text-xs mt-1 text-slate-400">The buyer hasn't generated a calendar yet.</p>
+            </div>
+          ) : (
+            milestone.monthTasks.map((t, i) => (
+              <div key={i} className="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3 space-y-1">
+                <p className="text-sm font-semibold text-slate-800">{t.task}</p>
+                <div className="flex items-center gap-3 flex-wrap text-[11px] text-slate-500">
+                  {t.difficulty && (
+                    <span className="flex items-center gap-1">
+                      <Wrench className="w-3 h-3 shrink-0" />{t.difficulty}
+                    </span>
+                  )}
+                  {t.cost && (
+                    <span className="flex items-center gap-1">
+                      <span className="font-semibold text-slate-600">{t.cost}</span>
+                    </span>
+                  )}
+                </div>
+                {t.why && <p className="text-[11px] text-slate-400 italic">{t.why}</p>}
+              </div>
+            ))
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -1842,6 +1980,7 @@ export default function BrokerDashboard() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [messageCopied, setMessageCopied] = useState(false);
   const [warrantyFilter, setWarrantyFilter] = useState(false);
+  const [openMilestone, setOpenMilestone] = useState<{ clientName: string; milestone: WarrantyMilestone } | null>(null);
   const clientListRef = useRef<HTMLDivElement>(null);
 
   /* ── Edit Branding modal state ────────────────────────────────── */
@@ -1861,6 +2000,7 @@ export default function BrokerDashboard() {
     if (!user.isBroker) { navigate("/choose-role"); return; }
     load();
   }, [authLoading, user]);
+
 
   const load = useCallback(async () => {
     setLoading(true); setError(null);
@@ -2687,6 +2827,13 @@ Click here to get started: ${link}`;
                                 ? <span className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${expiry.expired ? "bg-red-50 text-red-500" : "bg-amber-50 text-amber-600"}`}>Gift</span>
                                 : <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Free</span>
                             }
+                            {isBuilder && client.warrantyMilestones && client.warrantyMilestones.map((m) => (
+                              <WarrantyMilestoneBadge
+                                key={`mob-${client.id}-${m.monthsFromStart}`}
+                                milestone={m}
+                                onClick={(e) => { e.stopPropagation(); setOpenMilestone({ clientName: client.name ?? client.email, milestone: m }); }}
+                              />
+                            ))}
                           </div>
                           <button
                             onClick={() => renewClient(client.id, client.email)}
@@ -2713,7 +2860,7 @@ Click here to get started: ${link}`;
                             {(client.name ?? client.email)[0].toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <p className="text-sm font-semibold text-slate-900 truncate">{client.name ?? "—"}</p>
                               {client.imminentAlertCount > 0 && (
                                 <AlertTriangle className="w-3.5 h-3.5 text-red-500 shrink-0" aria-label={`${client.imminentAlertCount} imminent alert${client.imminentAlertCount > 1 ? "s" : ""}`} />
@@ -2721,6 +2868,13 @@ Click here to get started: ${link}`;
                               {client.hasCalendar && (
                                 <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0" aria-label="AI calendar built" />
                               )}
+                              {isBuilder && client.warrantyMilestones && client.warrantyMilestones.map((m) => (
+                                <WarrantyMilestoneBadge
+                                  key={`${client.id}-${m.monthsFromStart}`}
+                                  milestone={m}
+                                  onClick={(e) => { e.stopPropagation(); setOpenMilestone({ clientName: client.name ?? client.email, milestone: m }); }}
+                                />
+                              ))}
                             </div>
                             <p className="text-sm text-slate-400 truncate">{client.email}</p>
                             {isTeamLeader && teamMembers.filter(m => m.status === "active").length > 0 && (
@@ -3012,6 +3166,17 @@ Click here to get started: ${link}`;
           <a href="mailto:support@maintainhome.ai" className="text-sm text-slate-400 hover:text-slate-600 transition-colors">Support</a>
         </div>
       </div>
+
+      {/* ── Warranty Calendar Modal ──────────────────────────────────── */}
+      <AnimatePresence>
+        {openMilestone && (
+          <WarrantyCalendarModal
+            clientName={openMilestone.clientName}
+            milestone={openMilestone.milestone}
+            onClose={() => setOpenMilestone(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Edit Branding Modal ─────────────────────────────────────── */}
       {editOpen && (
