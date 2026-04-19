@@ -1593,7 +1593,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                               ) : (
                                 <button
                                   onClick={() => handleRemindNextMonth(task)}
-                                  className="w-full flex items-center justify-center gap-2 py-3.5 sm:py-2.5 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-500 hover:text-blue-700 text-base sm:text-sm font-medium transition-colors active:scale-[0.98]"
+                                  className="w-full flex items-center justify-center gap-2 py-3.5 sm:py-2.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700 text-base sm:text-sm font-medium transition-colors active:scale-[0.98]"
                                 >
                                   <Bell className="w-4 h-4" />
                                   Snooze Till Next Month
