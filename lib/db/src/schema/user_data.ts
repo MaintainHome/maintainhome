@@ -1,4 +1,4 @@
-import { pgTable, text, serial, timestamp, integer, jsonb, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, timestamp, integer, jsonb, date, boolean } from "drizzle-orm/pg-core";
 import { usersTable } from "./auth";
 
 export const savedCalendarsTable = pgTable("saved_calendars", {
@@ -152,3 +152,18 @@ export type GiftCode = typeof giftCodesTable.$inferSelect;
 export type StripeTransaction = typeof stripeTransactionsTable.$inferSelect;
 export type BrokerPrecreation = typeof brokerPrecreationsTable.$inferSelect;
 export type BrokerServiceProvider = typeof brokerServiceProvidersTable.$inferSelect;
+
+export const supportTicketsTable = pgTable("support_tickets", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => usersTable.id),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  hasAttachment: boolean("has_attachment").default(false).notNull(),
+  attachmentFileName: text("attachment_file_name"),
+  status: text("status").default("open").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type SupportTicket = typeof supportTicketsTable.$inferSelect;

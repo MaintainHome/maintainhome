@@ -4,7 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BrandingProvider, useBranding } from "@/contexts/BrandingContext";
-import { Component, type ReactNode, type ErrorInfo } from "react";
+import { SupportProvider } from "@/contexts/SupportContext";
+import { ContactSupportModal } from "@/components/ContactSupportModal";
+import { Component, type ReactNode, type ErrorInfo, useState } from "react";
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
   constructor(props: { children: ReactNode }) {
@@ -161,23 +163,33 @@ function Router() {
   );
 }
 
+function AppShell() {
+  const [supportOpen, setSupportOpen] = useState(false);
+  return (
+    <SupportProvider onOpen={() => setSupportOpen(true)}>
+      <TooltipProvider>
+        <ClearPreviewHandler />
+        <AuthBrandingSync />
+        <DynamicManifest />
+        <PWASplashScreen />
+        <AddToHomeScreen />
+        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+          <Router />
+        </WouterRouter>
+        <Toaster />
+        <ContactSupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
+      </TooltipProvider>
+    </SupportProvider>
+  );
+}
+
 function App() {
   return (
     <AppErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrandingProvider>
           <AuthProvider>
-            <TooltipProvider>
-              <ClearPreviewHandler />
-              <AuthBrandingSync />
-              <DynamicManifest />
-              <PWASplashScreen />
-              <AddToHomeScreen />
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                <Router />
-              </WouterRouter>
-              <Toaster />
-            </TooltipProvider>
+            <AppShell />
           </AuthProvider>
         </BrandingProvider>
       </QueryClientProvider>

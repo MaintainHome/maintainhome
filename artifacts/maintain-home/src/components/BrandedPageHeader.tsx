@@ -1,5 +1,6 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, HelpCircle } from "lucide-react";
 import { useBranding } from "@/contexts/BrandingContext";
+import { useSupportModal } from "@/contexts/SupportContext";
 import { useLocation } from "wouter";
 
 const BASE = import.meta.env.BASE_URL;
@@ -18,6 +19,7 @@ export function BrandedPageHeader({
   children,
 }: BrandedPageHeaderProps) {
   const { branding } = useBranding();
+  const { openSupport } = useSupportModal();
   const [, navigate] = useLocation();
 
   return (
@@ -53,7 +55,17 @@ export function BrandedPageHeader({
           <h1 className="text-sm font-semibold text-slate-500 truncate flex-1">{title}</h1>
         )}
 
-        <div className="ml-auto flex items-center gap-2 shrink-0">{children}</div>
+        <div className="ml-auto flex items-center gap-2 shrink-0">
+          {children}
+          <button
+            onClick={openSupport}
+            aria-label="Contact support"
+            title="Contact Support"
+            className="w-8 h-8 rounded-xl flex items-center justify-center text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors shrink-0"
+          >
+            <HelpCircle className="w-4.5 h-4.5" />
+          </button>
+        </div>
       </div>
     </div>
   );

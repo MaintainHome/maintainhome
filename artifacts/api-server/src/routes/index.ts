@@ -15,6 +15,7 @@ import documentsRouter from "./documents";
 import smsRouter from "./sms";
 import stripeRouter from "./stripe";
 import stripeSeedRouter from "./stripe-seed";
+import supportRouter from "./support";
 
 const router: IRouter = Router();
 
@@ -34,5 +35,6 @@ router.use(documentsRouter);
 router.use(smsRouter);
 router.use(stripeRouter);
 router.use(stripeSeedRouter);
+router.use(supportRouter);
 
 export default router;

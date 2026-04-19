@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
+import { useSupportModal } from "@/contexts/SupportContext";
 import { useLocation } from "wouter";
 import { NewConstructionSection, NewConstructionCheckbox, emptyNewConstruction, type NewConstructionData } from "@/components/NewConstructionSection";
 
@@ -2205,6 +2206,7 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
 export default function BrokerDashboard() {
   const { user, loading: authLoading, logout } = useAuth();
   const { setPreviewSubdomain } = useBranding();
+  const { openSupport } = useSupportModal();
   const [, navigate] = useLocation();
 
   const [config, setConfig] = useState<BrokerConfig | null>(null);
@@ -3404,7 +3406,7 @@ Click here to get started: ${link}`;
             Powered by <a href="https://maintainhome.ai" className="font-semibold hover:text-slate-600 transition-colors">MaintainHome.ai</a>
           </span>
           <span className="text-slate-200">·</span>
-          <a href="mailto:support@maintainhome.ai" className="text-sm text-slate-400 hover:text-slate-600 transition-colors">Support</a>
+          <button onClick={openSupport} className="text-sm text-slate-400 hover:text-slate-600 transition-colors">Contact Support</button>
         </div>
       </div>
 

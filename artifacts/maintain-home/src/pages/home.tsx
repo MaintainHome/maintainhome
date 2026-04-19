@@ -8,7 +8,17 @@ import { AuthModal } from "@/components/AuthModal";
 import { Dashboard } from "@/components/Dashboard";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useBranding, PREVIEW_KEY } from "@/contexts/BrandingContext";
+import { useSupportModal } from "@/contexts/SupportContext";
 import { useLocation } from "wouter";
+
+function ContactSupportTrigger() {
+  const { openSupport } = useSupportModal();
+  return (
+    <button onClick={openSupport} className="text-slate-400 hover:text-primary transition-colors font-medium">
+      Contact Support
+    </button>
+  );
+}
 
 export default function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -556,10 +566,12 @@ export default function Home() {
             <strong className="text-slate-300">Disclaimer:</strong> MaintainHome.ai provides general reminders only and is not responsible for maintenance, repairs, damage, or losses. This is not professional advice—always consult licensed experts for your home care needs.
           </p>
           
-          <div className="text-slate-500 text-sm flex items-center justify-center gap-2">
+          <div className="text-slate-500 text-sm flex items-center justify-center gap-x-3 gap-y-2 flex-wrap">
             © 2026 MaintainHome.ai 
             <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" /> 
             Powered by real estate expertise
+            <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
+            <ContactSupportTrigger />
           </div>
           {branding && (
             <div className="mt-4 flex justify-center">
