@@ -4,6 +4,7 @@ import multer from "multer";
 import { db, usersTable, homeProfilesTable, maintenanceDocumentsTable, brokerServiceProvidersTable, whiteLabelConfigsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
+import { checkUserChatLimit } from "../middleware/rateLimit";
 import type { DocumentData } from "./documents";
 
 const router = Router();
@@ -269,6 +270,12 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
   const proStatuses = ["pro_monthly", "pro_annual", "promo_pro"];
   if (!proStatuses.includes(user.subscriptionStatus)) {
     res.status(403).json({ error: "Pro subscription required to use AI chat." });
+    return;
+  }
+
+  const rateCheck = checkUserChatLimit(req.userId!, true);
+  if (!rateCheck.allowed) {
+    res.status(429).json({ error: rateCheck.error, retryAfter: rateCheck.retryAfter });
     return;
   }
 

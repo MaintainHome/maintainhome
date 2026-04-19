@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
 import { PageFooter } from "@/components/PageFooter";
+import { trackEvent } from "@/lib/analytics";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
@@ -44,6 +45,10 @@ export default function HistoryPage() {
   const { user, loading: authLoading, logout } = useAuth();
   const [, navigate] = useLocation();
   const userIsPro = isPro(user);
+
+  useEffect(() => {
+    if (user) trackEvent("history_view", { userId: user.id });
+  }, [user?.id]);
 
   const [entries, setEntries] = useState<LogEntry[]>([]);
   const [customNotes, setCustomNotes] = useState<CustomNote[]>([]);
@@ -92,6 +97,7 @@ export default function HistoryPage() {
   const handleExport = async (format: "csv" | "pdf") => {
     setExportLoading(format);
     setExportMsg(null);
+    trackEvent(format === "pdf" ? "export_pdf_click" : "export_csv_click", { userId: user?.id });
     try {
       const res = await fetch(`/api/user/export.${format}`, { credentials: "include" });
       if (!res.ok) {

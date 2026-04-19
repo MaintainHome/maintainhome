@@ -2,6 +2,7 @@ import { Router, type Response } from "express";
 import { Resend } from "resend";
 import { db, supportTicketsTable } from "@workspace/db";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
+import { createRateLimiter } from "../middleware/rateLimit";
 
 const router = Router();
 
@@ -25,7 +26,14 @@ function getFromAddress() {
   return process.env.RESEND_FROM_EMAIL ?? "MaintainHome.ai <onboarding@resend.dev>";
 }
 
-router.post("/support/contact", async (req: AuthRequest, res: Response) => {
+const supportRateLimit = createRateLimiter({
+  maxRequests: 5,
+  windowMs: 15 * 60 * 1000,
+  keyPrefix: "support",
+  message: "You've submitted several requests recently. Please wait a few minutes before trying again.",
+});
+
+router.post("/support/contact", supportRateLimit as any, async (req: AuthRequest, res: Response) => {
   try {
     const { name, subject, message, fileData, fileName, fileType } = req.body;
     let { email } = req.body;

@@ -6,12 +6,17 @@ import { DemoQuiz } from "@/components/DemoQuiz";
 import { useAuth } from "@/contexts/AuthContext";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
 import { PageFooter } from "@/components/PageFooter";
+import { trackEvent } from "@/lib/analytics";
 
 export default function CalendarPage() {
   const { user, loading: authLoading } = useAuth();
   const [, navigate] = useLocation();
   const [savedCalendar, setSavedCalendar] = useState<{ quizAnswers: any; calendarData: any } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) trackEvent("calendar_view", { userId: user.id });
+  }, [user?.id]);
 
   useEffect(() => {
     if (!user) return;

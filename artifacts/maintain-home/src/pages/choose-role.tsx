@@ -4,6 +4,7 @@ import { Building2, HomeIcon, ArrowRight, Loader2, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useLocation } from "wouter";
+import { trackEvent } from "@/lib/analytics";
 
 const ACCENT = "#1f9e6e";
 const BASE = import.meta.env.BASE_URL;
@@ -32,9 +33,7 @@ export default function ChooseRole() {
 
   function chooseHomeowner() {
     sessionStorage.setItem("mh_active_role", "homeowner");
-    // Navigate immediately so the homeowner dashboard appears without delay.
-    // Then load the broker's white-label config in the background so branding
-    // is applied as soon as the fetch resolves.
+    trackEvent("role_switch_to_homeowner", { userId: user?.id });
     navigate("/");
     if (user?.isBroker) {
       fetch(`${API_BASE}/api/broker/me`, { credentials: "include" })
@@ -50,6 +49,7 @@ export default function ChooseRole() {
 
   function chooseBroker() {
     sessionStorage.setItem("mh_active_role", "broker");
+    trackEvent("role_switch_to_broker", { userId: user?.id });
     navigate("/broker-dashboard");
   }
 
@@ -174,7 +174,7 @@ export default function ChooseRole() {
         </div>
 
         <p className="text-center text-white/30 text-xs mt-6">
-          You can switch between your accounts at any time by signing out and back in.
+          You can switch between your accounts at any time from the navigation menu.
         </p>
       </motion.div>
     </div>

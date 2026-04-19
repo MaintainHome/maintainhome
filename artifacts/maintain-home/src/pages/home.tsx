@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
-import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle, Home as HomeIcon, CalendarDays, X } from "lucide-react";
+import { Sparkles, ShieldCheck, BellRing, MapPin, Zap, User, LogOut, ClipboardList, LogIn, MessageCircle, Home as HomeIcon, CalendarDays, X, Building2 } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 import { Features } from "@/components/Features";
 import { PricingSection } from "@/components/PricingSection";
 import { AIChatModal } from "@/components/AIChatModal";
@@ -86,6 +87,11 @@ export default function Home() {
     const t = setTimeout(() => setBrokerWelcomeBanner(false), 10000);
     return () => clearTimeout(t);
   }, [user?.id, branding?.subdomain, branding?.welcomeMessage]);
+
+  useEffect(() => {
+    if (!user) return;
+    trackEvent("dashboard_view", { userId: user.id, plan: user.subscriptionStatus });
+  }, [user?.id]);
 
   // When a user is signed in, load their saved calendar for the dashboard
   useEffect(() => {
@@ -181,7 +187,7 @@ export default function Home() {
               <div className="sm:hidden flex items-center gap-1">
                 {userIsPro && (
                   <button
-                    onClick={() => setShowAIChat(true)}
+                    onClick={() => { setShowAIChat(true); trackEvent("chat_opened", { userId: user.id }); }}
                     title="Ask Maintly"
                     className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center hover:bg-primary/90 transition-colors shadow-sm"
                   >
@@ -209,8 +215,17 @@ export default function Home() {
                 >
                   <ClipboardList className="w-4 h-4" />
                 </button>
+                {user.isBroker && !user.isBuilder && (
+                  <button
+                    onClick={() => { sessionStorage.setItem("mh_active_role", "broker"); trackEvent("role_switch_to_broker", { userId: user.id }); navigate("/broker-dashboard"); }}
+                    title="Partner Dashboard"
+                    className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border border-slate-200"
+                  >
+                    <Building2 className="w-4 h-4" />
+                  </button>
+                )}
                 <button
-                  onClick={logout}
+                  onClick={() => { trackEvent("logout", { userId: user.id }); logout(); }}
                   title="Sign Out"
                   className="w-9 h-9 rounded-full bg-red-50 text-red-400 flex items-center justify-center hover:bg-red-100 hover:text-red-600 transition-colors border border-red-100"
                 >
@@ -286,8 +301,17 @@ export default function Home() {
                   <ClipboardList className="w-4 h-4" />
                   History
                 </button>
+                {user.isBroker && !user.isBuilder && (
+                  <button
+                    onClick={() => { sessionStorage.setItem("mh_active_role", "broker"); trackEvent("role_switch_to_broker", { userId: user.id }); navigate("/broker-dashboard"); }}
+                    className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-3 py-2 rounded-lg border border-slate-200 transition-colors"
+                  >
+                    <Building2 className="w-4 h-4" />
+                    Partner Dashboard
+                  </button>
+                )}
                 <button
-                  onClick={logout}
+                  onClick={() => { trackEvent("logout", { userId: user.id }); logout(); }}
                   className="flex items-center gap-1.5 text-sm font-semibold text-red-500 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 border border-red-100 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />

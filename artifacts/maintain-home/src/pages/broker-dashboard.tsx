@@ -11,6 +11,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useSupportModal } from "@/contexts/SupportContext";
+import { trackEvent } from "@/lib/analytics";
 import { useLocation } from "wouter";
 import { NewConstructionSection, NewConstructionCheckbox, emptyNewConstruction, type NewConstructionData } from "@/components/NewConstructionSection";
 
@@ -2572,13 +2573,15 @@ Click here to get started: ${link}`;
               className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
               <ExternalLink className="w-3.5 h-3.5" />Preview
             </button>
-            <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
-              className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
-              <HomeIcon className="w-3.5 h-3.5" />My Home
+            <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); trackEvent("role_switch_to_homeowner", { userId: user?.id }); navigate("/"); }}
+              className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-2 sm:px-3 py-2 rounded-xl transition-colors border border-slate-200"
+              title="Switch to Homeowner View">
+              <HomeIcon className="w-3.5 h-3.5" /><span className="hidden sm:inline">Homeowner View</span>
             </button>
-            <button onClick={async () => { await logout(); navigate("/"); }}
-              className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors">
-              <LogOut className="w-4.5 h-4.5 sm:w-3.5 sm:h-3.5" /><span className="hidden sm:inline">Sign Out</span>
+            <button onClick={async () => { trackEvent("logout", { userId: user?.id }); await logout(); navigate("/"); }}
+              className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 px-2 sm:px-3 py-2 rounded-xl transition-colors border border-slate-200"
+              title="Sign Out">
+              <LogOut className="w-3.5 h-3.5" /><span className="hidden sm:inline">Sign Out</span>
             </button>
           </div>
         </div>

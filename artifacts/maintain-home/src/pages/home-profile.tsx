@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { PageFooter } from "@/components/PageFooter";
+import { trackEvent } from "@/lib/analytics";
 import { useBranding } from "@/contexts/BrandingContext";
 import { PricingSection } from "@/components/PricingSection";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
@@ -111,6 +112,11 @@ export default function HomeProfilePage() {
   const { user, refreshUser } = useAuth();
   const { branding } = useBranding();
   const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (user) trackEvent("home_profile_view", { userId: user.id });
+  }, [user?.id]);
+
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string> | null>(null);
   const [profile, setProfile] = useState<HomeProfile>(emptyProfile);
   const [saving, setSaving] = useState(false);
