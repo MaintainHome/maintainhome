@@ -2569,10 +2569,6 @@ Click here to get started: ${link}`;
                 <Pencil className="w-3.5 h-3.5" />Edit Branding
               </button>
             )}
-            <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); navigate("/"); }}
-              className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-50 px-3 py-2 rounded-xl transition-colors border border-slate-200">
-              <ExternalLink className="w-3.5 h-3.5" />Preview
-            </button>
             <button onClick={() => { setPreviewSubdomain(config.subdomain); sessionStorage.setItem("mh_active_role", "homeowner"); trackEvent("role_switch_to_homeowner", { userId: user?.id }); navigate("/"); }}
               className="flex items-center gap-1.5 text-sm font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 px-2 sm:px-3 py-2 rounded-xl transition-colors border border-slate-200"
               title="Switch to Homeowner View">
