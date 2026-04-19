@@ -6,6 +6,7 @@ import {
   AlertTriangle, Lock, FileDown, Zap, Trash2,
 } from "lucide-react";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
+import { PageFooter } from "@/components/PageFooter";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useLocation } from "wouter";
 
@@ -641,6 +642,7 @@ export default function HistoryPage() {
           )}
         </motion.div>
       </div>
+      <PageFooter />
     </div>
   );
 }

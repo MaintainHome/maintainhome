@@ -53,6 +53,8 @@ import CheckoutSuccess from "@/pages/checkout-success";
 import PricingPage from "@/pages/pricing";
 import ActivatePage from "@/pages/activate";
 import TeamJoin from "@/pages/team-join";
+import PrivacyPolicy from "@/pages/privacy";
+import HelpPage from "@/pages/help";
 import { PWASplashScreen } from "@/components/PWASplashScreen";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
 import { useEffect } from "react";
@@ -154,6 +156,8 @@ function Router() {
       <Route path="/pricing" component={PricingPage} />
       <Route path="/activate" component={ActivatePage} />
       <Route path="/team-join" component={TeamJoin} />
+      <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/help" component={HelpPage} />
       <Route path="/invite/:subdomain" component={InviteLanding} />
       <Route path="/invite" component={InviteLanding} />
       <Route path="/:teamHandle/:agentHandle" component={InviteLanding} />

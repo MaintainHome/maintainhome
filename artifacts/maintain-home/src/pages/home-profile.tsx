@@ -8,6 +8,7 @@ import {
   ExternalLink, MessageSquare, Phone, Bell, BellOff, ToggleLeft, ToggleRight, Gift, Loader2, Mail,
 } from "lucide-react";
 import { useAuth, isPro } from "@/contexts/AuthContext";
+import { PageFooter } from "@/components/PageFooter";
 import { useBranding } from "@/contexts/BrandingContext";
 import { PricingSection } from "@/components/PricingSection";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
@@ -1700,6 +1701,7 @@ export default function HomeProfilePage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <PageFooter />
     </div>
   );
 }

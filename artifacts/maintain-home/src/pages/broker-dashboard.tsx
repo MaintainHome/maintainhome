@@ -3406,6 +3406,10 @@ Click here to get started: ${link}`;
             Powered by <a href="https://maintainhome.ai" className="font-semibold hover:text-slate-600 transition-colors">MaintainHome.ai</a>
           </span>
           <span className="text-slate-200">·</span>
+          <a href="/privacy" className="text-sm text-slate-400 hover:text-slate-600 transition-colors">Privacy Policy</a>
+          <span className="text-slate-200">·</span>
+          <a href="/help" className="text-sm text-slate-400 hover:text-slate-600 transition-colors">Help / FAQ</a>
+          <span className="text-slate-200">·</span>
           <button onClick={openSupport} className="text-sm text-slate-400 hover:text-slate-600 transition-colors">Contact Support</button>
         </div>
       </div>

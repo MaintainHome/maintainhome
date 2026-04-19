@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
 import { AuthModal } from "@/components/AuthModal";
 import { useLocation, useParams } from "wouter";
+import NotFound from "@/pages/not-found";
 
 const BASE = import.meta.env.BASE_URL;
 const ACCENT = "#1f9e6e";
@@ -60,7 +61,7 @@ export default function InviteLanding() {
 
   const { setPreviewSubdomain, branding, loading: brandingLoading } = useBranding();
   const { user, loading: authLoading, isBroker } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
 
   const [showAuth, setShowAuth] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<"signup" | "signin">("signup");
@@ -144,6 +145,8 @@ export default function InviteLanding() {
 
   /* ── Branding not found ──────────────────────────────────────── */
   if (!branding) {
+    const isInvitePath = location.startsWith("/invite");
+    if (!isInvitePath) return <NotFound />;
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6">
         <div className="max-w-md w-full text-center">

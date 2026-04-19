@@ -5,6 +5,7 @@ import { CalendarDays, RefreshCw, Sparkles } from "lucide-react";
 import { DemoQuiz } from "@/components/DemoQuiz";
 import { useAuth } from "@/contexts/AuthContext";
 import { BrandedPageHeader } from "@/components/BrandedPageHeader";
+import { PageFooter } from "@/components/PageFooter";
 
 export default function CalendarPage() {
   const { user, loading: authLoading } = useAuth();
@@ -87,6 +88,7 @@ export default function CalendarPage() {
           </motion.div>
         )}
       </div>
+      <PageFooter />
     </div>
   );
 }

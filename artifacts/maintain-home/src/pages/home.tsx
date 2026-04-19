@@ -568,8 +568,10 @@ export default function Home() {
           
           <div className="text-slate-500 text-sm flex items-center justify-center gap-x-3 gap-y-2 flex-wrap">
             © 2026 MaintainHome.ai 
-            <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" /> 
-            Powered by real estate expertise
+            <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
+            <a href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
+            <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
+            <a href="/help" className="hover:text-slate-300 transition-colors">Help / FAQ</a>
             <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
             <ContactSupportTrigger />
           </div>
