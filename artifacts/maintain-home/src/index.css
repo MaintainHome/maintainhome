@@ -172,3 +172,112 @@
     @apply font-display tracking-tight text-foreground;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   MOBILE & PWA POLISH — applies ONLY to viewports < 640px (Tailwind sm).
+   Desktop remains pixel-identical.
+   Goals:
+     • +15-20% larger, more readable type
+     • Bigger, bolder stat tile numbers
+     • More vertical breathing room between widgets/cards
+     • Larger, easier tap targets
+═════════════════════════════════════════════════════════════════════ */
+@media (max-width: 639.98px) {
+  /* Base body type bump — affects everything that doesn't override */
+  html {
+    font-size: 17px; /* was 16px → ~6% baseline bump */
+  }
+  body {
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Tailwind's text-* utilities recompute from the larger root, but we
+     still nudge the smallest sizes up so labels don't feel cramped. */
+  .text-xs   { font-size: 0.8125rem; line-height: 1.45; }   /* 13.8 → ~14.5px */
+  .text-sm   { font-size: 0.9375rem; line-height: 1.55; }   /* ~16px */
+  .text-base { font-size: 1.0625rem; line-height: 1.6; }    /* ~18px */
+  .text-lg   { font-size: 1.1875rem; line-height: 1.55; }   /* ~20px */
+  .text-xl   { font-size: 1.375rem;  line-height: 1.45; }   /* ~23px */
+
+  /* Headings — slightly tighter line-height, but bigger overall */
+  h1 { letter-spacing: -0.01em; }
+  h2 { letter-spacing: -0.005em; }
+
+  /* ── Stat tiles ────────────────────────────────────────────────
+     Big "value" number inside StatCard / dashboard stat boxes.
+     Targets the common pattern: text-2xl font-black inside a card. */
+  .text-2xl.font-black,
+  .text-2xl.font-extrabold {
+    font-size: 2rem;       /* ~32px */
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+  .text-3xl.font-black {
+    font-size: 2.4rem;
+    line-height: 1.05;
+  }
+
+  /* Stat tile labels — make them clearly readable, not whisper-thin */
+  .text-xs.font-semibold,
+  .text-xs.font-bold {
+    font-size: 0.85rem;
+    line-height: 1.35;
+  }
+
+  /* ── Touch targets ────────────────────────────────────────────
+     Apple HIG recommends ≥44px. Bump every button/anchor that
+     isn't a tiny inline icon-only control. */
+  button:not(.no-mobile-grow),
+  a[role="button"]:not(.no-mobile-grow) {
+    min-height: 44px;
+  }
+  /* Buttons containing only a small icon shouldn't be forced taller
+     than they need (e.g., close-X, chevrons). */
+  button > svg:only-child {
+    min-width: 1.1rem;
+    min-height: 1.1rem;
+  }
+
+  /* Form inputs — easier to tap, prevents iOS zoom on focus (≥16px) */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  textarea {
+    min-height: 88px;
+  }
+
+  /* ── Vertical breathing room between dashboard widgets ──────────
+     Most widgets are siblings of the form `bg-white rounded-2xl ...`.
+     Stack them with extra space without touching desktop. */
+  .space-y-4 > * + *  { margin-top: 1.25rem; }
+  .space-y-5 > * + *  { margin-top: 1.5rem; }
+  .space-y-6 > * + *  { margin-top: 1.75rem; }
+  .space-y-8 > * + *  { margin-top: 2.25rem; }
+
+  /* Dashboard widget cards (large rounded white panels) → more inner padding */
+  .bg-white.rounded-2xl.border.border-slate-200,
+  .bg-white.rounded-3xl.border.border-slate-200 {
+    margin-bottom: 0.25rem;
+  }
+  /* Bump padding only on the outermost padded widget surfaces */
+  .bg-white.rounded-2xl.border.border-slate-200.p-6,
+  .bg-white.rounded-3xl.border.border-slate-200.p-6 {
+    padding: 1.5rem 1.25rem;
+  }
+
+  /* Make grid gaps more generous on mobile dashboards */
+  .gap-4  { gap: 1.1rem; }
+  .gap-3  { gap: 0.85rem; }
+
+  /* ── Tables (Your Clients, etc.) ─────────────────────────────── */
+  table { font-size: 0.95rem; }
+  th, td { padding-top: 0.7rem; padding-bottom: 0.7rem; }
+
+  /* Reduce overly wide horizontal padding on small phones so content
+     gets more usable width — only on the dashboard outer wrapper. */
+  .px-6 { padding-left: 1.1rem; padding-right: 1.1rem; }
+}
