@@ -6,6 +6,8 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { BrandingProvider, useBranding } from "@/contexts/BrandingContext";
 import { SupportProvider } from "@/contexts/SupportContext";
 import { ContactSupportModal } from "@/components/ContactSupportModal";
+import { FeedbackProvider } from "@/contexts/FeedbackContext";
+import { FeedbackModal } from "@/components/FeedbackModal";
 import { Component, type ReactNode, type ErrorInfo, useState } from "react";
 
 class AppErrorBoundary extends Component<{ children: ReactNode }, { error: Error | null }> {
@@ -46,6 +48,7 @@ import CalendarPage from "@/pages/calendar-page";
 import BrokerOnboard from "@/pages/broker-onboard";
 import BuilderOnboard from "@/pages/builder-onboard";
 import AdminBrokers from "@/pages/admin-brokers";
+import AdminTesting from "@/pages/admin-testing";
 import BrokerDashboard from "@/pages/broker-dashboard";
 import ChooseRole from "@/pages/choose-role";
 import InviteLanding from "@/pages/invite-landing";
@@ -150,6 +153,7 @@ function Router() {
       <Route path="/broker-onboard" component={BrokerOnboard} />
       <Route path="/builder-onboard" component={BuilderOnboard} />
       <Route path="/admin/brokers" component={AdminBrokers} />
+      <Route path="/admin/testing" component={AdminTesting} />
       <Route path="/broker-dashboard" component={BrokerDashboard} />
       <Route path="/choose-role" component={ChooseRole} />
       <Route path="/checkout/success" component={CheckoutSuccess} />
@@ -169,20 +173,24 @@ function Router() {
 
 function AppShell() {
   const [supportOpen, setSupportOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   return (
     <SupportProvider onOpen={() => setSupportOpen(true)}>
-      <TooltipProvider>
-        <ClearPreviewHandler />
-        <AuthBrandingSync />
-        <DynamicManifest />
-        <PWASplashScreen />
-        <AddToHomeScreen />
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
-        </WouterRouter>
-        <Toaster />
-        <ContactSupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
-      </TooltipProvider>
+      <FeedbackProvider onOpen={() => setFeedbackOpen(true)}>
+        <TooltipProvider>
+          <ClearPreviewHandler />
+          <AuthBrandingSync />
+          <DynamicManifest />
+          <PWASplashScreen />
+          <AddToHomeScreen />
+          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+            <Router />
+          </WouterRouter>
+          <Toaster />
+          <ContactSupportModal open={supportOpen} onClose={() => setSupportOpen(false)} />
+          <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+        </TooltipProvider>
+      </FeedbackProvider>
     </SupportProvider>
   );
 }

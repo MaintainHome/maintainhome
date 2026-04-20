@@ -16,6 +16,8 @@ import smsRouter from "./sms";
 import stripeRouter from "./stripe";
 import stripeSeedRouter from "./stripe-seed";
 import supportRouter from "./support";
+import adminTestingRouter from "./admin-testing";
+import feedbackRouter from "./feedback";
 
 const router: IRouter = Router();
 
@@ -36,5 +38,7 @@ router.use(smsRouter);
 router.use(stripeRouter);
 router.use(stripeSeedRouter);
 router.use(supportRouter);
+router.use(adminTestingRouter);
+router.use(feedbackRouter);
 
 export default router;

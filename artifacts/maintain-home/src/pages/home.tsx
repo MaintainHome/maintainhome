@@ -10,6 +10,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { useAuth, isPro } from "@/contexts/AuthContext";
 import { useBranding, PREVIEW_KEY } from "@/contexts/BrandingContext";
 import { useSupportModal } from "@/contexts/SupportContext";
+import { useFeedbackModal } from "@/contexts/FeedbackContext";
 import { useLocation } from "wouter";
 
 function ContactSupportTrigger() {
@@ -17,6 +18,15 @@ function ContactSupportTrigger() {
   return (
     <button onClick={openSupport} className="text-slate-400 hover:text-primary transition-colors font-medium">
       Contact Support
+    </button>
+  );
+}
+
+function FeedbackTrigger() {
+  const { openFeedback } = useFeedbackModal();
+  return (
+    <button onClick={openFeedback} className="text-slate-400 hover:text-primary transition-colors font-medium">
+      Report Bug or Feedback
     </button>
   );
 }
@@ -598,6 +608,12 @@ export default function Home() {
             <a href="/help" className="hover:text-slate-300 transition-colors">Help / FAQ</a>
             <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
             <ContactSupportTrigger />
+            {user && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
+                <FeedbackTrigger />
+              </>
+            )}
           </div>
           {branding && (
             <div className="mt-4 flex justify-center">

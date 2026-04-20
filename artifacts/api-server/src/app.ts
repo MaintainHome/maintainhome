@@ -13,8 +13,10 @@ app.use(cookieParser());
 // Webhook must receive raw Buffer BEFORE express.json() parses the body
 app.use("/api/stripe/webhook", express.raw({ type: "application/json" }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// 10mb limit so feedback/support screenshots and other base64 attachments fit
+// (5MB image ≈ 6.7MB base64-encoded).
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use("/api", router);
 
