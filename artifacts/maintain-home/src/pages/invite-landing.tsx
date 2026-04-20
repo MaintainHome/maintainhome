@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   ArrowRight, Loader2, Home, AlertTriangle, Phone,
   CalendarDays, MessageCircle, FolderOpen, TrendingUp,
+  ShieldCheck, FileLock2, Bot,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -29,6 +30,13 @@ const BENEFITS = [
   { icon: MessageCircle, label: "AI Chat with Maintly" },
   { icon: FolderOpen, label: "Home Document Vault" },
   { icon: TrendingUp, label: "Resale-Ready History" },
+];
+
+const BUILDER_BENEFITS = [
+  { icon: ShieldCheck, label: "Automatic 1-Year Warranty Reminders" },
+  { icon: FileLock2, label: "Secure Vault for Builder Paperwork" },
+  { icon: Bot, label: "24/7 AI Assistant for New Homeowners" },
+  { icon: CalendarDays, label: "Custom Maintenance Calendar" },
 ];
 
 /* ════════════════════════════════════════════════════════════════════
@@ -402,6 +410,11 @@ export default function InviteLanding() {
                 <>
                   <span style={{ color: ACCENT }}>{branding.tagline}</span>
                 </>
+              ) : branding.accountType === "builder" ? (
+                <>
+                  Welcome to<br />
+                  <span style={{ color: ACCENT }}>Your New Home.</span>
+                </>
               ) : (
                 <>
                   Your Home.<br />
@@ -464,7 +477,9 @@ export default function InviteLanding() {
                       Maintly · AI Home Assistant
                     </p>
                     <p className="text-white/85 text-sm sm:text-base leading-relaxed font-medium">
-                      I'll be your client's personal AI home assistant — available 24/7 to answer every question about their home. ↓
+                      {branding.accountType === "builder"
+                        ? "I'll guide you through your 1-year warranty window, track every key date, and answer questions about your new home — 24/7. ↓"
+                        : "I'll be your client's personal AI home assistant — available 24/7 to answer every question about their home. ↓"}
                     </p>
                   </div>
                 </motion.div>
@@ -524,10 +539,10 @@ export default function InviteLanding() {
                 }}
               >
                 <p className="text-white/50 text-xs font-bold tracking-widest uppercase mb-3 text-center">
-                  Everything included, under your brand
+                  {branding.accountType === "builder" ? "Your New Home Care Package" : "Everything included, under your brand"}
                 </p>
                 <div className="grid grid-cols-2 gap-2.5">
-                  {BENEFITS.map(({ icon: Icon, label }) => (
+                  {(branding.accountType === "builder" ? BUILDER_BENEFITS : BENEFITS).map(({ icon: Icon, label }) => (
                     <div key={label} className="flex items-center gap-2">
                       <div
                         className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"

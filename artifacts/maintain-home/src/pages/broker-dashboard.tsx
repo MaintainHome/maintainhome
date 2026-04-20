@@ -1461,7 +1461,7 @@ interface DocEntry {
   displayName?: string;
 }
 
-function PreCreateClientPanel({ accent }: { accent: string }) {
+function PreCreateClientPanel({ accent, isBuilder = false }: { accent: string; isBuilder?: boolean }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1658,9 +1658,13 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
             />
           </div>
           <div>
-            <h2 className="font-bold text-sm text-slate-900">Create Client Account (Pre-Paid Gift)</h2>
+            <h2 className="font-bold text-sm text-slate-900">
+              {isBuilder ? "Deliver 1-Year Builder Care Package" : "Create Client Account (Pre-Paid Gift)"}
+            </h2>
             <p className="text-sm text-slate-500 mt-0.5 leading-snug">
-              Pre-build a client's dashboard — calendar, docs, and 13 months Pro.
+              {isBuilder
+                ? "Pre-load every warranty date, builder spec, and document — automatic reminders trigger before each warranty expires."
+                : "Pre-build a client's dashboard — calendar, docs, and 13 months Pro."}
             </p>
           </div>
         </div>
@@ -1710,7 +1714,7 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
             style={{ backgroundColor: accent }}
           >
             <PlusCircle className="w-4 h-4 shrink-0" />
-            Create Client Account · {duration === "3years" ? "$99" : "$36"}
+            {isBuilder ? "Assign New Home Package" : "Create Client Account"} · {duration === "3years" ? "$99" : "$36"}
           </button>
           <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 w-full sm:w-auto">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -1743,8 +1747,14 @@ function PreCreateClientPanel({ accent }: { accent: string }) {
                     <UserPlus className="w-4 h-4" style={{ color: accent }} />
                   </div>
                   <div>
-                    <h3 className="font-bold text-slate-900 text-sm">Create Client Account</h3>
-                    <p className="text-sm text-slate-400">$36 · 13 months Pro · AI calendar included</p>
+                    <h3 className="font-bold text-slate-900 text-sm">
+                      {isBuilder ? "Assign New Home Package" : "Create Client Account"}
+                    </h3>
+                    <p className="text-sm text-slate-400">
+                      {isBuilder
+                        ? "Warranties pre-loaded · Builder docs included · Auto reminders"
+                        : "$36 · 13 months Pro · AI calendar included"}
+                    </p>
                   </div>
                 </div>
                 <button onClick={() => setOpen(false)}
@@ -2676,15 +2686,25 @@ Click here to get started: ${link}`;
               )}
             </motion.div>
 
-            {/* Broker name */}
+            {/* Broker name / Builder hero headline */}
             <motion.h1
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.4 }}
-              className="text-3xl sm:text-4xl font-black mb-2 leading-tight text-white"
+              className={`font-black mb-2 leading-tight text-white ${isBuilder ? "text-2xl sm:text-3xl max-w-2xl mx-auto" : "text-3xl sm:text-4xl"}`}
             >
-              {config.brokerName}
+              {isBuilder ? "Welcome to your Branded New Home Buyer Experience Platform" : config.brokerName}
             </motion.h1>
+            {isBuilder && (
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+                className="text-white/45 text-xs font-bold tracking-widest uppercase mb-3"
+              >
+                {config.brokerName}
+              </motion.p>
+            )}
 
             {/* Tagline in accent color */}
             {config.tagline && (
@@ -2707,7 +2727,7 @@ Click here to get started: ${link}`;
               className="text-white/55 text-base sm:text-base max-w-lg mx-auto mb-7 leading-relaxed"
             >
               {isBuilder
-                ? "Welcome to your Branded New Home Buyer Experience Platform. Deliver 1-year care packages to buyers at closing and track every warranty automatically."
+                ? "Deliver 1-year warranty care packages at closing and automatically track every warranty date."
                 : "Welcome to your branded client retention platform. Help your clients own their homes better — and keep them for life."}
             </motion.p>
 
@@ -2772,7 +2792,7 @@ Click here to get started: ${link}`;
 
         {/* ── Stats ─────────────────────────────────────────────────── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}
-          className={`grid gap-4 ${isBuilder ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4"}`}>
+          className="grid gap-4 grid-cols-2 sm:grid-cols-4">
 
           <StatCard
             icon={<Users className="w-6 h-6" />}
@@ -2790,30 +2810,7 @@ Click here to get started: ${link}`;
             iconColor="#f59e0b"
           />
 
-          <button
-            onClick={() => document.getElementById("celebrations-widget")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 hover:shadow-md transition-shadow duration-200 text-center sm:text-left w-full"
-          >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl ${celebrationCountThisMonth > 0 ? "bg-amber-50" : "bg-slate-50"}`}>
-              🎉
-            </div>
-            <div className="min-w-0 w-full">
-              <p className="text-2xl font-black text-slate-900 leading-none">{celebrationCountThisMonth}</p>
-              <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">Celebrations This Month</p>
-            </div>
-          </button>
-
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 hover:shadow-md transition-shadow duration-200">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${imminentClients.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
-              <AlertTriangle className={`w-5 h-5 ${imminentClients.length > 0 ? "text-red-500" : "text-slate-300"}`} />
-            </div>
-            <div className="min-w-0 w-full text-center sm:text-left">
-              <p className="text-2xl font-black text-slate-900 leading-none">{imminentClients.length}</p>
-              <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">Imminent Alerts</p>
-            </div>
-          </div>
-
-          {isBuilder && (
+          {isBuilder ? (
             <button
               onClick={() => {
                 setWarrantyFilter(true);
@@ -2828,15 +2825,39 @@ Click here to get started: ${link}`;
                 <p className={`text-2xl font-black leading-none ${warrantyExpiringClients.length > 0 ? "text-orange-600" : "text-slate-900"}`}>
                   {warrantyExpiringClients.length}
                 </p>
-                <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">Warranty Expirations (60d)</p>
+                <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">Upcoming Warranty Expirations</p>
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={() => document.getElementById("celebrations-widget")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+              className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 hover:shadow-md transition-shadow duration-200 text-center sm:text-left w-full"
+            >
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-xl ${celebrationCountThisMonth > 0 ? "bg-amber-50" : "bg-slate-50"}`}>
+                🎉
+              </div>
+              <div className="min-w-0 w-full">
+                <p className="text-2xl font-black text-slate-900 leading-none">{celebrationCountThisMonth}</p>
+                <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">Celebrations This Month</p>
               </div>
             </button>
           )}
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row items-center sm:items-start gap-2 sm:gap-4 hover:shadow-md transition-shadow duration-200">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${imminentClients.length > 0 ? "bg-red-50" : "bg-slate-50"}`}>
+              <AlertTriangle className={`w-5 h-5 ${imminentClients.length > 0 ? "text-red-500" : "text-slate-300"}`} />
+            </div>
+            <div className="min-w-0 w-full text-center sm:text-left">
+              <p className="text-2xl font-black text-slate-900 leading-none">{imminentClients.length}</p>
+              <p className="text-xs text-slate-400 font-semibold mt-1 leading-snug">Imminent Alerts</p>
+            </div>
+          </div>
+
         </motion.div>
 
 
         {/* ── Pre-Create Client Account ────────────────────────────── */}
-        <PreCreateClientPanel accent={accent} />
+        <PreCreateClientPanel accent={accent} isBuilder={isBuilder} />
 
         {/* ── Team Member Personal Profile ─────────────────────────── */}
         {isTeamMember && membership && (

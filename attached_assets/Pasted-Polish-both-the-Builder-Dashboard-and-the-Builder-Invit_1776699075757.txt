@@ -1,0 +1,45 @@
+Polish both the Builder Dashboard and the Builder Invite Landing Page to make the builder experience feel distinct, purposeful, and professional.
+
+Focus: Emphasize new home delivery, 1-year warranty support, document vault for builder paperwork, and reduced post-closing support.
+
+1. Builder Dashboard (when account_type = 'builder'):
+   - Header title: "Builder Dashboard"
+   - Hero section:
+     - Badge: "Builder Account • Approved"
+     - Headline: "Welcome to your Branded New Home Buyer Experience Platform"
+     - Sub-headline: "Deliver 1-year warranty care packages at closing and automatically track every warranty date."
+   - Update the four stat tiles to:
+     - Total Homes Delivered
+     - Active 1-Year Warranties
+     - Upcoming Warranty Expirations
+     - Imminent Alerts
+   - Change the main top-right button from "Invite Client" to "Assign New Home Package"
+   - Rename the big creation widget from "Create Client Account (Pre-Paid Gift)" to "Deliver 1-Year Builder Care Package"
+     - Update description to highlight pre-loading warranties, specs, and setting automatic reminders.
+   - Make the New Construction section more prominent when pre-filling clients.
+
+2. Builder Invite Landing Page (maintainhome.ai/[builderhandle]):
+   - Top badge: "Your New Home from [Builder Name]"
+   - Main headline: "Welcome to Your New Home"
+   - Sub-headline: "Your new home comes with 1-year warranty tracking, AI support from Maintly, and a complete care plan — all under your builder’s brand."
+   - Update the ready-to-send message to focus on new home welcome + warranty support instead of generic gift language.
+   - Add a clear benefit section highlighting:
+     - Automatic warranty reminders
+     - Secure document vault for builder paperwork
+     - 24/7 AI assistant for new homeowners
+
+3. General Rules:
+   - Keep all existing broker functionality 100% unchanged.
+   - Use account_type = 'builder' to conditionally render text, stats, buttons, and messaging.
+   - Ensure both pages look modern, energetic, and mobile-friendly.
+   - Use consistent branding colors and Maintly avatar where appropriate.
+
+After implementing, confirm:
+- Builder Dashboard feels clearly different from the broker version and builder-focused.
+- Builder Invite Landing Page has strong new-home + warranty messaging.
+- All changes only affect builder accounts.
+
+Test:
+- View a builder dashboard
+- Create/assign a test builder client
+- Visit the builder invite landing page (maintainhome.ai/[builderhandle])
