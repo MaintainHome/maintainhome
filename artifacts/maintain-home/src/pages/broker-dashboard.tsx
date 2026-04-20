@@ -2537,15 +2537,7 @@ Click here to get started: ${link}`;
               ? <img src={config.logoUrl} alt={config.brokerName} className="h-9 sm:h-7 max-w-[120px] sm:max-w-[110px] object-contain shrink-0" />
               : <img src={`${BASE}images/logo-icon.png`} alt="MaintainHome" className="w-9 h-9 sm:w-7 sm:h-7 object-contain shrink-0" />
             }
-            {config.agentPhotoUrl && (
-              <img src={config.agentPhotoUrl} alt={config.brokerName}
-                className="w-7 h-7 rounded-full object-cover border border-slate-200 hidden sm:block" />
-            )}
             <span className="font-bold text-slate-900 text-sm hidden sm:block whitespace-nowrap shrink-0">{isBuilder ? "Builder Dashboard" : "Partner Dashboard"}</span>
-            <span className="text-slate-300 hidden sm:block shrink-0">·</span>
-            <span className="text-sm font-semibold truncate hidden sm:block" style={{ color: accent }}>
-              {isTeamMember && membership ? membership.displayName : config.brokerName}
-            </span>
             {isTeamMember && (
               <span className="hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 shrink-0">
                 <Users className="w-3 h-3" />Team Agent
