@@ -340,7 +340,7 @@ export default function BrokerOnboard() {
             Pioneer Agent Program
           </div>
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.0] tracking-tight">
-            Gain Access To The Ultimate{" "}
+            Access The Ultimate{" "}
             <span style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Client Retention Tool</span>
           </h1>
           <p className="text-white/80 text-lg sm:text-xl font-semibold leading-snug mt-5 max-w-2xl mx-auto">
@@ -749,8 +749,8 @@ export default function BrokerOnboard() {
                   whileTap={{ scale: 0.98 }}
                   className="w-full flex items-center justify-center gap-3 px-6 py-5 rounded-2xl text-white font-extrabold text-xl transition-all disabled:opacity-60"
                   style={{
-                    backgroundColor: ACCENT,
-                    boxShadow: `0 0 50px ${ACCENT}70, 0 8px 28px ${ACCENT}50`,
+                    background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                    boxShadow: "0 0 50px rgba(31,158,110,0.4), 0 8px 28px rgba(59,130,246,0.35)",
                   }}
                 >
                   {loading
