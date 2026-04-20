@@ -432,8 +432,8 @@ export default function InviteLanding() {
               className="text-white/60 text-base sm:text-lg mb-8 text-center lg:text-left leading-relaxed"
             >
               {branding.accountType === "builder"
-                ? <>Your new home comes with <span className="font-bold text-white/80">1-year warranty tracking</span>, AI support, and a complete care plan — powered by MaintainHome.ai</>
-                : <>Give your clients the ultimate homeownership advantage — powered by <span className="font-bold text-white/80">MaintainHome.ai</span></>}
+                ? <>Your new home comes with <span className="font-bold text-white/80">1-year warranty tracking</span>, AI support from Maintly, and a complete care plan — all under your builder's brand.</>
+                : <>Give your clients the ultimate homeownership advantage — <span className="font-bold text-white/80">a branded app under your name that keeps them for life.</span></>}
             </motion.p>
 
             {/* ── Maintly + speech bubble (points at CTA below) ── */}
@@ -479,7 +479,7 @@ export default function InviteLanding() {
                     <p className="text-white/85 text-sm sm:text-base leading-relaxed font-medium">
                       {branding.accountType === "builder"
                         ? "I'll guide you through your 1-year warranty window, track every key date, and answer questions about your new home — 24/7. ↓"
-                        : "I'll be your client's personal AI home assistant — available 24/7 to answer every question about their home. ↓"}
+                        : "I'll be your client's personal AI home assistant 24/7. ↓"}
                     </p>
                   </div>
                 </motion.div>
@@ -495,7 +495,7 @@ export default function InviteLanding() {
             >
               <motion.button
                 onClick={openSignup}
-                className="w-full flex items-center justify-center gap-3 py-6 rounded-2xl text-white font-extrabold text-xl sm:text-2xl transition-all"
+                className="w-full flex items-center justify-center gap-3 py-6 rounded-2xl text-white font-extrabold text-lg sm:text-2xl transition-all leading-tight text-center"
                 style={{
                   backgroundColor: ACCENT,
                   boxShadow: `0 0 80px ${ACCENT}90, 0 12px 48px ${ACCENT}70, 0 0 0 1px ${ACCENT}`,
@@ -503,14 +503,20 @@ export default function InviteLanding() {
                 whileHover={{ scale: 1.025, boxShadow: `0 0 120px ${ACCENT}aa, 0 16px 60px ${ACCENT}80, 0 0 0 1px ${ACCENT}` }}
                 whileTap={{ scale: 0.97 }}
               >
-                Get Started Free
+                {branding.accountType === "builder" ? "Start Your 1-Year Home Care Plan" : "Get Started Free"}
                 <motion.span
                   animate={{ x: [0, 5, 0] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="shrink-0"
                 >
-                  <ArrowRight className="w-7 h-7" />
+                  <ArrowRight className="w-6 h-6 sm:w-7 sm:h-7" />
                 </motion.span>
               </motion.button>
+              <p className="text-center text-white/40 text-xs sm:text-sm mt-3 font-medium">
+                {branding.accountType === "builder"
+                  ? "Free for one full year · Includes warranty tracking, AI support & document vault"
+                  : "Free to start · No credit card · Set up in under 2 minutes"}
+              </p>
 
               <p className="text-center text-white/35 text-sm mt-3">
                 Already have an account?{" "}
@@ -587,8 +593,12 @@ export default function InviteLanding() {
       </div>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
-      <div className="relative z-10 pb-8 flex justify-center">
-        <p className="text-white/12 text-xs text-center">
+      <div className="relative z-10 pb-8 flex flex-col items-center gap-1.5">
+        <div className="flex items-center gap-1.5 opacity-60">
+          <img src={`${BASE}images/logo-icon.png`} alt="" className="w-3.5 h-3.5 object-contain" />
+          <p className="text-white/40 text-xs font-semibold">Powered by MaintainHome.ai</p>
+        </div>
+        <p className="text-white/15 text-[11px] text-center">
           © {new Date().getFullYear()} MaintainHome.ai · All rights reserved
         </p>
       </div>

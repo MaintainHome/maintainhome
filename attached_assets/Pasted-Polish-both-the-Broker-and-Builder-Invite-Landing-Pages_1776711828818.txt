@@ -1,0 +1,36 @@
+Polish both the Broker and Builder Invite Landing Pages to make them more energetic, modern, and conversion-friendly.
+
+Focus on increasing excitement while keeping the pages clean and professional.
+
+**For Broker Invite Page** (`maintainhome.ai/[handle]`):
+- Make the layout more dynamic (horizontal on desktop, clean vertical on mobile).
+- Larger, bolder broker logo and agent headshot.
+- Energetic headline using the broker’s tagline.
+- Strong sub-headline: “Give your clients the ultimate homeownership advantage — a branded app under your name that keeps them for life.”
+- Prominent Maintly avatar pointing toward the CTA with a speech bubble: “I’ll be your client’s personal AI home assistant 24/7.”
+- Larger, glowing “Get Started Free” button with clear benefit text underneath.
+- Add subtle animated gradient blobs in the broker’s primary color for energy.
+
+**For Builder Invite Page** (`maintainhome.ai/[handle]`):
+- Badge: “Your New Home from [Builder Name]”
+- Bold headline: “Welcome to Your New Home”
+- Sub-headline: “Your new home comes with 1-year warranty tracking, AI support from Maintly, and a complete care plan — all under your builder’s brand.”
+- Emphasize warranty and post-closing support.
+- Use the same energetic layout as the broker page but with builder-focused messaging.
+- Prominent “Get Started Free” button with wording like “Start Your 1-Year Home Care Plan”.
+
+**General Improvements (both pages):**
+- Use more white space and modern card styling.
+- Make the CTA button much larger, with a subtle glow or shadow for emphasis.
+- Ensure excellent mobile experience (large touch targets, good spacing).
+- Keep “Powered by MaintainHome.ai” small and tasteful at the bottom.
+
+After implementing, confirm:
+- Both broker and builder invite pages feel significantly more energetic and premium.
+- The broker version emphasizes long-term client retention.
+- The builder version emphasizes new home + 1-year warranty support.
+- Pages look great on both desktop and mobile.
+
+Test:
+- A broker invite page (e.g. maintainhome.ai/johnwalker)
+- A builder invite page (if you have a test builder handle)
