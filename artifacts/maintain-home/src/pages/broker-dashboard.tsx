@@ -1172,7 +1172,7 @@ const emptyProviderForm = (): ProviderFormState => ({
   note: "",
 });
 
-function TrustedServiceProvidersPanel({ accent }: { accent: string }) {
+function TrustedServiceProvidersPanel({ accent, isBuilder = false }: { accent: string; isBuilder?: boolean }) {
   const [open, setOpen] = useState(false);
   const [providers, setProviders] = useState<ServiceProvider[]>([]);
   const [loading, setLoading] = useState(false);
@@ -1284,9 +1284,13 @@ function TrustedServiceProvidersPanel({ accent }: { accent: string }) {
             <Wrench className="w-5 h-5" style={{ color: accent }} />
           </div>
           <div>
-            <h2 className="font-bold text-sm text-slate-900">My Trusted Service Providers</h2>
+            <h2 className="font-bold text-sm text-slate-900">
+              {isBuilder ? "Builder Connected Service Providers" : "My Trusted Service Providers"}
+            </h2>
             <p className="text-xs text-slate-500 mt-0.5 leading-snug">
-              Add local vendors your clients can rely on — Maintly will recommend them during AI chats when relevant
+              {isBuilder
+                ? "Add local vendors and preferred service providers that your buyers can rely on — Maintly will recommend them during AI chats when relevant."
+                : "Add local vendors your clients can rely on — Maintly will recommend them during AI chats when relevant"}
             </p>
           </div>
         </div>
@@ -3372,7 +3376,7 @@ Click here to get started: ${link}`;
         })()}
 
         {/* ── Trusted Service Providers ────────────────────────────── */}
-        {!isTeamMember && <TrustedServiceProvidersPanel accent={accent} />}
+        {!isTeamMember && <TrustedServiceProvidersPanel accent={accent} isBuilder={isBuilder} />}
 
         {/* ── Team Members (Team Leader only) ─────────────────────── */}
         {isTeamLeader && config && (
