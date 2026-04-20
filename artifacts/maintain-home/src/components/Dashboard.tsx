@@ -2293,14 +2293,14 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 <div className="flex items-center gap-4">
                   <div className="flex-1 text-center bg-white rounded-xl border border-slate-200 py-3 px-4 shadow-sm">
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Your Rate</p>
-                    <p className={`text-3xl font-black ${rateIsBetter ? "text-emerald-600" : rateIsHigher ? "text-red-600" : "text-slate-800"}`}>
+                    <p className={`mortgage-rate-value text-xl sm:text-3xl font-black ${rateIsBetter ? "text-emerald-600" : rateIsHigher ? "text-red-600" : "text-slate-800"}`}>
                       {mortgageRate.toFixed(2)}%
                     </p>
                   </div>
-                  <div className="text-2xl font-bold text-slate-300">vs</div>
+                  <div className="text-base sm:text-2xl font-bold text-slate-300">vs</div>
                   <div className="flex-1 text-center bg-white rounded-xl border border-slate-200 py-3 px-4 shadow-sm">
                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Avg 30yr Fixed</p>
-                    <p className="text-3xl font-black text-slate-700">{CURRENT_AVG_RATE.toFixed(2)}%</p>
+                    <p className="mortgage-rate-value text-xl sm:text-3xl font-black text-slate-700">{CURRENT_AVG_RATE.toFixed(2)}%</p>
                   </div>
                 </div>
 

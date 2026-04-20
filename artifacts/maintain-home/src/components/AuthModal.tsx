@@ -152,7 +152,7 @@ export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-2 sm:p-4"
         onClick={(e) => e.target === e.currentTarget && handleClose()}
       >
         <motion.div
@@ -160,10 +160,10 @@ export function AuthModal({ open, onClose, initialMode }: AuthModalProps) {
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.92, opacity: 0 }}
           transition={{ type: "spring", stiffness: 320, damping: 28 }}
-          className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden"
+          className={`bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-y-auto max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] ${mode === "signup" ? "auth-modal-signup" : "auth-modal-signin"}`}
         >
           {/* ── Header bar ───────────────────────────────────────── */}
-          <div className="flex items-center justify-between px-6 pt-6 pb-4">
+          <div className="auth-modal-header flex items-center justify-between px-6 pt-6 pb-4">
             <div className="flex items-center gap-2.5">
               <img
                 src="/images/logo-icon.png"

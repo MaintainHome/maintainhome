@@ -141,18 +141,18 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Navigation */}
-      <nav className="w-full border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-32 flex items-center justify-between">
+      <nav className="landing-nav w-full border-b border-border/50 bg-white/80 backdrop-blur-md sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-32 flex items-center justify-between gap-2">
           <a href="/" className="flex items-center gap-1.5 sm:gap-3 hover:opacity-80 transition-opacity min-w-0 shrink">
             {branding ? (
               branding.logoUrl ? (
                 <img
                   src={branding.logoUrl}
                   alt={branding.brokerName}
-                  className="h-8 sm:h-20 w-auto max-w-[160px] sm:max-w-[240px] object-contain shrink-0"
+                  className="h-9 sm:h-20 w-auto max-w-[140px] sm:max-w-[240px] object-contain shrink-0"
                 />
               ) : (
-                <span className="text-sm sm:text-3xl font-display font-black text-primary tracking-tight leading-tight">
+                <span className="text-[15px] sm:text-3xl font-display font-black text-primary tracking-tight leading-tight">
                   {branding.brokerName}
                 </span>
               )
@@ -163,19 +163,19 @@ export default function Home() {
                   alt="MaintainHome.ai Logo"
                   className="w-8 h-8 sm:w-28 sm:h-28 object-contain shrink-0"
                 />
-                <span className="text-sm sm:text-4xl font-display font-bold text-foreground tracking-tight leading-tight">
+                <span className="text-[13px] sm:text-4xl font-display font-bold text-foreground tracking-tight leading-tight whitespace-nowrap">
                   MaintainHome<span className="text-primary">.ai</span>
                 </span>
               </>
             )}
           </a>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Mobile only: Try It Now — guests only */}
             {!user && (
               <button
                 onClick={handleTryNow}
-                className="sm:hidden flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-bold text-sm bg-primary text-white shadow-md shadow-primary/25 active:scale-95 transition-all whitespace-nowrap shrink-0"
+                className="sm:hidden flex items-center gap-1 px-3 py-2 rounded-lg font-bold text-xs bg-primary text-white shadow-sm shadow-primary/25 active:scale-95 transition-all whitespace-nowrap shrink-0"
               >
                 <Zap className="w-3.5 h-3.5" />
                 Try It Now
@@ -235,7 +235,7 @@ export default function Home() {
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="sm:hidden flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 transition-colors whitespace-nowrap shrink-0"
+                className="sm:hidden flex items-center gap-1 px-3 py-2 rounded-lg border border-slate-200 text-slate-600 text-xs font-semibold hover:bg-slate-50 active:scale-95 transition-all whitespace-nowrap shrink-0"
               >
                 <LogIn className="w-3.5 h-3.5" />
                 Sign In
