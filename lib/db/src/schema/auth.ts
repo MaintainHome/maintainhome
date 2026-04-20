@@ -14,6 +14,7 @@ export const usersTable = pgTable("users", {
   smsPhone: text("sms_phone"),
   stripeCustomerId: text("stripe_customer_id"),
   hasSeenDashboardTour: boolean("has_seen_dashboard_tour").default(false).notNull(),
+  hasAcceptedTerms: boolean("has_accepted_terms").default(false).notNull(),
   proExpiresAt: timestamp("pro_expires_at"),
   brokerPreCreated: boolean("broker_pre_created").default(false).notNull(),
   assignedMemberId: integer("assigned_member_id"),

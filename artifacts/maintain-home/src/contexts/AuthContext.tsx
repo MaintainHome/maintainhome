@@ -15,6 +15,7 @@ export interface AuthUser {
   smsEnabled: boolean;
   smsPhone: string | null;
   hasSeenDashboardTour: boolean;
+  hasAcceptedTerms: boolean;
   referralSubdomain: string | null;
 }
 

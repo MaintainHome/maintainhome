@@ -304,6 +304,7 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
       smsEnabled: usersTable.smsEnabled,
       smsPhone: usersTable.smsPhone,
       hasSeenDashboardTour: usersTable.hasSeenDashboardTour,
+      hasAcceptedTerms: usersTable.hasAcceptedTerms,
       referralSubdomain: usersTable.referralSubdomain,
     })
     .from(usersTable)
@@ -355,6 +356,15 @@ router.get("/auth/me", requireAuth as any, async (req: AuthRequest, res: Respons
     isBuilder: brokerRecord?.accountType === "builder",
     isTeamMember: !!teamMembership,
   });
+});
+
+// Accept Terms & Conditions (permanent flag, never resets)
+router.post("/user/accept-terms", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  await db
+    .update(usersTable)
+    .set({ hasAcceptedTerms: true })
+    .where(eq(usersTable.id, req.userId!));
+  res.json({ ok: true });
 });
 
 // Mark dashboard tour as completed (permanent flag, never resets)

@@ -14,6 +14,7 @@ import { isPro, useAuth } from "@/contexts/AuthContext";
 import type { AuthUser } from "@/contexts/AuthContext";
 import { DashboardTour } from "@/components/DashboardTour";
 import type { TourStep } from "@/components/DashboardTour";
+import { TermsAcceptanceModal } from "@/components/TermsAcceptanceModal";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useLocation } from "wouter";
 
@@ -538,7 +539,7 @@ function getNextDueTasks(calendarData: any, limit = 5): { task: string; month: s
 }
 
 export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps) {
-  const { refreshUser, giftRedemptionResult, clearGiftRedemptionResult } = useAuth();
+  const { refreshUser, logout, giftRedemptionResult, clearGiftRedemptionResult } = useAuth();
   const [, navigate] = useLocation();
   const [recentLog, setRecentLog] = useState<LogEntry[]>([]);
   const [logLoading, setLogLoading] = useState(true);
@@ -577,12 +578,24 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const tourRef4 = useRef<HTMLButtonElement | null>(null);
   const tourRef5 = useRef<HTMLDivElement | null>(null);
 
+  // ── Terms Acceptance ───────────────────────────────────────────────────
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
   // Show tour once user data is loaded and they haven't seen it
   useEffect(() => {
     if (!user || user.hasSeenDashboardTour) return;
     const timer = setTimeout(() => setShowTour(true), 900);
     return () => clearTimeout(timer);
   }, [user?.hasSeenDashboardTour]);
+
+  // Show terms after tour is done (or immediately if tour was already seen)
+  useEffect(() => {
+    if (!user) return;
+    if (user.hasAcceptedTerms) return;
+    if (!user.hasSeenDashboardTour) return; // wait for tour to finish first
+    const timer = setTimeout(() => setShowTermsModal(true), 400);
+    return () => clearTimeout(timer);
+  }, [user?.hasSeenDashboardTour, user?.hasAcceptedTerms]);
 
   const completeTour = useCallback(async () => {
     setShowTour(false);
@@ -596,6 +609,16 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
       // Silently ignore — tour won't re-show since showTour is false
     }
   }, [refreshUser]);
+
+  const handleAcceptTerms = useCallback(async () => {
+    setShowTermsModal(false);
+    await refreshUser();
+  }, [refreshUser]);
+
+  const handleDeclineTerms = useCallback(async () => {
+    await logout();
+    navigate("/");
+  }, [logout, navigate]);
 
   // File upload state for inline chat
   const [chatPendingFile, setChatPendingFile] = useState<File | null>(null);
@@ -2462,6 +2485,13 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
           onSkip={completeTour}
         />
       )}
+
+      {/* ── Terms & Conditions Acceptance ── */}
+      <TermsAcceptanceModal
+        open={showTermsModal}
+        onAccept={handleAcceptTerms}
+        onDecline={handleDeclineTerms}
+      />
     </div>
   );
 }
