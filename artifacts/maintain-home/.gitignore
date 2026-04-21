@@ -1,0 +1,22 @@
+# ── Capacitor / native build output ──
+ios/App/Pods
+ios/App/Podfile.lock
+ios/App/build
+ios/DerivedData
+ios/.gradle
+android/.gradle
+android/app/build
+android/build
+android/captures
+android/local.properties
+android/app/release/
+android/app/debug/
+*.jks
+*.keystore
+
+# Capacitor copies the web bundle into the native projects on `cap sync`,
+# so these are derived artifacts and should not be committed.
+ios/App/App/public
+android/app/src/main/assets/public
+ios/App/App/capacitor.config.json
+android/app/src/main/assets/capacitor.config.json
