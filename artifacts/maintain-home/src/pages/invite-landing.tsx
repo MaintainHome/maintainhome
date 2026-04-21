@@ -249,47 +249,13 @@ export default function InviteLanding() {
               </div>
             )}
 
-            {/* ── 2. Large Maintly hero (gift for broker, phone for builder) ── */}
-            <motion.div
-              className="relative mb-6"
-              initial={{ opacity: 0, scale: 0.8, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.55, ease: "easeOut" }}
-            >
-              {/* Celebratory glow — gold for broker gift, brand-green for builder */}
-              <div
-                className="absolute inset-0 rounded-full blur-3xl opacity-80 -z-0"
-                style={{
-                  background:
-                    branding.accountType === "builder"
-                      ? `radial-gradient(circle, ${ACCENT}80 0%, ${ACCENT}40 50%, transparent 75%)`
-                      : "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.30) 50%, transparent 75%)",
-                }}
-              />
-              <motion.img
-                src={
-                  branding.accountType === "builder"
-                    ? `${BASE}images/maintly_phone.png`
-                    : `${BASE}images/maintly_gift.png`
-                }
-                alt={
-                  branding.accountType === "builder"
-                    ? "Maintly — your AI home assistant"
-                    : "Maintly with your closing gift"
-                }
-                className="relative h-44 sm:h-52 lg:h-60 w-auto object-contain drop-shadow-2xl"
-                animate={{ y: [0, -8, 0], rotate: [-1.5, 1.5, -1.5] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              />
-            </motion.div>
-
-            {/* ── 3. Agent / team member headshot ───────────────── */}
+            {/* ── 2. Agent / team member headshot ───────────────── */}
             {displayPhotoUrl ? (
               <motion.div
                 className="relative mb-4"
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.25, duration: 0.5, ease: "easeOut" }}
+                transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
               >
                 <div
                   className="absolute -inset-2 rounded-full"
@@ -317,7 +283,7 @@ export default function InviteLanding() {
                 className="relative mb-4"
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.25, duration: 0.5, ease: "easeOut" }}
+                transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
               >
                 <div
                   className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center border-4 shadow-2xl"
@@ -330,8 +296,8 @@ export default function InviteLanding() {
               </motion.div>
             ) : null}
 
-            {/* ── 4. Name + phone ────────────────────────────────── */}
-            <div className="text-center">
+            {/* ── 3. Name + phone ────────────────────────────────── */}
+            <div className="text-center mb-6">
               {agentInfo ? (
                 <>
                   <p className="text-white font-extrabold text-xl">{agentInfo.displayName}</p>
@@ -350,6 +316,38 @@ export default function InviteLanding() {
                 </a>
               )}
             </div>
+
+            {/* ── 4. Large Maintly hero (gift for broker, phone for builder) — static ── */}
+            <motion.div
+              className="relative mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.25, duration: 0.55, ease: "easeOut" }}
+            >
+              {/* Celebratory glow — gold for broker gift, brand-green for builder */}
+              <div
+                className="absolute inset-0 rounded-full blur-3xl opacity-80 -z-0"
+                style={{
+                  background:
+                    branding.accountType === "builder"
+                      ? `radial-gradient(circle, ${ACCENT}80 0%, ${ACCENT}40 50%, transparent 75%)`
+                      : "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.30) 50%, transparent 75%)",
+                }}
+              />
+              <img
+                src={
+                  branding.accountType === "builder"
+                    ? `${BASE}images/maintly_phone.png`
+                    : `${BASE}images/maintly_gift.png`
+                }
+                alt={
+                  branding.accountType === "builder"
+                    ? "Maintly — your AI home assistant"
+                    : "Maintly with your closing gift"
+                }
+                className="relative h-44 sm:h-52 lg:h-60 w-auto object-contain drop-shadow-2xl"
+              />
+            </motion.div>
 
             {/* ── 5. Tagline caption (desktop only) ──────────────── */}
             {branding.tagline && (
