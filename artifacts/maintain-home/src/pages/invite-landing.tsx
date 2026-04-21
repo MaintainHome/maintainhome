@@ -404,7 +404,20 @@ export default function InviteLanding() {
               className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black text-white text-center lg:text-left mb-5 leading-[1.04] tracking-tight"
             >
               {branding.tagline ? (
-                <span style={{ color: ACCENT }}>{branding.tagline}</span>
+                branding.accountType === "builder" ? (
+                  <span style={{ color: ACCENT }}>{branding.tagline}</span>
+                ) : (
+                  <span
+                    style={{
+                      background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {branding.tagline}
+                  </span>
+                )
               ) : branding.accountType === "builder" ? (
                 <>
                   Welcome to<br />
@@ -413,7 +426,17 @@ export default function InviteLanding() {
               ) : (
                 <>
                   Your Home.<br />
-                  <span style={{ color: ACCENT }}>Protected.</span> Organized.<br />
+                  <span
+                    style={{
+                      background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    Protected.
+                  </span>{" "}
+                  Organized.<br />
                   <span className="text-white/60">Forever.</span>
                 </>
               )}
@@ -476,10 +499,22 @@ export default function InviteLanding() {
                 onClick={openSignup}
                 className="w-full flex items-center justify-center gap-3 py-6 rounded-2xl text-white font-extrabold text-lg sm:text-2xl transition-all leading-tight text-center"
                 style={{
-                  backgroundColor: ACCENT,
-                  boxShadow: `0 0 80px ${ACCENT}90, 0 12px 48px ${ACCENT}70, 0 0 0 1px ${ACCENT}`,
+                  background:
+                    branding.accountType === "builder"
+                      ? ACCENT
+                      : "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                  boxShadow:
+                    branding.accountType === "builder"
+                      ? `0 0 80px ${ACCENT}90, 0 12px 48px ${ACCENT}70, 0 0 0 1px ${ACCENT}`
+                      : `0 0 80px #1f9e6e90, 0 12px 48px #3b82f670, 0 0 0 1px #1f9e6e`,
                 }}
-                whileHover={{ scale: 1.025, boxShadow: `0 0 120px ${ACCENT}aa, 0 16px 60px ${ACCENT}80, 0 0 0 1px ${ACCENT}` }}
+                whileHover={{
+                  scale: 1.025,
+                  boxShadow:
+                    branding.accountType === "builder"
+                      ? `0 0 120px ${ACCENT}aa, 0 16px 60px ${ACCENT}80, 0 0 0 1px ${ACCENT}`
+                      : `0 0 120px #1f9e6eaa, 0 16px 60px #3b82f680, 0 0 0 1px #1f9e6e`,
+                }}
                 whileTap={{ scale: 0.97 }}
               >
                 {branding.accountType === "builder" ? "Start Your 1-Year Home Care Plan" : "Get Started Free"}
