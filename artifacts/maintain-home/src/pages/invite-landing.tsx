@@ -205,7 +205,310 @@ export default function InviteLanding() {
           MAIN CONTENT
       ══════════════════════════════════════════════════════════════ */}
       <div className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 pt-10 sm:pt-14 pb-16">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:gap-14 xl:gap-20">
+
+        {/* ══════════════════════════════════════════════════════════
+            MOBILE LAYOUT (< lg) — homeowner-first vertical flow
+            Order:
+              1. Maintly hero + "Special Gift / Your New Home" badge
+              2. Headline
+              3. Sub-headline
+              4. Benefits
+              5. CTA + microcopy + Sign-in
+              6. Welcome message
+              7. Agent/brand info (logo, headshot, name, phone, tagline)
+              8. Powered-by line (footer renders this site-wide)
+        ══════════════════════════════════════════════════════════ */}
+        <div className="lg:hidden flex flex-col">
+
+          {/* ── 1. Maintly + Badge ─────────────────────────────── */}
+          <motion.div
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6"
+            initial={{ opacity: 0, scale: 0.85 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.55, ease: "easeOut" }}
+          >
+            <div className="relative shrink-0">
+              <div
+                className="absolute inset-0 rounded-full blur-3xl opacity-80 -z-0"
+                style={{
+                  background:
+                    branding.accountType === "builder"
+                      ? `radial-gradient(circle, ${ACCENT}80 0%, ${ACCENT}40 50%, transparent 75%)`
+                      : "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.30) 50%, transparent 75%)",
+                }}
+              />
+              <img
+                src={
+                  branding.accountType === "builder"
+                    ? `${BASE}images/maintly_phone.png`
+                    : `${BASE}images/maintly_gift.png`
+                }
+                alt={
+                  branding.accountType === "builder"
+                    ? "Maintly — your AI home assistant"
+                    : "Maintly with your closing gift"
+                }
+                className="relative h-40 sm:h-48 w-auto object-contain drop-shadow-2xl"
+              />
+            </div>
+            <div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold tracking-wide uppercase max-w-[16rem] text-center justify-center"
+              style={{
+                backgroundColor: ACCENT + "22",
+                border: `1px solid ${ACCENT}55`,
+                color: ACCENT,
+              }}
+            >
+              <span className="text-base shrink-0">{branding.accountType === "builder" ? "🏗️" : "🎁"}</span>
+              <span className="leading-tight">
+                {branding.accountType === "builder" ? `Your New Home from ${displayName}` : `A Special Gift from ${displayName}`}
+              </span>
+            </div>
+          </motion.div>
+
+          {/* ── 2. Headline ───────────────────────────────────── */}
+          <motion.h1
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5, ease: "easeOut" }}
+            className="text-4xl sm:text-5xl font-black text-white text-center mb-4 leading-[1.04] tracking-tight"
+          >
+            Partnering With You<br />
+            <span
+              style={{
+                background:
+                  branding.accountType === "builder"
+                    ? "linear-gradient(135deg, #14b8a6 0%, #1f9e6e 50%, #3b82f6 100%)"
+                    : "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              To Own Your Home<br />With Confidence
+            </span>
+          </motion.h1>
+
+          {/* ── 3. Sub-headline ───────────────────────────────── */}
+          <motion.p
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.18, duration: 0.45 }}
+            className="text-white/65 text-base mb-6 text-center leading-relaxed"
+          >
+            {branding.accountType === "builder"
+              ? <>Your new home comes with <span className="font-bold text-white/85">1-year warranty tracking</span>, AI support from Maintly, and a complete care plan.</>
+              : <>Welcome to your custom home-care app, in partnership with your real estate agent. <span className="font-bold text-white/85">Own your home alone, but care for it with trusted partners.</span></>}
+          </motion.p>
+
+          {/* ── 4. Benefits ───────────────────────────────────── */}
+          <motion.div
+            className="mb-6"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.24, duration: 0.45 }}
+          >
+            <div
+              className="rounded-2xl px-5 py-4"
+              style={{
+                backgroundColor: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.10)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <p className="text-white/50 text-xs font-bold tracking-widest uppercase mb-3 text-center">
+                {branding.accountType === "builder" ? "Your New Home Care Package" : "Everything Included Under Your Brand"}
+              </p>
+              <div className="grid grid-cols-1 gap-2.5">
+                {(branding.accountType === "builder" ? BUILDER_BENEFITS : BENEFITS).map(({ icon: Icon, label }) => (
+                  <div key={label} className="flex items-center gap-2.5">
+                    <div
+                      className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: ACCENT + "25" }}
+                    >
+                      <Icon className="w-4 h-4" style={{ color: ACCENT }} />
+                    </div>
+                    <span className="text-white/75 text-sm font-medium leading-tight">{label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* ── 5. CTA ────────────────────────────────────────── */}
+          <motion.div
+            className="mb-6"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.32, duration: 0.5, ease: "easeOut" }}
+          >
+            <motion.button
+              onClick={openSignup}
+              className="w-full flex items-center justify-center gap-3 py-5 rounded-2xl text-white font-extrabold text-lg transition-all leading-tight text-center"
+              style={{
+                background:
+                  branding.accountType === "builder"
+                    ? "linear-gradient(135deg, #14b8a6 0%, #1f9e6e 50%, #3b82f6 100%)"
+                    : "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                boxShadow:
+                  branding.accountType === "builder"
+                    ? `0 0 60px #14b8a690, 0 12px 36px #3b82f670, 0 0 0 1px #1f9e6e`
+                    : `0 0 60px #1f9e6e90, 0 12px 36px #3b82f670, 0 0 0 1px #1f9e6e`,
+              }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {branding.accountType === "builder" ? "Start Your 1-Year Home Care Plan" : "Get Started Free"}
+              <motion.span
+                animate={{ x: [0, 5, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="shrink-0"
+              >
+                <ArrowRight className="w-6 h-6" />
+              </motion.span>
+            </motion.button>
+            <p className="text-center text-white/45 text-xs mt-3 font-medium">
+              {branding.accountType === "builder"
+                ? "Free for one full year · Includes warranty tracking, AI support & document vault"
+                : "Free to start · No credit card · Set up in under 2 minutes"}
+            </p>
+            <p className="text-center text-white/40 text-sm mt-3">
+              Already have an account?{" "}
+              <button
+                onClick={openSignin}
+                className="font-semibold transition-colors hover:underline"
+                style={{ color: ACCENT }}
+              >
+                Sign In →
+              </button>
+            </p>
+          </motion.div>
+
+          {/* ── 6. Welcome message ────────────────────────────── */}
+          {branding.welcomeMessage && (
+            <motion.div
+              className="mb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.42, duration: 0.4 }}
+            >
+              <div
+                className="w-full h-px mb-5"
+                style={{ background: "linear-gradient(to right, transparent, rgba(255,255,255,0.10), transparent)" }}
+              />
+              <p className="text-white/28 text-xs font-bold tracking-widest uppercase mb-3 text-center">
+                A Note from {branding.brokerName}
+              </p>
+              <div
+                className="px-5 py-4 rounded-2xl"
+                style={{ backgroundColor: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              >
+                <p className="text-white/55 text-sm leading-relaxed italic text-center">
+                  "{branding.welcomeMessage}"
+                </p>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── 7. Agent / brand info (moved to bottom) ──────── */}
+          <motion.div
+            className="mt-2 pt-6 flex flex-col items-center"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.45 }}
+          >
+            <div
+              className="w-full h-px mb-7"
+              style={{ background: "linear-gradient(to right, transparent, rgba(255,255,255,0.12), transparent)" }}
+            />
+
+            {/* Logo */}
+            {branding.logoUrl ? (
+              <div
+                className="flex justify-center items-center rounded-2xl px-6 py-4 mb-5 shadow-xl shadow-black/40"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.09)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  backdropFilter: "blur(16px)",
+                }}
+              >
+                <img
+                  src={branding.logoUrl}
+                  alt={branding.brokerName}
+                  className="h-16 sm:h-20 max-w-[200px] object-contain"
+                />
+              </div>
+            ) : (
+              <div
+                className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl mb-5"
+                style={{ backgroundColor: ACCENT + "30", border: `2px solid ${ACCENT}55` }}
+              >
+                <span className="text-3xl font-black" style={{ color: ACCENT }}>
+                  {branding.brokerName[0]}
+                </span>
+              </div>
+            )}
+
+            {/* Headshot (smaller) */}
+            {displayPhotoUrl ? (
+              <div className="relative mb-3">
+                <div
+                  className="absolute -inset-1.5 rounded-full"
+                  style={{ background: `radial-gradient(circle, ${ACCENT}35 0%, transparent 70%)` }}
+                />
+                <div
+                  className="w-20 h-20 rounded-full overflow-hidden border-[3px] shadow-xl relative"
+                  style={{ borderColor: ACCENT + "90" }}
+                >
+                  <img
+                    src={displayPhotoUrl}
+                    alt={displayAgentName ?? branding.brokerName}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            ) : agentInfo ? (
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center border-[3px] shadow-xl mb-3"
+                style={{ backgroundColor: ACCENT + "25", borderColor: ACCENT + "80" }}
+              >
+                <span className="text-3xl font-black" style={{ color: ACCENT }}>
+                  {agentInfo.displayName[0].toUpperCase()}
+                </span>
+              </div>
+            ) : null}
+
+            {/* Name */}
+            <div className="text-center">
+              {agentInfo ? (
+                <>
+                  <p className="text-white font-extrabold text-lg">{agentInfo.displayName}</p>
+                  <p className="text-white/40 text-xs mt-0.5 font-medium">{branding.brokerName}</p>
+                </>
+              ) : (
+                <p className="text-white font-extrabold text-lg">{branding.brokerName}</p>
+              )}
+              {displayPhone && (
+                <a
+                  href={`tel:${displayPhone}`}
+                  className="inline-flex items-center gap-1.5 mt-3 px-4 py-2 rounded-full text-sm font-semibold transition-all"
+                  style={{ color: ACCENT, backgroundColor: ACCENT + "18", border: `1px solid ${ACCENT}40` }}
+                >
+                  <Phone className="w-3.5 h-3.5" />{displayPhone}
+                </a>
+              )}
+              {branding.tagline && (
+                <p className="mt-4 text-white/30 text-xs italic max-w-xs leading-relaxed mx-auto">
+                  "{branding.tagline}"
+                </p>
+              )}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ══════════════════════════════════════════════════════════
+            DESKTOP LAYOUT (lg+) — unchanged two-column design
+        ══════════════════════════════════════════════════════════ */}
+        <div className="hidden lg:flex lg:flex-row lg:items-start lg:gap-14 xl:gap-20">
 
           {/* ════════════════════════════════════════════════════════
               LEFT COLUMN (~40%) — identity + Maintly hero
