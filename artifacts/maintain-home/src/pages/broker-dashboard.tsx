@@ -6,7 +6,7 @@ import {
   ShieldCheck, Gift, CreditCard, Calendar, TrendingUp,
   AlertTriangle, AlertCircle, ArrowUpRight, Star, Phone, Camera,
   Pencil, X, Upload, CheckCircle2, HomeIcon, PlusCircle,
-  FileText, Trash2, UserPlus, Key, Clock, Wrench, Plus, ChevronDown, ChevronUp, Mail, Globe,
+  FileText, Trash2, UserPlus, Key, Clock, Wrench, Plus, ChevronDown, ChevronUp, Mail, Globe, Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -2875,9 +2875,17 @@ Click here to get started: ${link}`;
             <Link2 className="w-5 h-5" style={{ color: accent }} />
             <h2 className="font-bold text-sm text-slate-900">Invite New Client to Create Their Own Account</h2>
           </div>
-          <p className="text-sm text-slate-500 mb-4 leading-relaxed">
+          <p className="text-sm text-slate-500 mb-3 leading-relaxed">
             Share your invite link — clients sign up, see your brand from day one, and stay connected to you through every stage of homeownership.
           </p>
+
+            {/* Custom-preview pill */}
+            <div className="inline-flex items-center gap-1.5 self-start mb-4 px-3 py-1.5 rounded-full text-xs font-semibold border"
+              style={{ backgroundColor: accent + "12", borderColor: accent + "33", color: accent }}
+              title="When clients receive your invite link via text or social, the preview shows your branding and Maintly — not the generic MaintainHome card.">
+              <Sparkles className="w-3.5 h-3.5" />
+              Your invite link now has a custom preview when texted to clients
+            </div>
 
             {/* Pre-written message preview */}
             <div className="relative bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 flex-1">

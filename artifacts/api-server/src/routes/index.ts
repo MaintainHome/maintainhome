@@ -18,6 +18,7 @@ import stripeSeedRouter from "./stripe-seed";
 import supportRouter from "./support";
 import adminTestingRouter from "./admin-testing";
 import feedbackRouter from "./feedback";
+import ogRouter from "./og";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(stripeSeedRouter);
 router.use(supportRouter);
 router.use(adminTestingRouter);
 router.use(feedbackRouter);
+router.use(ogRouter);
 
 export default router;

@@ -1,7 +1,8 @@
 import path from "path";
 import { fileURLToPath } from "url";
 import { build as esbuild } from "esbuild";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, mkdir, cp } from "fs/promises";
+import { existsSync } from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,6 +68,15 @@ async function buildAll() {
     external: externals,
     logLevel: "info",
   });
+
+  // Copy assets/ (fonts, etc.) so runtime can locate them
+  const assetsSrc = path.resolve(__dirname, "assets");
+  if (existsSync(assetsSrc)) {
+    const assetsDest = path.resolve(distDir, "assets");
+    await mkdir(assetsDest, { recursive: true });
+    await cp(assetsSrc, assetsDest, { recursive: true });
+    console.log("copied assets to dist/assets");
+  }
 }
 
 buildAll().catch((err) => {
