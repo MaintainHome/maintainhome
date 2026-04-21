@@ -2,8 +2,44 @@ import { Router, type Request, type Response } from "express";
 import { db, whiteLabelConfigsTable, teamMembersTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
 import { generateOgPng } from "../lib/og-image";
+import { parseInvitePath, loadInviteOgData } from "../lib/og-html";
 
 const router = Router();
+
+/* ── /api/og/lookup ─────────────────────────────────────────────
+   JSON endpoint used by the maintain-home production node server
+   to decide whether a given path is an invite page and, if so,
+   what custom OG meta tags to inject. Returns:
+     { found: false }                                  – not an invite
+     { found: true, title, description, image, url }   – inject these
+   ────────────────────────────────────────────────────────────── */
+router.get("/og/lookup", async (req: Request, res: Response) => {
+  try {
+    const rawPath = String(req.query.path || "/");
+    const origin = String(req.query.origin || "");
+    const info = parseInvitePath(rawPath);
+    if (!info || !origin) {
+      res.json({ found: false });
+      return;
+    }
+    const data = await loadInviteOgData(info, origin);
+    if (!data) {
+      res.json({ found: false });
+      return;
+    }
+    res.setHeader("Cache-Control", "public, max-age=300");
+    res.json({
+      found: true,
+      title: data.ogTitle,
+      description: data.ogDescription,
+      image: data.ogImageUrl,
+      url: data.ogUrl,
+    });
+  } catch (err) {
+    console.error("[og] /api/og/lookup error:", err);
+    res.status(500).json({ found: false });
+  }
+});
 
 const pngCache = new Map<string, { png: Buffer; ts: number }>();
 const CACHE_MAX_AGE_MS = 1000 * 60 * 30;
