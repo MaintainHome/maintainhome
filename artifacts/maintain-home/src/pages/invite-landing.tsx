@@ -401,7 +401,8 @@ export default function InviteLanding() {
               transition={{ delay: 0.12, duration: 0.5, ease: "easeOut" }}
               className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black text-white text-center lg:text-left mb-5 leading-[1.04] tracking-tight"
             >
-              {branding.tagline ? (
+              <>
+                Partnering With You To<br />
                 <span
                   style={{
                     background:
@@ -413,39 +414,9 @@ export default function InviteLanding() {
                     backgroundClip: "text",
                   }}
                 >
-                  {branding.tagline}
+                  Own Your Home With Confidence
                 </span>
-              ) : branding.accountType === "builder" ? (
-                <>
-                  Welcome to<br />
-                  <span
-                    style={{
-                      background: "linear-gradient(135deg, #14b8a6 0%, #1f9e6e 50%, #3b82f6 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    Your New Home.
-                  </span>
-                </>
-              ) : (
-                <>
-                  Your Home.<br />
-                  <span
-                    style={{
-                      background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    Protected.
-                  </span>{" "}
-                  Organized.<br />
-                  <span className="text-white/60">Forever.</span>
-                </>
-              )}
+              </>
             </motion.h1>
 
             {/* ── 3. Sub-headline ────────────────────────────────── */}
