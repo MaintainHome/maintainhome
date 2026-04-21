@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { createAnthropicClient } from "./anthropicClient";
 
 const HOME_AGE_LABELS: Record<string, string> = {
   new_construction: "New construction",
@@ -128,8 +129,8 @@ export async function generateCalendarFromAnswers(
   answers: QuizAnswers,
   homeProfile?: HomeProfileData,
 ): Promise<Record<string, unknown>> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY not configured");
+  const anthropic = createAnthropicClient();
+  if (!anthropic) throw new Error("Anthropic credentials not configured");
 
   const {
     zip, homeAge, homeType, roofType, waterSource, sewerSystem,
@@ -226,7 +227,6 @@ Output ONLY valid compact JSON, no markdown, no code fences:
 
 big_ticket_alerts: 3 items max. one_time_tasks: 3 items max.`;
 
-  const anthropic = new Anthropic({ apiKey });
   const message = await anthropic.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 8192,

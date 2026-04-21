@@ -1,5 +1,6 @@
 import { Router, type Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
+import { createAnthropicClient } from "../lib/anthropicClient";
 import multer from "multer";
 import { db, usersTable, maintenanceDocumentsTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
@@ -119,8 +120,8 @@ router.post(
       return;
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) { res.status(503).json({ error: "AI service not configured." }); return; }
+    const anthropic = createAnthropicClient();
+    if (!anthropic) { res.status(503).json({ error: "AI service not configured." }); return; }
 
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) { res.status(400).json({ error: "No file uploaded." }); return; }
@@ -134,7 +135,6 @@ router.post(
       return;
     }
 
-    const anthropic = new Anthropic({ apiKey });
     const base64Data = file.buffer.toString("base64");
 
     type ImageBlock = { type: "image"; source: { type: "base64"; media_type: "image/jpeg" | "image/png" | "image/webp"; data: string } };

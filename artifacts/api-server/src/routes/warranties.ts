@@ -1,5 +1,6 @@
 import { Router, type Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
+import { createAnthropicClient } from "../lib/anthropicClient";
 import multer from "multer";
 import { db, usersTable, maintenanceDocumentsTable } from "@workspace/db";
 import { eq, and, desc } from "drizzle-orm";
@@ -71,8 +72,8 @@ router.post(
       return;
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
+    const anthropic = createAnthropicClient();
+    if (!anthropic) {
       res.status(503).json({ error: "AI service not configured." });
       return;
     }
@@ -91,8 +92,6 @@ router.post(
       });
       return;
     }
-
-    const anthropic = new Anthropic({ apiKey });
 
     type ImageBlock = {
       type: "image";

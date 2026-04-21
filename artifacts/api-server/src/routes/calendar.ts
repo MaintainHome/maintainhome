@@ -1,5 +1,6 @@
 import { Router, type IRouter } from "express";
 import Anthropic from "@anthropic-ai/sdk";
+import { createAnthropicClient } from "../lib/anthropicClient";
 
 const router: IRouter = Router();
 
@@ -113,10 +114,10 @@ router.post("/generate-calendar", async (req, res) => {
     return;
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    console.error("[calendar] ANTHROPIC_API_KEY not set");
-    res.status(503).json({ error: "AI service is not configured. Please add ANTHROPIC_API_KEY to deployment secrets." });
+  const anthropic = createAnthropicClient();
+  if (!anthropic) {
+    console.error("[calendar] No Anthropic credentials configured");
+    res.status(503).json({ error: "AI service is not configured." });
     return;
   }
 
@@ -214,8 +215,6 @@ Output ONLY valid compact JSON, no markdown, no code fences:
 big_ticket_alerts: 3 items max. one_time_tasks: 3 items max.`;
 
   try {
-    const anthropic = new Anthropic({ apiKey });
-
     const message = await anthropic.messages.create({
       model: "claude-haiku-4-5",
       max_tokens: 8192,

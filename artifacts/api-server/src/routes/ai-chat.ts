@@ -1,5 +1,6 @@
 import { Router, type Response } from "express";
 import Anthropic from "@anthropic-ai/sdk";
+import { createAnthropicClient } from "../lib/anthropicClient";
 import multer from "multer";
 import { db, usersTable, homeProfilesTable, maintenanceDocumentsTable, brokerServiceProvidersTable, whiteLabelConfigsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
@@ -279,8 +280,8 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
     return;
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
+  const anthropic = createAnthropicClient();
+  if (!anthropic) {
     res.status(503).json({ error: "AI service not configured." });
     return;
   }
@@ -345,8 +346,6 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
   res.setHeader("Connection", "keep-alive");
   res.setHeader("X-Accel-Buffering", "no");
 
-  const anthropic = new Anthropic({ apiKey });
-
   try {
     const stream = anthropic.messages.stream({
       model: "claude-haiku-4-5",
@@ -394,8 +393,8 @@ router.post(
       return;
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) { res.status(503).json({ error: "AI service not configured." }); return; }
+    const anthropic = createAnthropicClient();
+    if (!anthropic) { res.status(503).json({ error: "AI service not configured." }); return; }
 
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) { res.status(400).json({ error: "No file uploaded." }); return; }
@@ -458,8 +457,6 @@ router.post(
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
-
-    const anthropic = new Anthropic({ apiKey });
 
     try {
       const stream = anthropic.messages.stream({
