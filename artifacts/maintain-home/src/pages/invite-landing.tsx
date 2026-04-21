@@ -201,24 +201,10 @@ export default function InviteLanding() {
         transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 2 }}
         style={{ background: `radial-gradient(ellipse at 5% 70%, #3b82f630 0%, transparent 45%)` }} />
 
-      {/* ── Top "Powered by" badge ───────────────────────────────── */}
-      <div className="relative z-10 pt-5 flex justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-          style={{ backgroundColor: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.13)" }}
-        >
-          <img src={`${BASE}images/logo-icon.png`} alt="MaintainHome.ai" className="w-3.5 h-3.5 object-contain opacity-50" />
-          <span className="text-xs font-semibold text-white/40">Powered by MaintainHome.ai</span>
-        </motion.div>
-      </div>
-
       {/* ══════════════════════════════════════════════════════════════
           MAIN CONTENT
       ══════════════════════════════════════════════════════════════ */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 pt-8 pb-16">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-5 sm:px-8 pt-10 sm:pt-14 pb-16">
         <div className="flex flex-col lg:flex-row lg:items-start lg:gap-14 xl:gap-20">
 
           {/* ════════════════════════════════════════════════════════
@@ -351,33 +337,44 @@ export default function InviteLanding() {
           ════════════════════════════════════════════════════════ */}
           <div className="flex-1 min-w-0 flex flex-col">
 
-            {/* ── Closing-gift Maintly hero (gift contexts only) ─── */}
-            {branding.accountType !== "builder" && (
-              <motion.div
-                className="relative flex justify-center lg:justify-start mb-3"
-                initial={{ opacity: 0, scale: 0.8, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ delay: 0.02, duration: 0.5, ease: "easeOut" }}
-              >
-                <div className="relative">
-                  {/* Golden celebratory glow */}
-                  <div
-                    className="absolute inset-0 rounded-full blur-3xl opacity-80 -z-0"
-                    style={{
-                      background:
-                        "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.30) 50%, transparent 75%)",
-                    }}
-                  />
-                  <motion.img
-                    src={`${BASE}images/maintly_gift.png`}
-                    alt="Maintly with your closing gift"
-                    className="relative h-32 sm:h-40 lg:h-48 w-auto object-contain drop-shadow-2xl"
-                    animate={{ y: [0, -6, 0], rotate: [-1.5, 1.5, -1.5] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </div>
-              </motion.div>
-            )}
+            {/* ── Hero Maintly avatar (per context) ────────────────
+                Broker  → gift version (golden glow, closing-gift)
+                Builder → maintain/wrench version (warranty + care)
+            ─────────────────────────────────────────────────────── */}
+            <motion.div
+              className="relative flex justify-center lg:justify-start mb-3"
+              initial={{ opacity: 0, scale: 0.8, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 0.02, duration: 0.5, ease: "easeOut" }}
+            >
+              <div className="relative">
+                {/* Celebratory glow — gold for broker gift, brand-green for builder */}
+                <div
+                  className="absolute inset-0 rounded-full blur-3xl opacity-80 -z-0"
+                  style={{
+                    background:
+                      branding.accountType === "builder"
+                        ? `radial-gradient(circle, ${ACCENT}80 0%, ${ACCENT}40 50%, transparent 75%)`
+                        : "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.30) 50%, transparent 75%)",
+                  }}
+                />
+                <motion.img
+                  src={
+                    branding.accountType === "builder"
+                      ? `${BASE}images/maintly_maintain.png`
+                      : `${BASE}images/maintly_gift.png`
+                  }
+                  alt={
+                    branding.accountType === "builder"
+                      ? "Maintly tracking your warranty year"
+                      : "Maintly with your closing gift"
+                  }
+                  className="relative h-32 sm:h-40 lg:h-48 w-auto object-contain drop-shadow-2xl"
+                  animate={{ y: [0, -6, 0], rotate: [-1.5, 1.5, -1.5] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                />
+              </div>
+            </motion.div>
 
             {/* ── Gift badge ───────────────────────────────────── */}
             <motion.div

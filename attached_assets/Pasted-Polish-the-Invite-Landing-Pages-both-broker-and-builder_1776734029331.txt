@@ -1,0 +1,41 @@
+Polish the Invite Landing Pages (both broker and builder variants) to make them significantly more energetic, premium, and conversion-friendly for top agents and builders.
+
+Target pages:
+- Broker version: maintainhome.ai/[handle] (gift-style)
+- Builder version: maintainhome.ai/[handle] (new home / warranty focus)
+
+Key improvements for both:
+
+1. Hero Section (make it more dynamic):
+   - Larger, more prominent broker/builder logo and agent headshot (side-by-side on desktop, stacked centered on mobile).
+   - Add subtle animated gradient blobs or soft glows in the primary brand color behind the hero for energy.
+   - Bigger, bolder headline using the custom tagline.
+   - Strong sub-headline with clear value: For brokers → “Give your clients the ultimate homeownership advantage”; For builders → “Your new home comes with 1-year warranty tracking and complete care support”.
+
+2. Maintly Integration:
+   - Prominently feature the appropriate Maintly avatar (phone-holding version for chat emphasis, gift version for closing packages, log version where relevant).
+   - Position Maintly pointing toward the main CTA with a friendly speech bubble.
+
+3. CTA Area:
+   - Make the “Get Started Free” or “Claim Your Care Package” button much larger, glowing, and primary color.
+   - Add a strong benefit line directly under the button highlighting key features (AI chat, calendar, document vault, history log, warranty tracking for builders).
+
+4. Overall Polish:
+   - Increase white space and use modern card styling.
+   - Ensure excellent mobile experience (vertical stack with large touch targets).
+   - Keep “Powered by MaintainHome.ai” small and discreet at the bottom.
+
+Differentiate clearly:
+- Broker version: Emphasize “personal gift from your agent” and long-term homeownership support.
+- Builder version: Emphasize “1-year warranty care package” and new home advantages.
+
+After implementing, confirm:
+- Both broker and builder invite pages feel energetic, modern, and impressive.
+- Maintly avatar is used effectively and points to the CTA.
+- The “Get Started Free” / main CTA button stands out strongly.
+- Desktop layout is horizontal and premium; mobile is clean and vertical.
+
+Test:
+- Broker invite page (e.g. maintainhome.ai/johnwalker)
+- Builder invite page (use a builder handle)
+- Both on mobile and desktop
