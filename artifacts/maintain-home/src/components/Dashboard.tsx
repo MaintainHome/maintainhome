@@ -1975,22 +1975,36 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   )}
                 </div>
 
-                {/* Col 3 — Resale message + CTA (last on both mobile and desktop) */}
-                <div className="order-4 sm:order-4 flex flex-col justify-center gap-3 px-6 py-5 sm:w-64 shrink-0 bg-slate-50/60 sm:border-l border-slate-100">
-                  <div className="rounded-xl px-4 py-3" style={{ backgroundColor: "#1f9e6e0d", border: "1px solid #1f9e6e25" }}>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      When you're ready to move, we can export your maintenance history — streamlining the listing process.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => navigate("/history")}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
-                    style={{ backgroundColor: "#1f9e6e", boxShadow: "0 2px 12px rgba(31,158,110,0.3)" }}
-                  >
-                    <ClipboardList className="w-4 h-4 shrink-0" />
-                    View Full Maintenance History
-                  </button>
-                </div>
+                {/* Col 3 — Market Update CTA (last on both mobile and desktop) */}
+                {(() => {
+                  const addr = homeProfile?.fullAddress?.trim() ?? "";
+                  const marketUpdateEmail = branding?.contactEmail ?? "consultingjohnwalker@gmail.com";
+                  const marketUpdateSubject = addr
+                    ? `Market Update Request — ${addr}`
+                    : "Market Update Request for My Home";
+                  const marketUpdateBody = addr
+                    ? `Hi,\n\nI'd like to request a market update for my home at ${addr}. Could you help?\n\nThanks!`
+                    : "Hi,\n\nI'd like to request a market update for my home. Could you help?\n\nThanks!";
+                  return (
+                    <div className="order-4 sm:order-4 flex flex-col justify-center gap-3 px-6 py-5 sm:w-64 shrink-0 bg-slate-50/60 sm:border-l border-slate-100">
+                      <div className="rounded-xl px-4 py-3" style={{ backgroundColor: "#1f9e6e0d", border: "1px solid #1f9e6e25" }}>
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          {branding?.brokerName
+                            ? `Curious about your home's value? Get a personalized market update from ${branding.brokerName}.`
+                            : "Curious about your home's value? Get a personalized market update from a trusted local agent."}
+                        </p>
+                      </div>
+                      <a
+                        href={`mailto:${marketUpdateEmail}?subject=${encodeURIComponent(marketUpdateSubject)}&body=${encodeURIComponent(marketUpdateBody)}`}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ backgroundColor: "#1f9e6e", boxShadow: "0 2px 12px rgba(31,158,110,0.3)" }}
+                      >
+                        <Mail className="w-4 h-4 shrink-0" />
+                        Request Market Update
+                      </a>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </motion.div>
