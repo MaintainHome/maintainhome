@@ -2024,7 +2024,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               {/* Message + CTA */}
               <div className="flex flex-col gap-3 flex-1 min-w-0">
                 <div>
-                  <p className="text-sm font-bold text-slate-900 mb-1">Your Maintenance History</p>
+                  <p className="text-sm font-bold text-slate-900 mb-1">Your Home History</p>
                   <p className="text-sm text-slate-500 leading-relaxed">
                     Your complete maintenance history is saved here. Keep track of everything you've done for your home.
                   </p>
