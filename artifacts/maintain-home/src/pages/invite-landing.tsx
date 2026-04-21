@@ -208,20 +208,24 @@ export default function InviteLanding() {
         <div className="flex flex-col lg:flex-row lg:items-start lg:gap-14 xl:gap-20">
 
           {/* ════════════════════════════════════════════════════════
-              LEFT COLUMN — broker identity
-              Mobile: centered above content
-              Desktop: sticky 38%, centered
+              LEFT COLUMN (~40%) — identity + Maintly hero
+              Order (top→bottom):
+                1. Broker/Builder logo
+                2. Large Maintly avatar (gift for broker, phone for builder)
+                3. Agent headshot
+                4. Name + phone
+                5. Tagline (desktop only)
           ════════════════════════════════════════════════════════ */}
           <motion.div
-            className="w-full lg:w-[38%] shrink-0 flex flex-col items-center mb-10 lg:mb-0 lg:sticky lg:top-8"
+            className="w-full lg:w-[40%] shrink-0 flex flex-col items-center mb-10 lg:mb-0"
             initial={{ opacity: 0, x: -28 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            {/* ── Broker logo ────────────────────────────────────── */}
+            {/* ── 1. Broker/Builder logo ─────────────────────────── */}
             {branding.logoUrl ? (
               <div
-                className="w-full flex justify-center items-center rounded-3xl px-8 py-8 mb-7 shadow-2xl shadow-black/60"
+                className="w-full flex justify-center items-center rounded-3xl px-8 py-6 mb-6 shadow-2xl shadow-black/60"
                 style={{
                   backgroundColor: "rgba(255,255,255,0.09)",
                   border: "1px solid rgba(255,255,255,0.18)",
@@ -231,35 +235,68 @@ export default function InviteLanding() {
                 <img
                   src={branding.logoUrl}
                   alt={branding.brokerName}
-                  className="h-24 sm:h-32 lg:h-36 max-w-[280px] object-contain"
+                  className="h-24 sm:h-28 lg:h-32 max-w-[260px] object-contain"
                 />
               </div>
             ) : (
               <div
-                className="w-36 h-36 lg:w-44 lg:h-44 rounded-3xl flex items-center justify-center shadow-2xl mb-7"
+                className="w-32 h-32 lg:w-36 lg:h-36 rounded-3xl flex items-center justify-center shadow-2xl mb-6"
                 style={{ backgroundColor: ACCENT + "30", border: `2px solid ${ACCENT}55` }}
               >
-                <span className="text-6xl font-black" style={{ color: ACCENT }}>
+                <span className="text-5xl font-black" style={{ color: ACCENT }}>
                   {branding.brokerName[0]}
                 </span>
               </div>
             )}
 
-            {/* ── Agent / team member headshot ───────────────────── */}
+            {/* ── 2. Large Maintly hero (gift for broker, phone for builder) ── */}
+            <motion.div
+              className="relative mb-6"
+              initial={{ opacity: 0, scale: 0.8, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.55, ease: "easeOut" }}
+            >
+              {/* Celebratory glow — gold for broker gift, brand-green for builder */}
+              <div
+                className="absolute inset-0 rounded-full blur-3xl opacity-80 -z-0"
+                style={{
+                  background:
+                    branding.accountType === "builder"
+                      ? `radial-gradient(circle, ${ACCENT}80 0%, ${ACCENT}40 50%, transparent 75%)`
+                      : "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.30) 50%, transparent 75%)",
+                }}
+              />
+              <motion.img
+                src={
+                  branding.accountType === "builder"
+                    ? `${BASE}images/maintly_phone.png`
+                    : `${BASE}images/maintly_gift.png`
+                }
+                alt={
+                  branding.accountType === "builder"
+                    ? "Maintly — your AI home assistant"
+                    : "Maintly with your closing gift"
+                }
+                className="relative h-44 sm:h-52 lg:h-60 w-auto object-contain drop-shadow-2xl"
+                animate={{ y: [0, -8, 0], rotate: [-1.5, 1.5, -1.5] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </motion.div>
+
+            {/* ── 3. Agent / team member headshot ───────────────── */}
             {displayPhotoUrl ? (
               <motion.div
-                className="relative mb-5"
+                className="relative mb-4"
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+                transition={{ delay: 0.25, duration: 0.5, ease: "easeOut" }}
               >
-                {/* Outer glow ring */}
                 <div
                   className="absolute -inset-2 rounded-full"
                   style={{ background: `radial-gradient(circle, ${ACCENT}35 0%, transparent 70%)` }}
                 />
                 <div
-                  className="w-36 h-36 sm:w-40 sm:h-40 lg:w-44 lg:h-44 rounded-full overflow-hidden border-4 shadow-2xl relative"
+                  className="w-28 h-28 sm:w-32 sm:h-32 lg:w-36 lg:h-36 rounded-full overflow-hidden border-4 shadow-2xl relative"
                   style={{ borderColor: ACCENT + "90" }}
                 >
                   <img
@@ -268,7 +305,6 @@ export default function InviteLanding() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-                {/* Animated glow */}
                 <motion.div
                   className="absolute inset-0 rounded-full pointer-events-none"
                   animate={{ opacity: [0.5, 1, 0.5] }}
@@ -278,35 +314,31 @@ export default function InviteLanding() {
               </motion.div>
             ) : agentInfo ? (
               <motion.div
-                className="relative mb-5"
+                className="relative mb-4"
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+                transition={{ delay: 0.25, duration: 0.5, ease: "easeOut" }}
               >
                 <div
-                  className="w-36 h-36 sm:w-40 sm:h-40 rounded-full flex items-center justify-center border-4 shadow-2xl"
+                  className="w-28 h-28 sm:w-32 sm:h-32 rounded-full flex items-center justify-center border-4 shadow-2xl"
                   style={{ backgroundColor: ACCENT + "25", borderColor: ACCENT + "80" }}
                 >
-                  <span className="text-5xl font-black" style={{ color: ACCENT }}>
+                  <span className="text-4xl font-black" style={{ color: ACCENT }}>
                     {agentInfo.displayName[0].toUpperCase()}
                   </span>
                 </div>
-                <div
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{ boxShadow: `0 0 0 8px ${ACCENT}20, 0 0 60px ${ACCENT}35` }}
-                />
               </motion.div>
             ) : null}
 
-            {/* ── Name + phone ────────────────────────────────────── */}
+            {/* ── 4. Name + phone ────────────────────────────────── */}
             <div className="text-center">
               {agentInfo ? (
                 <>
-                  <p className="text-white font-extrabold text-2xl">{agentInfo.displayName}</p>
+                  <p className="text-white font-extrabold text-xl">{agentInfo.displayName}</p>
                   <p className="text-white/40 text-sm mt-1 font-medium">{branding.brokerName}</p>
                 </>
               ) : (
-                <p className="text-white font-extrabold text-2xl">{branding.brokerName}</p>
+                <p className="text-white font-extrabold text-xl">{branding.brokerName}</p>
               )}
               {displayPhone && (
                 <a
@@ -319,7 +351,7 @@ export default function InviteLanding() {
               )}
             </div>
 
-            {/* Desktop-only tagline caption below name */}
+            {/* ── 5. Tagline caption (desktop only) ──────────────── */}
             {branding.tagline && (
               <motion.p
                 className="hidden lg:block mt-5 text-white/25 text-sm italic text-center max-w-xs leading-relaxed"
@@ -333,50 +365,18 @@ export default function InviteLanding() {
           </motion.div>
 
           {/* ════════════════════════════════════════════════════════
-              RIGHT COLUMN — action content
+              RIGHT COLUMN (~60%) — pitch + benefits + CTA
+              Order (top→bottom):
+                1. Badge
+                2. Headline
+                3. Sub-headline
+                4. Benefits list
+                5. Glowing CTA + microcopy + Sign-in
+                6. Welcome message
           ════════════════════════════════════════════════════════ */}
-          <div className="flex-1 min-w-0 flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col lg:pt-2">
 
-            {/* ── Hero Maintly avatar (per context) ────────────────
-                Broker  → gift version (golden glow, closing-gift)
-                Builder → maintain/wrench version (warranty + care)
-            ─────────────────────────────────────────────────────── */}
-            <motion.div
-              className="relative flex justify-center lg:justify-start mb-3"
-              initial={{ opacity: 0, scale: 0.8, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ delay: 0.02, duration: 0.5, ease: "easeOut" }}
-            >
-              <div className="relative">
-                {/* Celebratory glow — gold for broker gift, brand-green for builder */}
-                <div
-                  className="absolute inset-0 rounded-full blur-3xl opacity-80 -z-0"
-                  style={{
-                    background:
-                      branding.accountType === "builder"
-                        ? `radial-gradient(circle, ${ACCENT}80 0%, ${ACCENT}40 50%, transparent 75%)`
-                        : "radial-gradient(circle, rgba(250,204,21,0.55) 0%, rgba(251,146,60,0.30) 50%, transparent 75%)",
-                  }}
-                />
-                <motion.img
-                  src={
-                    branding.accountType === "builder"
-                      ? `${BASE}images/maintly_maintain.png`
-                      : `${BASE}images/maintly_gift.png`
-                  }
-                  alt={
-                    branding.accountType === "builder"
-                      ? "Maintly tracking your warranty year"
-                      : "Maintly with your closing gift"
-                  }
-                  className="relative h-32 sm:h-40 lg:h-48 w-auto object-contain drop-shadow-2xl"
-                  animate={{ y: [0, -6, 0], rotate: [-1.5, 1.5, -1.5] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                />
-              </div>
-            </motion.div>
-
-            {/* ── Gift badge ───────────────────────────────────── */}
+            {/* ── 1. Badge ───────────────────────────────────────── */}
             <motion.div
               className="flex justify-center lg:justify-start mb-5"
               initial={{ opacity: 0, y: -10 }}
@@ -396,17 +396,15 @@ export default function InviteLanding() {
               </div>
             </motion.div>
 
-            {/* ── HEADLINE — tagline or default ────────────────── */}
+            {/* ── 2. Headline ────────────────────────────────────── */}
             <motion.h1
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.12, duration: 0.5, ease: "easeOut" }}
-              className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black text-white text-center lg:text-left mb-4 leading-[1.04] tracking-tight"
+              className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black text-white text-center lg:text-left mb-5 leading-[1.04] tracking-tight"
             >
               {branding.tagline ? (
-                <>
-                  <span style={{ color: ACCENT }}>{branding.tagline}</span>
-                </>
+                <span style={{ color: ACCENT }}>{branding.tagline}</span>
               ) : branding.accountType === "builder" ? (
                 <>
                   Welcome to<br />
@@ -421,71 +419,55 @@ export default function InviteLanding() {
               )}
             </motion.h1>
 
-            {/* ── Energetic sub-headline ───────────────────────── */}
+            {/* ── 3. Sub-headline ────────────────────────────────── */}
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.22, duration: 0.45 }}
-              className="text-white/60 text-base sm:text-lg mb-8 text-center lg:text-left leading-relaxed"
+              className="text-white/65 text-base sm:text-lg mb-7 text-center lg:text-left leading-relaxed"
             >
               {branding.accountType === "builder"
-                ? <>Your new home comes with <span className="font-bold text-white/80">1-year warranty tracking</span>, AI support from Maintly, and a complete care plan — all under your builder's brand.</>
-                : <>Give your clients the ultimate homeownership advantage — <span className="font-bold text-white/80">a branded app under your name that keeps them for life.</span></>}
+                ? <>Your new home comes with <span className="font-bold text-white/85">1-year warranty tracking</span>, AI support from Maintly, and a complete care plan — all under your builder's brand.</>
+                : <>Give your clients the ultimate homeownership advantage — <span className="font-bold text-white/85">a branded app under your name that keeps them for life.</span></>}
             </motion.p>
 
-            {/* ── Maintly + speech bubble (points at CTA below) ── */}
+            {/* ── 4. Benefits list ───────────────────────────────── */}
             <motion.div
-              className="mb-6"
+              className="mb-7"
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
+              transition={{ delay: 0.3, duration: 0.45 }}
             >
-              <p className="text-white/25 text-xs font-bold tracking-widest uppercase mb-4 text-center lg:text-left">
-                Meet Your AI Home Assistant
-              </p>
-              <div className="flex items-end gap-2">
-                {/* Maintly pointing right toward CTA */}
-                <div className="shrink-0 self-end">
-                  <motion.img
-                    src={`${BASE}images/maintly_point.png`}
-                    alt="Maintly"
-                    className="w-28 sm:w-32 lg:w-36 drop-shadow-2xl"
-                    style={{ transform: "scaleX(-1)" }}
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-                  />
+              <div
+                className="rounded-2xl px-5 py-4 sm:px-6 sm:py-5"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.10)",
+                  backdropFilter: "blur(8px)",
+                }}
+              >
+                <p className="text-white/50 text-xs font-bold tracking-widest uppercase mb-4 text-center lg:text-left">
+                  {branding.accountType === "builder" ? "Your New Home Care Package" : "Everything Included Under Your Brand"}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {(branding.accountType === "builder" ? BUILDER_BENEFITS : BENEFITS).map(({ icon: Icon, label }) => (
+                    <div key={label} className="flex items-center gap-2.5">
+                      <div
+                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ backgroundColor: ACCENT + "25" }}
+                      >
+                        <Icon className="w-4 h-4" style={{ color: ACCENT }} />
+                      </div>
+                      <span className="text-white/75 text-sm font-medium leading-tight">{label}</span>
+                    </div>
+                  ))}
                 </div>
-
-                {/* Speech bubble */}
-                <motion.div
-                  className="flex-1 min-w-0 mb-4"
-                  animate={{ scale: [1, 1.012, 1] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                >
-                  <div
-                    className="relative rounded-2xl rounded-bl-none px-5 py-4 shadow-2xl"
-                    style={{
-                      backgroundColor: "rgba(255,255,255,0.10)",
-                      border: "1px solid rgba(255,255,255,0.18)",
-                      backdropFilter: "blur(14px)",
-                    }}
-                  >
-                    <p className="text-xs font-bold mb-1.5" style={{ color: ACCENT }}>
-                      Maintly · AI Home Assistant
-                    </p>
-                    <p className="text-white/85 text-sm sm:text-base leading-relaxed font-medium">
-                      {branding.accountType === "builder"
-                        ? "I'll guide you through your 1-year warranty window, track every key date, and answer questions about your new home — 24/7. ↓"
-                        : "I'll be your client's personal AI home assistant 24/7. ↓"}
-                    </p>
-                  </div>
-                </motion.div>
               </div>
             </motion.div>
 
-            {/* ── PRIMARY CTA ──────────────────────────────────── */}
+            {/* ── 5. PRIMARY CTA + microcopy + Sign-in ──────────── */}
             <motion.div
-              className="mb-5"
+              className="mb-6"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.4, duration: 0.5, ease: "easeOut" }}
@@ -509,13 +491,13 @@ export default function InviteLanding() {
                   <ArrowRight className="w-6 h-6 sm:w-7 sm:h-7" />
                 </motion.span>
               </motion.button>
-              <p className="text-center text-white/40 text-xs sm:text-sm mt-3 font-medium">
+              <p className="text-center text-white/45 text-xs sm:text-sm mt-3 font-medium">
                 {branding.accountType === "builder"
                   ? "Free for one full year · Includes warranty tracking, AI support & document vault"
                   : "Free to start · No credit card · Set up in under 2 minutes"}
               </p>
 
-              <p className="text-center text-white/35 text-sm mt-3">
+              <p className="text-center text-white/40 text-sm mt-3">
                 Already have an account?{" "}
                 <button
                   onClick={openSignin}
@@ -527,40 +509,7 @@ export default function InviteLanding() {
               </p>
             </motion.div>
 
-            {/* ── Benefit line under CTA ───────────────────────── */}
-            <motion.div
-              className="mb-8"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.4 }}
-            >
-              <div
-                className="rounded-2xl px-5 py-4"
-                style={{
-                  backgroundColor: "rgba(255,255,255,0.05)",
-                  border: "1px solid rgba(255,255,255,0.10)",
-                }}
-              >
-                <p className="text-white/50 text-xs font-bold tracking-widest uppercase mb-3 text-center">
-                  {branding.accountType === "builder" ? "Your New Home Care Package" : "Everything included, under your brand"}
-                </p>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {(branding.accountType === "builder" ? BUILDER_BENEFITS : BENEFITS).map(({ icon: Icon, label }) => (
-                    <div key={label} className="flex items-center gap-2">
-                      <div
-                        className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: ACCENT + "25" }}
-                      >
-                        <Icon className="w-3.5 h-3.5" style={{ color: ACCENT }} />
-                      </div>
-                      <span className="text-white/65 text-xs font-medium leading-tight">{label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </motion.div>
-
-            {/* ── Welcome message from broker ──────────────────── */}
+            {/* ── 6. Welcome message from broker ─────────────────── */}
             {branding.welcomeMessage && (
               <motion.div
                 initial={{ opacity: 0 }}
