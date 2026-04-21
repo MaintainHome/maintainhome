@@ -53,19 +53,44 @@ day-to-day native dev loop is on your laptop.
 From inside `artifacts/maintain-home`:
 
 ```sh
-# 1. Build the web bundle and copy it into the native projects
+# 1. Build the web bundle and copy it into the native projects.
+#    (PORT + BASE_PATH are required because vite.config.ts reads them.)
 pnpm cap:sync
 
-# 2. Open Xcode (iOS) — then click the Play button to run on simulator/device
+# 2. Open Xcode (iOS) — click ▶ to run on simulator/device.
 pnpm cap:open:ios
 
-# 3. Open Android Studio — then click the green Play button
+# 3. Open Android Studio — click the green ▶ button.
 pnpm cap:open:android
 ```
 
-`pnpm cap:sync` runs `vite build` (writes to `dist/public/`) and then
-`cap sync`, which copies the web assets and updated plugin native code into
-both the `ios/` and `android/` folders.
+`pnpm cap:sync` runs `vite build` (writes to `dist/public/`, the
+`webDir` declared in `capacitor.config.ts`) and then `cap sync`, which
+copies the web assets and updated plugin native code into both the
+`ios/` and `android/` folders.
+
+### Verifying the production API rewrite
+
+After `pnpm cap:sync`:
+
+1. **iOS simulator (Xcode)**
+   - Run the app, then in Safari open
+     **Develop → Simulator → MaintainHome** to attach the Web Inspector.
+   - In the Console you should see:
+     `[Capacitor] Running in native mode — using production API: https://maintainhome.ai`
+   - In the Network tab confirm requests go to `maintainhome.ai`, not
+     `capacitor://` or `localhost`.
+
+2. **Android emulator (Android Studio)**
+   - Run the app, then open `chrome://inspect` in Chrome on your Mac
+     and "Inspect" the WebView.
+   - Same console + network checks as above.
+
+3. **Browser sanity check**
+   - `pnpm dev` and confirm the Console does **not** show the
+     "Running in native mode" log and that requests stay relative
+     (`/api/...`). The patch is gated by `Capacitor.isNativePlatform()`,
+     so the PWA path is unaffected.
 
 ### Refreshing icons or splash screens
 
@@ -84,23 +109,37 @@ pnpm cap:sync
 of the box, but on Replit you'd need to use the ImageMagick fallback that
 was used for this initial setup.)
 
-## Important — API URL in the native app
+## API URL handling in native builds — done
 
-When the app runs natively, `fetch("/api/...")` resolves to `capacitor://`
-or `http://localhost`, **not** `https://maintainhome.ai`. Before submitting
-to the stores, make every API call use an absolute production URL via an
-env var (e.g. `VITE_API_BASE_URL=https://maintainhome.ai`) or a runtime
-detection like:
+When the app runs natively, `fetch("/api/...")` would resolve to
+`capacitor://` (iOS) or `http://localhost` (Android) instead of the real
+backend. To avoid touching every component, `src/lib/api.ts` exports a
+small `installNativeFetchRewrite()` helper that **monkey-patches
+`window.fetch` at app start** and rewrites any relative or
+capacitor/localhost URL to `https://maintainhome.ai`. It is a no-op in the
+browser/PWA build.
 
-```ts
-import { Capacitor } from "@capacitor/core";
+The patch runs once from `src/main.tsx` before React mounts, so every API
+call (raw `fetch`, React Query, Axios using fetch adapter, etc.) is
+covered automatically. On startup in a native build you'll see this log:
 
-export const API_BASE = Capacitor.isNativePlatform()
-  ? "https://maintainhome.ai"
-  : "";
+```
+[Capacitor] Running in native mode — using production API: https://maintainhome.ai
 ```
 
-(That's a small follow-up task — flag it before App Store submission.)
+You can also import the helpers directly:
+
+```ts
+import { API_BASE, apiUrl } from "@/lib/api";
+
+// API_BASE === "https://maintainhome.ai" when native, "" in browser
+// apiUrl("/api/foo") === "https://maintainhome.ai/api/foo" when native
+```
+
+The API server already allows credentialed cross-origin requests
+(`cors({ origin: true, credentials: true })`), so cookies sent from the
+Capacitor `http://localhost` / `capacitor://localhost` origin will be
+honoured by `https://maintainhome.ai`.
 
 ## Permissions reference
 
