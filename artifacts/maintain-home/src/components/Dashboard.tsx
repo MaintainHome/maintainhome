@@ -2021,7 +2021,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
             <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
               <div className="flex items-center gap-2">
                 <ClipboardList className="w-4 h-4 text-white/70" />
-                <h2 className="text-base font-bold text-white">Your Home Support</h2>
+                <h2 className="text-base font-bold text-white">Your Home History</h2>
               </div>
             </div>
 
@@ -2038,7 +2038,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               {/* Message + CTA */}
               <div className="flex flex-col gap-3 flex-1 min-w-0">
                 <div>
-                  <p className="text-sm font-bold text-slate-900 mb-1">Your Home History</p>
+                  <p className="text-sm font-bold text-slate-900 mb-1">Ready For What's Next? Historical Home Data Streamlines The Listing Process</p>
                   <p className="text-sm text-slate-500 leading-relaxed">
                     Your complete maintenance history is saved here. Keep track of everything you've done for your home.
                   </p>
