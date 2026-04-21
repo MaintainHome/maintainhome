@@ -225,15 +225,6 @@ export default function Home() {
                 >
                   <ClipboardList className="w-4 h-4" />
                 </button>
-                {user.isBroker && !user.isBuilder && (
-                  <button
-                    onClick={() => { sessionStorage.setItem("mh_active_role", "broker"); trackEvent("role_switch_to_broker", { userId: user.id }); navigate("/broker-dashboard"); }}
-                    title="Partner Dashboard"
-                    className="w-9 h-9 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition-colors border border-slate-200"
-                  >
-                    <Building2 className="w-4 h-4" />
-                  </button>
-                )}
                 <button
                   onClick={() => { trackEvent("logout", { userId: user.id }); logout(); }}
                   title="Sign Out"
@@ -311,15 +302,6 @@ export default function Home() {
                   <ClipboardList className="w-4 h-4" />
                   History
                 </button>
-                {user.isBroker && !user.isBuilder && (
-                  <button
-                    onClick={() => { sessionStorage.setItem("mh_active_role", "broker"); trackEvent("role_switch_to_broker", { userId: user.id }); navigate("/broker-dashboard"); }}
-                    className="flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 px-3 py-2 rounded-lg border border-slate-200 transition-colors"
-                  >
-                    <Building2 className="w-4 h-4" />
-                    Partner Dashboard
-                  </button>
-                )}
                 <button
                   onClick={() => { trackEvent("logout", { userId: user.id }); logout(); }}
                   className="flex items-center gap-1.5 text-sm font-semibold text-red-500 hover:text-red-700 px-3 py-2 rounded-lg hover:bg-red-50 border border-red-100 transition-colors"
