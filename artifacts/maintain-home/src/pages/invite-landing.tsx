@@ -402,7 +402,7 @@ export default function InviteLanding() {
               className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black text-white text-center lg:text-left mb-5 leading-[1.04] tracking-tight"
             >
               <>
-                Partnering With You To<br />
+                Partnering With You<br />
                 <span
                   style={{
                     background:
@@ -414,7 +414,8 @@ export default function InviteLanding() {
                     backgroundClip: "text",
                   }}
                 >
-                  Own Your Home With Confidence
+                  To Own Your Home<br />
+                  With Confidence
                 </span>
               </>
             </motion.h1>
