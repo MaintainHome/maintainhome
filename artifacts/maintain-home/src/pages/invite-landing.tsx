@@ -404,24 +404,32 @@ export default function InviteLanding() {
               className="text-4xl sm:text-5xl lg:text-5xl xl:text-6xl font-black text-white text-center lg:text-left mb-5 leading-[1.04] tracking-tight"
             >
               {branding.tagline ? (
-                branding.accountType === "builder" ? (
-                  <span style={{ color: ACCENT }}>{branding.tagline}</span>
-                ) : (
+                <span
+                  style={{
+                    background:
+                      branding.accountType === "builder"
+                        ? "linear-gradient(135deg, #14b8a6 0%, #1f9e6e 50%, #3b82f6 100%)"
+                        : "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  {branding.tagline}
+                </span>
+              ) : branding.accountType === "builder" ? (
+                <>
+                  Welcome to<br />
                   <span
                     style={{
-                      background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
+                      background: "linear-gradient(135deg, #14b8a6 0%, #1f9e6e 50%, #3b82f6 100%)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
                     }}
                   >
-                    {branding.tagline}
+                    Your New Home.
                   </span>
-                )
-              ) : branding.accountType === "builder" ? (
-                <>
-                  Welcome to<br />
-                  <span style={{ color: ACCENT }}>Your New Home.</span>
                 </>
               ) : (
                 <>
@@ -501,18 +509,18 @@ export default function InviteLanding() {
                 style={{
                   background:
                     branding.accountType === "builder"
-                      ? ACCENT
+                      ? "linear-gradient(135deg, #14b8a6 0%, #1f9e6e 50%, #3b82f6 100%)"
                       : "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)",
                   boxShadow:
                     branding.accountType === "builder"
-                      ? `0 0 80px ${ACCENT}90, 0 12px 48px ${ACCENT}70, 0 0 0 1px ${ACCENT}`
+                      ? `0 0 80px #14b8a690, 0 12px 48px #3b82f670, 0 0 0 1px #1f9e6e`
                       : `0 0 80px #1f9e6e90, 0 12px 48px #3b82f670, 0 0 0 1px #1f9e6e`,
                 }}
                 whileHover={{
                   scale: 1.025,
                   boxShadow:
                     branding.accountType === "builder"
-                      ? `0 0 120px ${ACCENT}aa, 0 16px 60px ${ACCENT}80, 0 0 0 1px ${ACCENT}`
+                      ? `0 0 120px #14b8a6aa, 0 16px 60px #3b82f680, 0 0 0 1px #1f9e6e`
                       : `0 0 120px #1f9e6eaa, 0 16px 60px #3b82f680, 0 0 0 1px #1f9e6e`,
                 }}
                 whileTap={{ scale: 0.97 }}
