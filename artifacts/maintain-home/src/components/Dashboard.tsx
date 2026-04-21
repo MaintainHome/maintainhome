@@ -1908,15 +1908,14 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         </motion.div>
 
         {/* ── Your Home Support ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.16 }}
-          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
-        >
-          {branding ? (
-            /* ── White-label: branded agent card ── */
-            <div>
+        {branding && (
+          /* ── White-label: branded agent card (shown above the maintenance widget) ── */
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.16 }}
+            className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+          ><div>
               {/* Header strip */}
               <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
                 <div className="flex items-center gap-2">
@@ -1994,46 +1993,53 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                 </div>
               </div>
             </div>
-          ) : (
-            /* ── Regular: generic Maintly version ── */
-            <div>
-              <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
-                <div className="flex items-center gap-2">
-                  <ClipboardList className="w-4 h-4 text-white/70" />
-                  <h2 className="text-base font-bold text-white">Your Home Support</h2>
-                </div>
-              </div>
+          </motion.div>
+        )}
 
-              <div className="px-5 py-5 flex flex-col sm:flex-row items-center gap-5">
-                {/* Maintly avatar */}
-                <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-primary/30 shadow-md shrink-0 bg-white">
-                  <img
-                    src={`${BASE}images/maintly_maintain.png`}
-                    alt="Maintly"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-
-                {/* Message + CTA */}
-                <div className="flex flex-col gap-3 flex-1 min-w-0">
-                  <div>
-                    <p className="text-sm font-bold text-slate-900 mb-1">Your Maintenance History</p>
-                    <p className="text-sm text-slate-500 leading-relaxed">
-                      Your complete maintenance history is saved here. Keep track of everything you've done for your home.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => navigate("/history")}
-                    className="self-start inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-primary/20"
-                    style={{ backgroundColor: "#1f9e6e" }}
-                  >
-                    <ClipboardList className="w-4 h-4 shrink-0" />
-                    View Full Maintenance History
-                  </button>
-                </div>
+        {/* ── Maintenance History widget (always shown, in addition to white-label card above) ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: branding ? 0.2 : 0.16 }}
+          className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+        >
+          <div>
+            <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="w-4 h-4 text-white/70" />
+                <h2 className="text-base font-bold text-white">Your Home Support</h2>
               </div>
             </div>
-          )}
+
+            <div className="px-5 py-5 flex flex-col sm:flex-row items-center gap-5">
+              {/* Maintly avatar */}
+              <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] border-primary/30 shadow-md shrink-0 bg-white">
+                <img
+                  src={`${BASE}images/maintly_maintain.png`}
+                  alt="Maintly"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+
+              {/* Message + CTA */}
+              <div className="flex flex-col gap-3 flex-1 min-w-0">
+                <div>
+                  <p className="text-sm font-bold text-slate-900 mb-1">Your Maintenance History</p>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    Your complete maintenance history is saved here. Keep track of everything you've done for your home.
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate("/history")}
+                  className="self-start inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] shadow-primary/20"
+                  style={{ backgroundColor: "#1f9e6e" }}
+                >
+                  <ClipboardList className="w-4 h-4 shrink-0" />
+                  View Full Maintenance History
+                </button>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* ── Home Documents ── */}
