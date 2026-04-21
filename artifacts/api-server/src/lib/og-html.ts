@@ -161,8 +161,13 @@ async function loadInviteOgDataUncached(
     ogDescription = `${brandName} is gifting you a personalized home maintenance plan with MaintainHome.ai.`;
   }
 
+  // Include `updatedAt` as a cache-buster so updates to the broker's branding
+  // immediately invalidate any cached PNG in /api/og/preview as well as
+  // crawler-side caches (Apple/Slack/Twitter all key by URL).
   const params = new URLSearchParams({ subdomain: info.subdomain });
   if (info.agentHandle) params.set("agent", info.agentHandle);
+  const versionTs = config.updatedAt instanceof Date ? config.updatedAt.getTime() : 0;
+  if (versionTs) params.set("v", String(versionTs));
   const ogImageUrl = `${origin}/api/og/preview?${params.toString()}`;
 
   const ogUrl = info.agentHandle

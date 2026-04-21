@@ -48,13 +48,16 @@ router.get("/og/preview", async (req: Request, res: Response) => {
   try {
     const subdomain = String(req.query.subdomain || "").toLowerCase().trim();
     const agentHandle = String(req.query.agent || "").toLowerCase().trim() || null;
+    // Cache-buster from /api/og/lookup — sourced from white_label_configs.updatedAt.
+    // Including it in the cache key ensures any branding update produces a fresh PNG.
+    const version = String(req.query.v || "").slice(0, 32);
 
     if (!subdomain) {
       res.status(400).send("subdomain required");
       return;
     }
 
-    const cacheKey = `${subdomain}::${agentHandle || ""}`;
+    const cacheKey = `${subdomain}::${agentHandle || ""}::${version}`;
     const cached = pngCache.get(cacheKey);
     if (cached && Date.now() - cached.ts < CACHE_MAX_AGE_MS) {
       res.setHeader("Content-Type", "image/png");

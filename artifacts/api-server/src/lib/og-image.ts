@@ -154,21 +154,17 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
-function wrapTitle(title: string, maxLen = 22): string[] {
-  const words = title.split(/\s+/);
-  const lines: string[] = [];
-  let current = "";
-  for (const w of words) {
-    const candidate = current ? `${current} ${w}` : w;
-    if (candidate.length > maxLen && current) {
-      lines.push(current);
-      current = w;
-    } else {
-      current = candidate;
-    }
-  }
-  if (current) lines.push(current);
-  return lines.slice(0, 3);
+// Approximate text width in pixels for Inter at a given weight/size.
+// Tuned empirically — used for centering pills around dynamic-length text.
+function approxTextWidth(text: string, fontSize: number, weight: 400 | 500 | 700 | 800 = 700): number {
+  const factor = weight >= 800 ? 0.58 : weight >= 700 ? 0.56 : weight >= 500 ? 0.53 : 0.52;
+  return text.length * fontSize * factor;
+}
+
+// Truncate with ellipsis if it would exceed maxChars.
+function truncate(s: string, maxChars: number): string {
+  if (s.length <= maxChars) return s;
+  return s.slice(0, Math.max(0, maxChars - 1)).trimEnd() + "…";
 }
 
 export interface OgImageInput {
@@ -184,108 +180,155 @@ export interface OgImageInput {
 export async function generateOgPng(input: OgImageInput): Promise<Buffer> {
   const isBuilder = (input.accountType || "").toLowerCase() === "builder";
 
-  const leftBgGradId = "leftbg";
-  const accentGradId = "accent";
   const W = 1200;
   const H = 630;
-  const LEFT_W = 480;
+  const LEFT_W = 480; // ≈40% Maintly hero column
 
-  const leftStops = isBuilder
-    ? `<stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#0b1220"/>`
-    : `<stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#0b1220"/>`;
+  // Right content column padding
+  const RX = LEFT_W + 56;
+  const RW = W - RX - 56;
 
-  const accentStops = isBuilder
-    ? `<stop offset="0%" stop-color="#14b8a6"/><stop offset="50%" stop-color="#1f9e6e"/><stop offset="100%" stop-color="#3b82f6"/>`
-    : `<stop offset="0%" stop-color="#1f9e6e"/><stop offset="100%" stop-color="#3b82f6"/>`;
+  const accentGradId = "accent";
+  const leftBgGradId = "leftbg";
+  const maintlyGlowId = "maintlyGlow";
 
-  const [logoUri, headshotUri] = await Promise.all([
-    input.logoUrl ? fetchImageAsDataUri(input.logoUrl) : Promise.resolve(null),
-    input.headshotUrl ? fetchImageAsDataUri(input.headshotUrl) : Promise.resolve(null),
-  ]);
+  // Note: input.logoUrl / input.headshotUrl are intentionally unused in the
+  // current layout — Maintly + headline are the focal points. The fields are
+  // kept on OgImageInput so the call sites in routes/og.ts don't need to
+  // change if we re-introduce those visuals later.
 
   const maintlyFile = isBuilder ? "maintly_phone.png" : "maintly_gift.png";
   const maintlyUri = readLocalImageAsDataUri(maintlyFile);
   const mhIconUri = readLocalImageAsDataUri("logo-icon.png");
 
-  const headlineLines = ["Partnering With You", "To Own Your Home", "With Confidence"];
+  // ── Copy ──────────────────────────────────────────────────────
+  const partnerLabel = (input.agentName || input.brandName || "your partner").trim();
+  const partnerLabelShort = truncate(partnerLabel, 28);
 
-  const subline = input.agentName
-    ? `In partnership with ${input.agentName}`
-    : `In partnership with ${input.brandName}`;
+  const badgePrefix = isBuilder ? "A Special Welcome from" : "A Special Gift from";
+  const badgeText = `${badgePrefix} ${partnerLabelShort}`;
 
-  const brandLine = input.brandName ? escapeXml(input.brandName) : "";
+  const headline = isBuilder
+    ? ["Own Your New Home", "With Confidence"]
+    : ["Own Your Home", "With Confidence"];
 
-  const agentName = escapeXml(input.agentName || "");
-  const agentPhone = escapeXml(input.agentPhone || "");
-  const taglineCaption = input.taglineCaption ? wrapTitle(input.taglineCaption, 36).slice(0, 2) : [];
+  const subline = `In partnership with ${truncate(partnerLabel, 36)}`;
 
-  // Layout positions
-  const logoBoxY = 60;
-  const logoBoxH = 90;
-  const headshotR = 90;
-  const headshotCx = LEFT_W / 2;
-  const headshotCy = 290;
-  const nameY = headshotCy + headshotR + 56;
+  // ── Badge geometry (sized to text, with auto-shrink fallback) ──────
+  // Start at 18px and step down until the text+padding fits inside RW so
+  // unusually long brand names never overflow or get clipped by the rect.
+  const badgePadX = 22;
+  const badgeH = 40;
+  let badgeFontSize = 18;
+  let badgeTextW = approxTextWidth(badgeText, badgeFontSize, 700);
+  while (badgeTextW + badgePadX * 2 > RW && badgeFontSize > 12) {
+    badgeFontSize -= 1;
+    badgeTextW = approxTextWidth(badgeText, badgeFontSize, 700);
+  }
+  const badgeW = Math.min(badgeTextW + badgePadX * 2, RW);
+  const badgeY = 90;
+
+  // Headline geometry — auto-fit so the longest line never overflows.
+  // Inter-Bold cap-width ≈ 0.60 * fontSize at weight 700.
+  const longestHeadlineChars = Math.max(...headline.map((l) => l.length));
+  const headlineFontSize = Math.min(
+    78,
+    Math.floor(RW / (longestHeadlineChars * 0.6)),
+  );
+  const headlineLineH = Math.round(headlineFontSize * 1.1);
+  const headlineY = badgeY + badgeH + 56 + headlineFontSize - 12;
+
+  // Underline accent
+  const underlineY = headlineY + headline.length * headlineLineH + 8;
+
+  // Subline
+  const sublineY = underlineY + 48;
+
+  // ── Maintly hero (left column) ────────────────────────────────
+  // Make him fill most of the left column. Anchor to bottom so the
+  // gift box / phone reads as the focal point.
+  const maintlySize = 460;
+  const maintlyX = (LEFT_W - maintlySize) / 2;
+  const maintlyY = H - maintlySize - 30;
+
+  // Bottom gradient bar height
+  const barH = 10;
+
+  // Bottom-right "Powered by" wordmark
+  const mhWordmark = "Powered by MaintainHome.ai";
+  const mhFontSize = 22;
+  const mhWordmarkW = approxTextWidth(mhWordmark, mhFontSize, 700);
+  const mhIconSize = 32;
+  const mhRightPad = 56;
+  const mhBottomPad = 56;
+  const mhWordmarkX = W - mhRightPad;
+  const mhWordmarkY = H - mhBottomPad;
+  const mhIconX = mhWordmarkX - mhWordmarkW - 12 - mhIconSize;
+  const mhIconY = mhWordmarkY - mhIconSize + 4;
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
   <defs>
-    <linearGradient id="${leftBgGradId}" x1="0%" y1="0%" x2="0%" y2="100%">${leftStops}</linearGradient>
-    <linearGradient id="${accentGradId}" x1="0%" y1="0%" x2="100%" y2="0%">${accentStops}</linearGradient>
-    <clipPath id="headshotClip"><circle cx="${headshotCx}" cy="${headshotCy}" r="${headshotR}"/></clipPath>
-    <radialGradient id="maintlyGlow" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="${isBuilder ? "#1f9e6e" : "#fbbf24"}" stop-opacity="0.55"/>
-      <stop offset="70%" stop-color="${isBuilder ? "#1f9e6e" : "#fbbf24"}" stop-opacity="0"/>
+    <!-- Soft mint→sky tint for the Maintly column background -->
+    <linearGradient id="${leftBgGradId}" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+
+    <!-- Brand accent gradient: teal → green → blue (used in bar + underline + badge stroke shimmer) -->
+    <linearGradient id="${accentGradId}" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#14b8a6"/>
+      <stop offset="50%" stop-color="#1f9e6e"/>
+      <stop offset="100%" stop-color="#3b82f6"/>
+    </linearGradient>
+
+    <radialGradient id="${maintlyGlowId}" cx="50%" cy="55%" r="55%">
+      <stop offset="0%" stop-color="#1f9e6e" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#1f9e6e" stop-opacity="0"/>
     </radialGradient>
+
   </defs>
 
-  <!-- Right white side -->
+  <!-- Card background (white) -->
   <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff"/>
 
-  <!-- Left dark column -->
+  <!-- Left Maintly column with soft gradient -->
   <rect x="0" y="0" width="${LEFT_W}" height="${H}" fill="url(#${leftBgGradId})"/>
 
-  <!-- Accent stripe at top of left column -->
-  <rect x="0" y="0" width="${LEFT_W}" height="6" fill="url(#${accentGradId})"/>
+  <!-- Subtle vertical divider between columns -->
+  <rect x="${LEFT_W}" y="48" width="1" height="${H - 96 - barH}" fill="#e5e7eb"/>
 
-  ${logoUri ? `<image href="${logoUri}" x="${(LEFT_W - 280) / 2}" y="${logoBoxY}" width="280" height="${logoBoxH}" preserveAspectRatio="xMidYMid meet"/>` : `<text x="${LEFT_W / 2}" y="${logoBoxY + 60}" text-anchor="middle" fill="#ffffff" font-family="Inter" font-weight="700" font-size="42">${brandLine}</text>`}
+  <!-- Glow behind Maintly to add depth -->
+  <ellipse cx="${LEFT_W / 2}" cy="${maintlyY + maintlySize * 0.55}" rx="${maintlySize * 0.55}" ry="${maintlySize * 0.42}" fill="url(#${maintlyGlowId})"/>
 
-  <!-- Headshot circle -->
-  <circle cx="${headshotCx}" cy="${headshotCy}" r="${headshotR + 4}" fill="url(#${accentGradId})"/>
-  <circle cx="${headshotCx}" cy="${headshotCy}" r="${headshotR}" fill="#1e293b"/>
-  ${headshotUri ? `<image href="${headshotUri}" x="${headshotCx - headshotR}" y="${headshotCy - headshotR}" width="${headshotR * 2}" height="${headshotR * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#headshotClip)"/>` : `<text x="${headshotCx}" y="${headshotCy + 14}" text-anchor="middle" fill="#94a3b8" font-family="Inter" font-weight="700" font-size="56">${escapeXml((input.agentName || input.brandName || "?").trim().charAt(0).toUpperCase())}</text>`}
+  <!-- Maintly hero image -->
+  ${maintlyUri
+    ? `<image href="${maintlyUri}" x="${maintlyX}" y="${maintlyY}" width="${maintlySize}" height="${maintlySize}" preserveAspectRatio="xMidYMax meet"/>`
+    : `<text x="${LEFT_W / 2}" y="${H / 2}" text-anchor="middle" fill="#1f9e6e" font-family="Inter" font-weight="800" font-size="64">Maintly</text>`}
 
-  ${agentName ? `<text x="${LEFT_W / 2}" y="${nameY}" text-anchor="middle" fill="#ffffff" font-family="Inter" font-weight="700" font-size="32">${agentName}</text>` : ""}
-  ${agentPhone ? `<text x="${LEFT_W / 2}" y="${nameY + 38}" text-anchor="middle" fill="#cbd5e1" font-family="Inter" font-weight="400" font-size="22">${agentPhone}</text>` : ""}
+  <!-- ── Right column content ───────────────────────────────── -->
 
-  ${taglineCaption.length > 0
-    ? taglineCaption.map((l, i) => `<text x="${LEFT_W / 2}" y="${H - 70 + i * 26}" text-anchor="middle" fill="#94a3b8" font-family="Inter" font-style="italic" font-weight="400" font-size="20">"${escapeXml(l)}"</text>`).join("")
-    : ""}
+  <!-- Green pill badge -->
+  <rect x="${RX}" y="${badgeY}" width="${badgeW}" height="${badgeH}" rx="${badgeH / 2}" fill="#1f9e6e"/>
+  <text x="${RX + badgeW / 2}" y="${badgeY + badgeH / 2 + badgeFontSize / 3}" text-anchor="middle" fill="#ffffff" font-family="Inter" font-weight="700" font-size="${badgeFontSize}">${escapeXml(badgeText)}</text>
 
-  <!-- Right side content -->
-  <!-- Maintly glow + avatar in top-right (smaller so it doesn't overlap headline) -->
-  <circle cx="${W - 100}" cy="100" r="100" fill="url(#maintlyGlow)"/>
-  ${maintlyUri ? `<image href="${maintlyUri}" x="${W - 180}" y="20" width="160" height="160" preserveAspectRatio="xMidYMid meet"/>` : ""}
+  <!-- Big bold headline -->
+  ${headline.map((line, i) => `<text x="${RX}" y="${headlineY + i * headlineLineH}" fill="#0f172a" font-family="Inter" font-weight="700" font-size="${headlineFontSize}">${escapeXml(line)}</text>`).join("\n  ")}
 
-  <!-- Badge pill -->
-  <rect x="540" y="80" width="${isBuilder ? 240 : 220}" height="36" rx="18" fill="#ecfdf5" stroke="#1f9e6e" stroke-width="1"/>
-  <text x="${540 + (isBuilder ? 120 : 110)}" y="105" text-anchor="middle" fill="#1f9e6e" font-family="Inter" font-weight="700" font-size="15">${isBuilder ? "A SPECIAL WELCOME" : "A SPECIAL GIFT"}</text>
+  <!-- Accent underline -->
+  <rect x="${RX}" y="${underlineY}" width="180" height="6" rx="3" fill="url(#${accentGradId})"/>
 
-  <!-- Headline (font sized to fit alongside Maintly) -->
-  ${headlineLines.map((line, i) => `<text x="540" y="${190 + i * 60}" fill="#0f172a" font-family="Inter" font-weight="800" font-size="52">${escapeXml(line)}</text>`).join("")}
+  <!-- Sub-headline -->
+  <text x="${RX}" y="${sublineY}" fill="#475569" font-family="Inter" font-weight="500" font-size="28">${escapeXml(subline)}</text>
 
-  <!-- Accent underline below headline -->
-  <rect x="540" y="${190 + headlineLines.length * 60 + 4}" width="180" height="6" rx="3" fill="url(#${accentGradId})"/>
+  <!-- ── Footer: gradient bar + wordmark ───────────────────── -->
 
-  <!-- Subline -->
-  <text x="540" y="${190 + headlineLines.length * 60 + 56}" fill="#475569" font-family="Inter" font-weight="500" font-size="24">${escapeXml(subline)}</text>
+  <!-- Teal→green→blue accent bar at very bottom -->
+  <rect x="0" y="${H - barH}" width="${W}" height="${barH}" fill="url(#${accentGradId})"/>
 
-  <!-- MaintainHome icon + wordmark bottom-right -->
-  ${mhIconUri ? `<image href="${mhIconUri}" x="${W - 260}" y="${H - 70}" width="44" height="44" preserveAspectRatio="xMidYMid meet"/>` : ""}
-  <text x="${W - 40}" y="${H - 38}" text-anchor="end" fill="#0f172a" font-family="Inter" font-weight="800" font-size="26">MaintainHome.ai</text>
-
-  <!-- Bottom-left tag -->
-  <text x="540" y="${H - 38}" fill="#94a3b8" font-family="Inter" font-weight="500" font-size="16">Powered by AI · Personalized to your home</text>
+  <!-- "Powered by MaintainHome.ai" bottom-right -->
+  ${mhIconUri ? `<image href="${mhIconUri}" x="${mhIconX}" y="${mhIconY}" width="${mhIconSize}" height="${mhIconSize}" preserveAspectRatio="xMidYMid meet"/>` : ""}
+  <text x="${mhWordmarkX}" y="${mhWordmarkY}" text-anchor="end" fill="#0f172a" font-family="Inter" font-weight="700" font-size="${mhFontSize}">${escapeXml(mhWordmark)}</text>
 </svg>`;
 
   const fontDir = findFontDir();
