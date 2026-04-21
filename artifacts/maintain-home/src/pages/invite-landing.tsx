@@ -428,7 +428,7 @@ export default function InviteLanding() {
             >
               {branding.accountType === "builder"
                 ? <>Your new home comes with <span className="font-bold text-white/85">1-year warranty tracking</span>, AI support from Maintly, and a complete care plan — all under your builder's brand.</>
-                : <>Give your clients the ultimate homeownership advantage — <span className="font-bold text-white/85">a branded app under your name that keeps them for life.</span></>}
+                : <>Welcome To Your Custom App In Partnership With Your Real Estate Agent. <span className="font-bold text-white/85">Own Your Home Alone, But Care For It With Trusted Partners.</span></>}
             </motion.p>
 
             {/* ── 4. Benefits list ───────────────────────────────── */}
