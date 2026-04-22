@@ -1095,7 +1095,7 @@ function ProGateBanner({ dark = false }: { dark?: boolean }) {
         className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold bg-primary hover:bg-primary/90 text-white transition-colors shadow-md shadow-primary/20"
       >
         <Sparkles className="w-4 h-4" />
-        Upgrade to Pro — from $4.99/mo
+        Upgrade to Pro — from $5.99/mo
       </a>
     </div>
   );

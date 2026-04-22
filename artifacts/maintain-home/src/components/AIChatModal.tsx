@@ -13,6 +13,15 @@ const ALLOWED_TYPES   = ["image/jpeg", "image/jpg", "image/png", "application/pd
 const BASE = import.meta.env.BASE_URL;
 
 // ── Types ─────────────────────────────────────────────────────────────────
+interface UsageInfo {
+  isPro: boolean;
+  monthlyQuota: number;
+  monthlyUsed: number;
+  monthlyRemaining: number;
+  powerUpRemaining: number;
+  totalRemaining: number;
+}
+
 interface FileInfo {
   name: string;
   type: string;
@@ -60,6 +69,11 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
   const [input, setInput]                 = useState("");
   const [isStreaming, setIsStreaming]      = useState(false);
 
+  // Usage tracking
+  const [usage, setUsage]                 = useState<UsageInfo | null>(null);
+  const [limitHit, setLimitHit]           = useState(false);
+  const [powerUpLoading, setPowerUpLoading] = useState(false);
+
   // File upload state
   const [pendingFile, setPendingFile]           = useState<File | null>(null);
   const [pendingPreview, setPendingPreview]     = useState<string | null>(null);
@@ -77,16 +91,48 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Focus input when opened
+  // Focus input when opened + load usage info
   useEffect(() => {
-    if (isOpen && userIsPro) setTimeout(() => inputRef.current?.focus(), 150);
+    if (isOpen && userIsPro) {
+      setTimeout(() => inputRef.current?.focus(), 150);
+      // Fetch current usage
+      fetch("/api/ai/usage", { credentials: "include" })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((info) => {
+          if (info) {
+            setUsage(info as UsageInfo);
+            setLimitHit((info as UsageInfo).totalRemaining <= 0);
+          }
+        })
+        .catch(() => {});
+    }
     if (!isOpen) {
       setMessages([]);
       setInput("");
       clearPendingFile();
+      setLimitHit(false);
       initialMessageSentRef.current = null;
     }
   }, [isOpen, userIsPro]);
+
+  // ── Power Up checkout ───────────────────────────────────────────────────
+  const startPowerUpCheckout = async () => {
+    setPowerUpLoading(true);
+    try {
+      const res = await fetch("/api/stripe/power-up-checkout", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      // ignore
+    } finally {
+      setPowerUpLoading(false);
+    }
+  };
 
   // Abort on close
   useEffect(() => {
@@ -163,8 +209,20 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
           if (data.done) return;
           if (data.error) setContent(prev => prev + `\n\n_Error: ${data.error}_`);
           if (data.content) setContent(prev => prev + data.content);
+          if (data.usage) {
+            setUsage(data.usage as UsageInfo);
+            setLimitHit((data.usage as UsageInfo).totalRemaining <= 0);
+          }
         } catch {}
       }
+    }
+  }
+
+  // Handle non-OK response, surfacing power-up gate when applicable
+  function handleErrorResponse(err: any) {
+    if (err?.requiresPowerUp) {
+      setLimitHit(true);
+      if (err.usage) setUsage(err.usage as UsageInfo);
     }
   }
 
@@ -199,6 +257,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Request failed." }));
+        handleErrorResponse(err);
         setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: `Sorry — ${err.error ?? "Please try again."}` }]);
         return;
       }
@@ -263,6 +322,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "Upload failed." }));
+        handleErrorResponse(err);
         setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: `Sorry — ${err.error ?? "Please try again."}`, isFileAnalysis: true }]);
         return;
       }
@@ -348,7 +408,7 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Meet Maintly — Pro Members Only</h3>
                   <p className="text-slate-500 text-sm max-w-xs mx-auto">
-                    Upgrade to Pro to ask unlimited questions — including uploading photos and documents for AI analysis.
+                    Upgrade to Pro to chat with Maintly — 200 messages a month included, plus photo and document analysis. Need more? Top up with $4.99 Power Ups.
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
@@ -443,6 +503,44 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
 
                 {/* Input area */}
                 <div className="px-4 pb-5 pt-3 border-t border-slate-100 shrink-0 bg-white space-y-2">
+
+                  {/* Usage counter / Power Up CTA */}
+                  {usage && (
+                    limitHit ? (
+                      <div className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-amber-50 border border-amber-200">
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-amber-900">You're out of Maintly messages</p>
+                          <p className="text-[11px] text-amber-700">Top up with a $4.99 Power Up — adds 200 more messages this month.</p>
+                        </div>
+                        <Button
+                          size="sm"
+                          onClick={startPowerUpCheckout}
+                          disabled={powerUpLoading}
+                          className="rounded-lg bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+                        >
+                          {powerUpLoading
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <><Zap className="w-3.5 h-3.5 mr-1" />Power Up · $4.99</>}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-2 px-1 text-[11px] text-slate-400">
+                        <span>
+                          {usage.monthlyRemaining} of {usage.monthlyQuota} messages left this month
+                          {usage.powerUpRemaining > 0 ? ` · +${usage.powerUpRemaining} Power Up` : ""}
+                        </span>
+                        {usage.totalRemaining <= 25 && (
+                          <button
+                            onClick={startPowerUpCheckout}
+                            disabled={powerUpLoading}
+                            className="text-primary font-semibold hover:underline shrink-0"
+                          >
+                            {powerUpLoading ? "…" : "Get Power Up"}
+                          </button>
+                        )}
+                      </div>
+                    )
+                  )}
 
                   {/* File preview bar */}
                   <AnimatePresence>

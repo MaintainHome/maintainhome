@@ -22,7 +22,7 @@ const PRO_FEATURES = [
   "Priority support",
 ];
 
-const AI_FEATURE = "Chat with Maintly AI – Ask specific questions about your home maintenance";
+const AI_FEATURE = "Chat with Maintly AI – 200 messages/month included (top up with $4.99 Power Ups)";
 
 const API_BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -139,8 +139,8 @@ export function PricingSection({ onOpenAuth }: { onOpenAuth?: () => void } = {})
   const [showCodeForm, setShowCodeForm] = useState(false);
   const { startCheckout, loading: checkoutLoading, error: checkoutError } = useStripeCheckout();
 
-  const MONTHLY_PRICE = 4.99;
-  const ANNUAL_PRICE = 39.99;
+  const MONTHLY_PRICE = 5.99;
+  const ANNUAL_PRICE = 49;
   const ANNUAL_MONTHLY_EQUIV = (ANNUAL_PRICE / 12).toFixed(2);
   const ANNUAL_SAVINGS_PCT = Math.round((1 - ANNUAL_PRICE / (MONTHLY_PRICE * 12)) * 100);
 
@@ -253,7 +253,7 @@ export function PricingSection({ onOpenAuth }: { onOpenAuth?: () => void } = {})
                   ) : (
                     <Tag className="w-4 h-4 mr-2" />
                   )}
-                  Upgrade · $4.99/mo
+                  Upgrade · $5.99/mo
                 </Button>
                 {checkoutError && (
                   <p className="mt-2 text-xs text-red-600 font-medium text-center">{checkoutError}</p>
@@ -325,7 +325,7 @@ export function PricingSection({ onOpenAuth }: { onOpenAuth?: () => void } = {})
                   ) : (
                     <Star className="w-4 h-4 mr-2" />
                   )}
-                  Upgrade · $39.99/yr
+                  Upgrade · $49/yr
                 </Button>
                 {checkoutError && (
                   <p className="mt-2 text-xs text-red-600 font-medium text-center">{checkoutError}</p>

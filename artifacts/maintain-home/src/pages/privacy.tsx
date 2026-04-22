@@ -57,7 +57,21 @@ export default function PrivacyPolicy() {
             </div>
 
             <div>
-              <h2 className="text-base font-semibold text-slate-800 mb-2">3. Data Storage and Security</h2>
+              <h2 className="text-base font-semibold text-slate-800 mb-2">3. Subscriptions, Maintly Usage &amp; Power Ups</h2>
+              <p className="text-slate-600">
+                Pro membership is $5.99/month or $49/year and includes the full 12-month maintenance calendar plus
+                up to 200 Maintly AI messages per calendar month. Free users have access to the current month's
+                tasks but cannot use Maintly. Pro members who exceed their monthly Maintly allotment may purchase
+                Power Ups for $4.99 each, which add 200 additional messages for the current month and do not roll
+                over. Real-estate agents and home builders may purchase pre-loaded client gift accounts at a
+                discounted rate (currently $45 for 1 year of Pro access, or $119 for 3 years) for the purpose of
+                onboarding their clients. All prices are in USD and may change with notice. Subscriptions and
+                Power Ups are non-refundable except where required by law.
+              </p>
+            </div>
+
+            <div>
+              <h2 className="text-base font-semibold text-slate-800 mb-2">4. Data Storage and Security</h2>
               <p className="text-slate-600">
                 All data is stored on secure, encrypted servers. We use industry-standard security practices
                 including HTTPS encryption and access controls to protect your information. We retain your

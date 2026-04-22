@@ -18,6 +18,10 @@ export const usersTable = pgTable("users", {
   proExpiresAt: timestamp("pro_expires_at"),
   brokerPreCreated: boolean("broker_pre_created").default(false).notNull(),
   assignedMemberId: integer("assigned_member_id"),
+  // Maintly usage tracking
+  monthlyMessagesUsed: integer("monthly_messages_used").default(0).notNull(),
+  monthlyMessagesPeriod: text("monthly_messages_period"),
+  powerUpMessagesRemaining: integer("power_up_messages_remaining").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

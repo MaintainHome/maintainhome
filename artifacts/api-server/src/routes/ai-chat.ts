@@ -5,7 +5,7 @@ import multer from "multer";
 import { db, usersTable, homeProfilesTable, maintenanceDocumentsTable, brokerServiceProvidersTable, whiteLabelConfigsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
-import { checkUserChatLimit } from "../middleware/rateLimit";
+import { consumeMaintlyMessage } from "../lib/maintlyUsage";
 import type { DocumentData } from "./documents";
 
 const router = Router();
@@ -256,7 +256,19 @@ Start most responses with something like "Hey there, it's Maintly." or "Good que
 }
 
 router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Response) => {
-  // Verify user has Pro subscription first (before API key check)
+  // 1. Validate request body BEFORE consuming any quota.
+  const { message, history = [], quizAnswers = {} } = req.body as {
+    message: string;
+    history: { role: "user" | "assistant"; content: string }[];
+    quizAnswers: Record<string, string>;
+  };
+
+  if (!message || typeof message !== "string" || message.trim().length === 0) {
+    res.status(400).json({ error: "Message is required." });
+    return;
+  }
+
+  // 2. Verify user + service availability BEFORE consuming quota.
   const [user] = await db
     .select({ subscriptionStatus: usersTable.subscriptionStatus, zipCode: usersTable.zipCode, referralSubdomain: usersTable.referralSubdomain })
     .from(usersTable)
@@ -268,32 +280,31 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
     return;
   }
 
-  const proStatuses = ["pro_monthly", "pro_annual", "promo_pro"];
-  if (!proStatuses.includes(user.subscriptionStatus)) {
-    res.status(403).json({ error: "Pro subscription required to use AI chat." });
-    return;
-  }
-
-  const rateCheck = checkUserChatLimit(req.userId!, true);
-  if (!rateCheck.allowed) {
-    res.status(429).json({ error: rateCheck.error, retryAfter: rateCheck.retryAfter });
-    return;
-  }
-
   const anthropic = createAnthropicClient();
   if (!anthropic) {
     res.status(503).json({ error: "AI service not configured." });
     return;
   }
 
-  const { message, history = [], quizAnswers = {} } = req.body as {
-    message: string;
-    history: { role: "user" | "assistant"; content: string }[];
-    quizAnswers: Record<string, string>;
-  };
-
-  if (!message || typeof message !== "string" || message.trim().length === 0) {
-    res.status(400).json({ error: "Message is required." });
+  // 3. Now consume one Maintly credit (free users blocked, Pro users metered).
+  const usage = await consumeMaintlyMessage(req.userId!);
+  if (!usage.allowed) {
+    if (usage.reason === "not_pro") {
+      res.status(403).json({
+        error: "Maintly is a Pro feature. Upgrade to Pro to start chatting.",
+        requiresUpgrade: true,
+      });
+      return;
+    }
+    if (usage.reason === "limit_reached") {
+      res.status(429).json({
+        error: "You've used all 200 Maintly messages this month. Buy a Power Up for $4.99 to add 200 more.",
+        requiresPowerUp: true,
+        usage: usage.info,
+      });
+      return;
+    }
+    res.status(401).json({ error: "User not found." });
     return;
   }
 
@@ -346,6 +357,11 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
   res.setHeader("Connection", "keep-alive");
   res.setHeader("X-Accel-Buffering", "no");
 
+  // Send updated usage info first so the client can update its counter
+  if (usage.info) {
+    res.write(`data: ${JSON.stringify({ usage: usage.info })}\n\n`);
+  }
+
   try {
     const stream = anthropic.messages.stream({
       model: "claude-haiku-4-5",
@@ -372,6 +388,14 @@ router.post("/ai/chat", requireAuth as any, async (req: AuthRequest, res: Respon
   }
 });
 
+// ── GET /api/ai/usage ─────────────────────────────────────────────────────
+router.get("/ai/usage", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const { getUsageInfo } = await import("../lib/maintlyUsage");
+  const info = await getUsageInfo(req.userId!);
+  if (!info) { res.status(404).json({ error: "User not found" }); return; }
+  res.json(info);
+});
+
 // ── POST /api/ai/chat-with-file  (Pro only, multipart) ────────────────────
 router.post(
   "/ai/chat-with-file",
@@ -387,23 +411,40 @@ router.post(
 
     if (!user) { res.status(401).json({ error: "User not found." }); return; }
 
-    const proStatuses = ["pro_monthly", "pro_annual", "promo_pro"];
-    if (!proStatuses.includes(user.subscriptionStatus)) {
-      res.status(403).json({ error: "Pro subscription required to upload files." });
-      return;
-    }
-
-    const anthropic = createAnthropicClient();
-    if (!anthropic) { res.status(503).json({ error: "AI service not configured." }); return; }
-
+    // Validate file presence + size BEFORE consuming any credit.
     const file = (req as any).file as Express.Multer.File | undefined;
     if (!file) { res.status(400).json({ error: "No file uploaded." }); return; }
 
-    // Per-type size enforcement
     const isImage = file.mimetype.startsWith("image/");
     const maxBytes = isImage ? 5 * 1024 * 1024 : 8 * 1024 * 1024;
     if (file.size > maxBytes) {
       res.status(400).json({ error: `File is too large. Max ${isImage ? "5MB" : "8MB"} for ${isImage ? "images" : "PDFs"}.` });
+      return;
+    }
+
+    // Verify Anthropic availability BEFORE consuming credit.
+    const anthropic = createAnthropicClient();
+    if (!anthropic) { res.status(503).json({ error: "AI service not configured." }); return; }
+
+    // Now consume one Maintly credit.
+    const usage = await consumeMaintlyMessage(req.userId!);
+    if (!usage.allowed) {
+      if (usage.reason === "not_pro") {
+        res.status(403).json({
+          error: "File analysis is a Pro feature. Upgrade to Pro to start uploading.",
+          requiresUpgrade: true,
+        });
+        return;
+      }
+      if (usage.reason === "limit_reached") {
+        res.status(429).json({
+          error: "You've used all 200 Maintly messages this month. Buy a Power Up for $4.99 to add 200 more.",
+          requiresPowerUp: true,
+          usage: usage.info,
+        });
+        return;
+      }
+      res.status(401).json({ error: "User not found." });
       return;
     }
 
@@ -457,6 +498,10 @@ router.post(
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
+
+    if (usage.info) {
+      res.write(`data: ${JSON.stringify({ usage: usage.info })}\n\n`);
+    }
 
     try {
       const stream = anthropic.messages.stream({

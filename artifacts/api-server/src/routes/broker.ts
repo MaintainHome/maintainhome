@@ -857,7 +857,7 @@ router.post("/broker/precreate-checkout", requireAuth as any, async (req: AuthRe
     if (!brokerUser) { res.status(401).json({ error: "User not found" }); return; }
 
     const is3Year = duration === "3years";
-    const priceCents = is3Year ? 9900 : 3600;
+    const priceCents = is3Year ? 11900 : 4500;
     const proMonths = is3Year ? 37 : 13;
 
     // For team members: store their userId so the client gets assigned to them after payment
@@ -967,7 +967,7 @@ router.post("/broker/client-renew-checkout", requireAuth as any, async (req: Aut
       line_items: [{
         price_data: {
           currency: "usd",
-          unit_amount: 3600,
+          unit_amount: 4500,
           product_data: {
             name: "MaintainHome Client Pro Renewal",
             description: `1-year Pro renewal for ${clientEmail ?? `client #${clientUserId}`}`,

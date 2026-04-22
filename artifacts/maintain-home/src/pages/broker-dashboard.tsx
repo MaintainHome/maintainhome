@@ -448,7 +448,7 @@ function ClientDetailModal({
           <button onClick={handleRenewClick} disabled={renewing}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm font-bold hover:bg-emerald-100 transition-all disabled:opacity-50">
             {renewing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            Renew · $36
+            Renew · $45
           </button>
         </div>
       </motion.div>
@@ -1020,7 +1020,7 @@ function GiftCodePurchasePanel({ accent }: { accent: string }) {
 
         {/* Price callout */}
         <div className="flex items-baseline gap-1 sm:shrink-0">
-          <span className="text-2xl font-black text-slate-900">$36</span>
+          <span className="text-2xl font-black text-slate-900">$45</span>
           <span className="text-slate-400 text-sm">/code</span>
         </div>
       </div>
@@ -1682,10 +1682,10 @@ function PreCreateClientPanel({ accent, isBuilder = false }: { accent: string; i
             className={`relative flex flex-col gap-1.5 p-4 rounded-xl border-2 text-left transition-all ${duration === "1year" ? "border-emerald-500 bg-emerald-50" : "border-slate-200 bg-white hover:border-slate-300"}`}
           >
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-black text-slate-900">$36</span>
+              <span className="text-2xl font-black text-slate-900">$45</span>
               <span className="text-slate-400 text-sm">/ 1 year</span>
             </div>
-            <p className="text-xs font-semibold" style={{ color: accent }}>13 months Pro · ~$3/mo · 1 month free</p>
+            <p className="text-xs font-semibold" style={{ color: accent }}>13 months Pro · ~$3.46/mo · 1 month free</p>
             {duration === "1year" && (
               <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-emerald-500 text-white text-[10px] font-black">✓</span>
             )}
@@ -1699,12 +1699,12 @@ function PreCreateClientPanel({ accent, isBuilder = false }: { accent: string; i
           >
             <div className="flex items-center gap-2">
               <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-black text-slate-900">$99</span>
+                <span className="text-2xl font-black text-slate-900">$119</span>
                 <span className="text-slate-400 text-sm">/ 3 years</span>
               </div>
               <span className="text-xs font-black px-2 py-0.5 rounded-full bg-blue-500 text-white uppercase tracking-wide">Best Value</span>
             </div>
-            <p className="text-xs font-semibold text-blue-600">37 months Pro · ~$33/yr · 1 month free</p>
+            <p className="text-xs font-semibold text-blue-600">37 months Pro · ~$3.22/mo · 1 month free</p>
             {duration === "3years" && (
               <span className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center bg-blue-500 text-white text-[10px] font-black">✓</span>
             )}
@@ -1718,7 +1718,7 @@ function PreCreateClientPanel({ accent, isBuilder = false }: { accent: string; i
             style={{ backgroundColor: accent }}
           >
             <PlusCircle className="w-4 h-4 shrink-0" />
-            {isBuilder ? "Assign New Home Package" : "Create Client Account"} · {duration === "3years" ? "$99" : "$36"}
+            {isBuilder ? "Assign New Home Package" : "Create Client Account"} · {duration === "3years" ? "$119" : "$45"}
           </button>
           <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-50 border border-slate-100 rounded-xl px-4 py-2.5 w-full sm:w-auto">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
@@ -1757,7 +1757,7 @@ function PreCreateClientPanel({ accent, isBuilder = false }: { accent: string; i
                     <p className="text-sm text-slate-400">
                       {isBuilder
                         ? "Warranties pre-loaded · Builder docs included · Auto reminders"
-                        : "$36 · 13 months Pro · AI calendar included"}
+                        : "$45 · 13 months Pro · AI calendar included"}
                     </p>
                   </div>
                 </div>
@@ -2176,7 +2176,7 @@ function PreCreateClientPanel({ accent, isBuilder = false }: { accent: string; i
                       </ul>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-2xl font-black text-slate-900">{duration === "3years" ? "$99" : "$36"}</p>
+                      <p className="text-2xl font-black text-slate-900">{duration === "3years" ? "$119" : "$45"}</p>
                       <p className="text-sm font-semibold" style={{ color: accent }}>{duration === "3years" ? "~$33/yr" : "~$3/mo"}</p>
                       <p className="text-sm text-slate-400">one-time</p>
                     </div>
@@ -2198,7 +2198,7 @@ function PreCreateClientPanel({ accent, isBuilder = false }: { accent: string; i
                     style={{ backgroundColor: accent }}
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-                    {loading ? "Starting checkout…" : `Pay ${duration === "3years" ? "$99" : "$36"} & Create Account`}
+                    {loading ? "Starting checkout…" : `Pay ${duration === "3years" ? "$119" : "$45"} & Create Account`}
                   </button>
                   <button onClick={() => setOpen(false)}
                     className="px-5 py-3 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
@@ -3110,7 +3110,7 @@ Click here to get started: ${link}`;
                             {renewingClientId === client.id
                               ? <Loader2 className="w-3 h-3 animate-spin" />
                               : <RefreshCw className="w-3 h-3" />}
-                            Renew $36
+                            Renew · $45
                           </button>
                         </div>
                       </div>
@@ -3218,7 +3218,7 @@ Click here to get started: ${link}`;
                           {renewingClientId === client.id
                             ? <Loader2 className="w-3 h-3 animate-spin shrink-0" />
                             : <RefreshCw className="w-3 h-3 shrink-0" />}
-                          Renew · $36
+                          Renew · $45
                         </button>
 
                         {/* View button */}

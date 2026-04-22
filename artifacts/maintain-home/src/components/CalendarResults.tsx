@@ -770,7 +770,7 @@ export function CalendarResults({ data, onReset, quizAnswers, onOpenAuth }: Cale
           <div className="flex-1">
             <p className="font-bold text-slate-900">Upgrade to Pro — Unlock all 12 months</p>
             <p className="text-sm text-slate-500">
-              From <strong>$4.99/month</strong> or <strong>$39.99/year</strong> (save 33%). Cancel anytime.
+              From <strong>$5.99/month</strong> or <strong>$49/year</strong> (save 32%). Cancel anytime.
             </p>
           </div>
           <Button

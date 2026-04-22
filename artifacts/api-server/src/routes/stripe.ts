@@ -4,7 +4,10 @@ import { eq, and } from "drizzle-orm";
 import { requireAuth, type AuthRequest } from "../middleware/requireAuth";
 import { getStripeClient } from "../stripeClient";
 import { processBrokerPrecreation } from "./broker";
+import { finalizePowerUpPurchase, POWER_UP_QUANTITY } from "../lib/maintlyUsage";
 import crypto from "crypto";
+
+const POWER_UP_PRICE_CENTS = 499;
 
 const router = Router();
 
@@ -71,9 +74,10 @@ router.get("/stripe/config", (_req, res: Response) => {
 router.get("/stripe/prices", (_req, res: Response) => {
   const ids = getPriceIds();
   res.json({
-    monthly: { priceId: ids.monthly, amount: 499, interval: "month" },
-    annual: { priceId: ids.annual, amount: 3999, interval: "year" },
-    giftCode: { priceId: ids.giftCode, amount: 3600 },
+    monthly: { priceId: ids.monthly, amount: 599, interval: "month" },
+    annual: { priceId: ids.annual, amount: 4900, interval: "year" },
+    giftCode: { priceId: ids.giftCode, amount: 4500 },
+    powerUp: { amount: POWER_UP_PRICE_CENTS, quantity: POWER_UP_QUANTITY },
   });
 });
 
@@ -129,9 +133,71 @@ router.post("/stripe/checkout", requireAuth as any, async (req: AuthRequest, res
     type: "subscription",
     stripeSessionId: session.id,
     stripeCustomerId: customerId,
-    amountCents: plan === "monthly" ? 499 : 3999,
+    amountCents: plan === "monthly" ? 599 : 4900,
     status: "pending",
     metadata: { plan },
+  }).onConflictDoNothing();
+
+  res.json({ url: session.url });
+});
+
+// ── POST /api/stripe/power-up-checkout ────────────────────────────────────────
+router.post("/stripe/power-up-checkout", requireAuth as any, async (req: AuthRequest, res: Response) => {
+  const [user] = await db
+    .select({ id: usersTable.id, email: usersTable.email, stripeCustomerId: usersTable.stripeCustomerId, subscriptionStatus: usersTable.subscriptionStatus })
+    .from(usersTable)
+    .where(eq(usersTable.id, req.userId!))
+    .limit(1);
+
+  if (!user) { res.status(401).json({ error: "User not found" }); return; }
+
+  const proStatuses = ["pro_monthly", "pro_annual", "promo_pro"];
+  if (!proStatuses.includes(user.subscriptionStatus)) {
+    res.status(403).json({ error: "Power Ups are only available to Pro members." });
+    return;
+  }
+
+  const stripe = getStripeClient();
+  const base = getBaseUrl(req);
+
+  let customerId = user.stripeCustomerId;
+  if (!customerId) {
+    const customer = await stripe.customers.create({
+      email: user.email,
+      metadata: { userId: String(user.id) },
+    });
+    customerId = customer.id;
+    await db.update(usersTable).set({ stripeCustomerId: customerId }).where(eq(usersTable.id, user.id));
+  }
+
+  const session = await stripe.checkout.sessions.create({
+    customer: customerId,
+    payment_method_types: ["card"],
+    line_items: [{
+      price_data: {
+        currency: "usd",
+        unit_amount: POWER_UP_PRICE_CENTS,
+        product_data: {
+          name: "Maintly Power Up",
+          description: `${POWER_UP_QUANTITY} additional Maintly messages this month`,
+        },
+      },
+      quantity: 1,
+    }],
+    mode: "payment",
+    metadata: { userId: String(user.id), email: user.email, type: "power_up" },
+    success_url: `${base}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${base}/`,
+  });
+
+  await db.insert(stripeTransactionsTable).values({
+    userId: user.id,
+    type: "power_up",
+    stripeSessionId: session.id,
+    stripeCustomerId: customerId,
+    amountCents: POWER_UP_PRICE_CENTS,
+    status: "pending",
+    metadata: { quantity: POWER_UP_QUANTITY },
   }).onConflictDoNothing();
 
   res.json({ url: session.url });
@@ -188,7 +254,7 @@ router.post("/stripe/gift-checkout", requireAuth as any, async (req: AuthRequest
     type: "gift_code",
     stripeSessionId: session.id,
     stripeCustomerId: customerId,
-    amountCents: 3600 * qty,
+    amountCents: 4500 * qty,
     status: "pending",
     metadata: { quantity: qty },
   }).onConflictDoNothing();
@@ -303,7 +369,7 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
           code,
           purchasedByUserId: userId,
           stripeSessionId: session_id,
-          priceCents: 3600,
+          priceCents: 4500,
         }).catch(() => {});
       }
     }
@@ -317,6 +383,22 @@ router.get("/stripe/verify-session", async (req: Request, res: Response) => {
       codes,
       quantity: codes.length,
       message: `${codes.length} gift code${codes.length > 1 ? "s" : ""} generated successfully!`,
+    });
+    return;
+  }
+
+  // ── Handle Power Up purchase ──────────────────────────────────────────────
+  if (meta.type === "power_up") {
+    // Idempotent: only credits on the first successful status transition.
+    const result = await finalizePowerUpPurchase(session_id, userId, POWER_UP_QUANTITY);
+    await autoLoginUser(res, userId, https);
+    res.json({
+      status: "ok",
+      type: "power_up",
+      alreadyApplied: !result.credited,
+      message: result.credited
+        ? `Power Up activated — ${POWER_UP_QUANTITY} Maintly messages added to your account.`
+        : `Power Up already applied — your messages are ready to use.`,
     });
     return;
   }
@@ -454,10 +536,16 @@ router.post(
       const userId = Number(meta.userId);
       if (!userId) { res.json({ received: true }); return; }
 
-      await db.update(stripeTransactionsTable)
-        .set({ status: "paid" })
-        .where(eq(stripeTransactionsTable.stripeSessionId, session.id))
-        .catch(() => {});
+      // For non-power_up purchases, mark the transaction paid here.
+      // Power Ups must NOT be flipped to "paid" pre-emptively, because
+      // finalizePowerUpPurchase() relies on the conditional status transition
+      // (status != "paid" -> "paid") to atomically gate credit grants.
+      if (meta.type !== "power_up") {
+        await db.update(stripeTransactionsTable)
+          .set({ status: "paid" })
+          .where(eq(stripeTransactionsTable.stripeSessionId, session.id))
+          .catch(() => {});
+      }
 
       if (meta.type === "subscription") {
         const plan = meta.plan as "monthly" | "annual";
@@ -480,10 +568,18 @@ router.post(
               code: generateGiftCode(),
               purchasedByUserId: userId,
               stripeSessionId: session.id,
-              priceCents: 3600,
+              priceCents: 4500,
             }).catch(() => {});
           }
         }
+      }
+
+      if (meta.type === "power_up") {
+        // Idempotent: webhook and verify-session may both arrive; only the
+        // first one to flip stripe_transactions.status -> "paid" credits.
+        await finalizePowerUpPurchase(session.id, userId, POWER_UP_QUANTITY).catch((err) => {
+          console.error("[webhook] finalizePowerUpPurchase error:", err);
+        });
       }
 
       if (meta.type === "broker_precreate") {
