@@ -1211,10 +1211,18 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               onMouseLeave={e => { const el = e.currentTarget; el.style.background = ""; el.style.borderColor = ""; }}
             >
               <div className="w-14 h-16 overflow-hidden shrink-0">
+                {/* Mobile: contain entire image so Maintly's full head is visible */}
                 <img
                   src={`${BASE}images/maintly_phone.png`}
                   alt="Maintly"
-                  className="w-14"
+                  className="w-14 h-16 sm:hidden"
+                  style={{ objectFit: "contain", objectPosition: "top center" }}
+                />
+                {/* Desktop: original cropped framing */}
+                <img
+                  src={`${BASE}images/maintly_phone.png`}
+                  alt="Maintly"
+                  className="w-14 hidden sm:block"
                   style={{ height: "240%", objectFit: "cover", objectPosition: "top center" }}
                 />
               </div>
@@ -1232,10 +1240,18 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               className="flex flex-col items-start gap-1 pt-3 sm:pt-2 px-5 sm:px-4 pb-5 sm:pb-4 bg-white rounded-2xl border border-dashed border-amber-300 hover:border-amber-400 hover:shadow-sm transition-all text-left group overflow-hidden"
             >
               <div className="w-14 h-16 overflow-hidden shrink-0 relative">
+                {/* Mobile: contain entire image so Maintly's full head is visible */}
                 <img
                   src={`${BASE}images/maintly_phone.png`}
                   alt="Maintly"
-                  className="w-14 grayscale opacity-50"
+                  className="w-14 h-16 grayscale opacity-50 sm:hidden"
+                  style={{ objectFit: "contain", objectPosition: "top center" }}
+                />
+                {/* Desktop: original cropped framing */}
+                <img
+                  src={`${BASE}images/maintly_phone.png`}
+                  alt="Maintly"
+                  className="w-14 grayscale opacity-50 hidden sm:block"
                   style={{ height: "240%", objectFit: "cover", objectPosition: "top center" }}
                 />
               </div>
@@ -1260,7 +1276,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
               <ClipboardList className="w-6 h-6 sm:w-5 sm:h-5 text-primary group-hover:text-white transition-colors" />
             </div>
             <div>
-              <p className="text-lg sm:text-base font-bold text-slate-800 group-hover:text-white transition-colors">Historical Home Maintenance Log</p>
+              <p className="text-lg sm:text-base font-bold text-slate-800 group-hover:text-white transition-colors">Home Maintenance Log</p>
               <p className="text-sm sm:text-sm text-slate-500 group-hover:text-white/70 transition-colors leading-relaxed">Completed Tasks<br />&amp; Notes</p>
             </div>
           </button>
