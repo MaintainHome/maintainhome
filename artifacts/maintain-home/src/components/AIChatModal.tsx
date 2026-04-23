@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  X, Send, User, Loader2, Zap, Paperclip, FileText,
+  X, Send, User, Loader2, Zap, Paperclip, FileText, Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth, isPro } from "@/contexts/AuthContext";
@@ -503,6 +503,22 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
 
                 {/* Input area */}
                 <div className="px-4 pb-5 pt-3 border-t border-slate-100 shrink-0 bg-white space-y-2">
+
+                  {/* AI Disclaimer banner — always visible above input */}
+                  <div
+                    className="flex items-start gap-2 px-3 py-2 rounded-lg border"
+                    style={{ backgroundColor: "#fff3cd", borderColor: "#f5e3a3" }}
+                    role="note"
+                    aria-label="AI disclaimer"
+                  >
+                    <Info className="w-3.5 h-3.5 mt-0.5 shrink-0 text-amber-700" />
+                    <p className="text-[11px] sm:text-[11.5px] leading-snug text-amber-900">
+                      <span className="font-semibold">Maintly is an AI assistant.</span>{" "}
+                      All suggestions are for informational purposes only and are not professional
+                      advice. You are responsible for any actions taken. Always consult qualified
+                      professionals for home repairs, inspections, or safety concerns.
+                    </p>
+                  </div>
 
                   {/* Usage counter / Power Up CTA */}
                   {usage && (
