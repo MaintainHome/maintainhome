@@ -640,8 +640,8 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
                   </div>
 
                   {/* Size hint */}
-                  <p className="text-xs sm:text-[10px] text-slate-400 text-center leading-snug">
-                    Photos (JPG/PNG, max 5MB) &amp; PDFs (max 8MB) · Maintly's advice is for guidance only.{" "}
+                  <p className="text-[11px] sm:text-[10px] text-slate-400 text-center leading-snug">
+                    Photos &amp; PDFs supported • Maintly is AI • Guidance only — always consult professionals for repairs &amp; safety.{" "}
                     <a
                       href="/terms"
                       target="_blank"
