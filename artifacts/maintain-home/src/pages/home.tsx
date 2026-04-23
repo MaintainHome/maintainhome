@@ -587,6 +587,8 @@ export default function Home() {
             <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
             <a href="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
             <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
+            <a href="/terms" className="hover:text-slate-300 transition-colors">Terms of Service</a>
+            <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
             <a href="/help" className="hover:text-slate-300 transition-colors">Help / FAQ</a>
             <span className="w-1 h-1 rounded-full bg-slate-600 inline-block" />
             <ContactSupportTrigger />
