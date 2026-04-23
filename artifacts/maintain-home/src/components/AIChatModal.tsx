@@ -625,7 +625,15 @@ export function AIChatModal({ isOpen, onClose, quizAnswers, initialMessage }: AI
 
                   {/* Size hint */}
                   <p className="text-xs sm:text-[10px] text-slate-400 text-center leading-snug">
-                    Photos (JPG/PNG, max 5MB) &amp; PDFs (max 8MB) · Maintly's advice is for guidance only.
+                    Photos (JPG/PNG, max 5MB) &amp; PDFs (max 8MB) · Maintly's advice is for guidance only.{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline hover:text-slate-600"
+                    >
+                      Terms
+                    </a>
                   </p>
 
                   {/* Hidden file input */}

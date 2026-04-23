@@ -57,6 +57,7 @@ import PricingPage from "@/pages/pricing";
 import ActivatePage from "@/pages/activate";
 import TeamJoin from "@/pages/team-join";
 import PrivacyPolicy from "@/pages/privacy";
+import TermsOfService from "@/pages/terms";
 import HelpPage from "@/pages/help";
 import { PWASplashScreen } from "@/components/PWASplashScreen";
 import { AddToHomeScreen } from "@/components/AddToHomeScreen";
@@ -161,6 +162,7 @@ function Router() {
       <Route path="/activate" component={ActivatePage} />
       <Route path="/team-join" component={TeamJoin} />
       <Route path="/privacy" component={PrivacyPolicy} />
+      <Route path="/terms" component={TermsOfService} />
       <Route path="/help" component={HelpPage} />
       <Route path="/invite/:subdomain" component={InviteLanding} />
       <Route path="/invite" component={InviteLanding} />

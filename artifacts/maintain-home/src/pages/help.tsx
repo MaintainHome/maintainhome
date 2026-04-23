@@ -52,6 +52,11 @@ const FAQS: FAQItem[] = [
     answer:
       "Yes! You can update your home profile at any time by visiting the Home Profile page from your dashboard. Changes to your home details may update your maintenance calendar recommendations on the next refresh.",
   },
+  {
+    question: "Where can I read the Terms of Service?",
+    answer:
+      "Our full Terms of Service are available at maintainhome.ai/terms (also linked from the footer of every page). They cover account use, subscriptions, AI disclaimers, your responsibilities, and our limitation of liability. We recommend giving them a quick read before relying on Maintly's recommendations for any major repair or safety decision.",
+  },
 ];
 
 function FAQAccordion({ item, isOpen, onToggle }: { item: FAQItem; isOpen: boolean; onToggle: () => void }) {
@@ -156,12 +161,26 @@ export default function HelpPage() {
         </div>
 
         {/* Footer nav */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center flex items-center justify-center gap-4 flex-wrap">
           <button
             onClick={() => navigate("/")}
             className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
           >
             ← Back to MaintainHome.ai
+          </button>
+          <span className="w-1 h-1 rounded-full bg-slate-300" />
+          <button
+            onClick={() => navigate("/terms")}
+            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+          >
+            Terms of Service
+          </button>
+          <span className="w-1 h-1 rounded-full bg-slate-300" />
+          <button
+            onClick={() => navigate("/privacy")}
+            className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+          >
+            Privacy Policy
           </button>
         </div>
       </div>

@@ -81,11 +81,21 @@ export function TermsAcceptanceModal({ open, onAccept, onDecline }: Props) {
                   style={{ background: "linear-gradient(135deg, #1f9e6e 0%, #3b82f6 100%)" }}>
                   <ScrollText className="w-5 h-5 text-white" />
                 </div>
-                <div>
+                <div className="flex-1 min-w-0">
                   <h2 className="text-white font-black text-lg sm:text-xl leading-tight">
                     Before You Continue — Please Accept Our Terms
                   </h2>
-                  <p className="text-slate-400 text-xs mt-0.5">Scroll through and read the full terms below</p>
+                  <p className="text-slate-400 text-xs mt-0.5">
+                    Scroll through and read the full terms below.{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-green-400 hover:text-green-300 underline font-medium"
+                    >
+                      View full Terms of Service →
+                    </a>
+                  </p>
                 </div>
               </div>
             </div>
@@ -235,6 +245,26 @@ export function TermsAcceptanceModal({ open, onAccept, onDecline }: Props) {
 
             {/* Buttons */}
             <div className="px-6 py-5 border-t border-slate-700 shrink-0 space-y-3">
+              <p className="text-center text-xs text-slate-400 leading-relaxed">
+                I agree to the{" "}
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-400 hover:text-green-300 underline font-medium"
+                >
+                  Terms of Service
+                </a>
+                {" "}and{" "}
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-400 hover:text-green-300 underline font-medium"
+                >
+                  Privacy Policy
+                </a>
+              </p>
               <button
                 onClick={handleAccept}
                 disabled={accepting || declining}

@@ -18,6 +18,13 @@ export function PageFooter() {
         </button>
         <span className="w-1 h-1 rounded-full bg-slate-300 inline-block" />
         <button
+          onClick={() => navigate("/terms")}
+          className="hover:text-slate-600 transition-colors"
+        >
+          Terms of Service
+        </button>
+        <span className="w-1 h-1 rounded-full bg-slate-300 inline-block" />
+        <button
           onClick={() => navigate("/help")}
           className="hover:text-slate-600 transition-colors"
         >

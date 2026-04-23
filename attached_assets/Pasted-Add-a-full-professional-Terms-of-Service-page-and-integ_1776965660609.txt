@@ -1,0 +1,54 @@
+Add a full professional Terms of Service page and integrate it properly into the app.
+
+1. Create a new page at route `/terms` that displays the complete Terms of Service below (use clean, readable markdown-style formatting with proper headings, bullet points, and spacing). Match the site's current design/theme (dark/light mode support, same fonts, colors, etc.).
+
+**Full Terms of Service Content to Use:**
+
+**Terms of Service**  
+**MaintainHome.ai**  
+**Last Updated: April 23, 2026**
+
+**PLEASE READ THESE TERMS OF SERVICE CAREFULLY.** By accessing or using MaintainHome.ai (the “Service”), you agree to be bound by these Terms. If you do not agree, do not use the Service.
+
+### 1. Introduction
+MaintainHome.ai (“we,” “us,” or “our”) provides an AI-powered home ownership platform designed to help users track maintenance, manage documents, receive reminders, and chat with Maintly, our AI assistant. These Terms govern your use of the website, mobile app (PWA and native), white-label versions, and all related services.
+
+### 2. Definitions
+- **User** — Any individual or entity using the Service.
+- **Pro User** — Subscriber who has paid for a paid plan.
+- **White-Label Partner** — Real estate brokers, teams, or home builders using a branded version of the Service.
+- **Maintly** — Our AI-powered chatbot and assistant.
+- **Content** — Any data, documents, notes, photos, or other materials you upload or input.
+
+### 3. Eligibility and Accounts
+You must be at least 18 years old to use the Service. You are responsible for maintaining the confidentiality of your account and password. You agree to provide accurate information, including during the onboarding quiz and Home Profile setup.
+
+### 4. The Service
+We provide personalized maintenance calendars, AI chat with Maintly, document upload and storage, maintenance history log, reminders (email, in-app, and optional SMS), and white-label versions for brokers and builders. All features are provided “as is.”
+
+### 5. Subscriptions and Payments
+Paid plans auto-renew until canceled. Payments processed via Stripe. No refunds except where required by law. Gift / Prepaid Subscriptions are non-refundable once activated.
+
+### 6. AI and Maintenance Advice – Important Disclaimers
+Maintly is an AI tool that provides **general information and suggestions only**. Maintly is **not** a licensed contractor, inspector, engineer, or professional advisor. All advice is for informational purposes only. You are solely responsible for any actions you take. We are **not responsible** for any property damage, repair costs, injury, or financial loss resulting from following (or not following) Maintly’s suggestions. Always consult qualified professionals for inspections and repairs.
+
+### 7–16. (Include all remaining sections exactly as written in the previous message I gave you — from User Content through Governing Law, Changes to Terms, and Contact Us)
+
+2. Add prominent links to `/terms` in:
+   - Footer (on all pages, including white-label versions)
+   - Onboarding / signup flow (next to the checkbox)
+   - Help / FAQ page
+   - Bottom of the Maintly chat window (small disclaimer link)
+
+3. Update the existing Terms acceptance checkbox during signup/onboarding so it clearly says:  
+   “I agree to the [Terms of Service](https://maintainhome.ai/terms)”
+
+4. Make the `/terms` page clean and mobile-friendly with good typography and scrollable content. Add a “Last Updated” date at the top.
+
+5. After implementing, confirm:
+   - The /terms page loads correctly with full content
+   - Footer link works
+   - Onboarding checkbox links correctly
+   - Page looks professional and matches site design
+
+Do this as one cohesive update.
