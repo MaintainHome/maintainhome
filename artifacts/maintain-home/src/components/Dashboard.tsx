@@ -1218,9 +1218,9 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   className="w-14 h-16 sm:hidden"
                   style={{ objectFit: "contain", objectPosition: "top center" }}
                 />
-                {/* Desktop: show Maintly's full head + hat using the thumbnail asset, no cropping */}
+                {/* Desktop: show Maintly (with phone) full head + body, no cropping */}
                 <img
-                  src={`${BASE}images/maintly_thumb.png`}
+                  src={`${BASE}images/maintly_phone.png`}
                   alt="Maintly"
                   className="w-14 h-16 hidden sm:block"
                   style={{ objectFit: "contain", objectPosition: "top center" }}
