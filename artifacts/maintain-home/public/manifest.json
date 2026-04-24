@@ -4,57 +4,54 @@
   "description": "AI-Powered Home Maintenance Reminders — personalized to your state and climate.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
+  "background_color": "#ffffff",
   "theme_color": "#1f9e6e",
   "orientation": "portrait-primary",
-  "categories": ["lifestyle", "utilities"],
+  "categories": [
+    "lifestyle",
+    "utilities"
+  ],
   "icons": [
     {
-      "src": "images/logo-icon.png",
-      "sizes": "72x72",
+      "src": "../icons/icon-48.webp",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "images/logo-icon.png",
-      "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "images/logo-icon.png",
-      "sizes": "128x128",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "images/logo-icon.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "images/logo-icon.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "images/logo-icon.png",
-      "sizes": "192x192",
-      "type": "image/png",
+      "sizes": "48x48",
       "purpose": "any maskable"
     },
     {
-      "src": "images/logo-icon.png",
-      "sizes": "384x384",
+      "src": "../icons/icon-72.webp",
       "type": "image/png",
-      "purpose": "any"
+      "sizes": "72x72",
+      "purpose": "any maskable"
     },
     {
-      "src": "images/logo-icon.png",
-      "sizes": "512x512",
+      "src": "../icons/icon-96.webp",
       "type": "image/png",
+      "sizes": "96x96",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-128.webp",
+      "type": "image/png",
+      "sizes": "128x128",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-192.webp",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-256.webp",
+      "type": "image/png",
+      "sizes": "256x256",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "../icons/icon-512.webp",
+      "type": "image/png",
+      "sizes": "512x512",
       "purpose": "any maskable"
     }
   ],
@@ -65,14 +62,24 @@
       "short_name": "Dashboard",
       "description": "Open your home maintenance dashboard",
       "url": "/",
-      "icons": [{ "src": "images/logo-icon.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "images/logo-icon.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "My Calendar",
       "short_name": "Calendar",
       "description": "View your maintenance calendar",
       "url": "/calendar",
-      "icons": [{ "src": "images/logo-icon.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "images/logo-icon.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
