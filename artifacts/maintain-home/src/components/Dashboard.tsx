@@ -1218,15 +1218,15 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   className="w-14 h-16 sm:hidden"
                   style={{ objectFit: "contain", objectPosition: "top center" }}
                 />
-                {/* Desktop: zoom in on Maintly's head (full hat + face visible, no top cutoff) */}
+                {/* Desktop: tight zoom on Maintly's head — full hat + face fill the frame */}
                 <div
                   className="w-14 h-16 hidden sm:block bg-no-repeat"
                   role="img"
                   aria-label="Maintly"
                   style={{
                     backgroundImage: `url(${BASE}images/maintly_phone.png)`,
-                    backgroundSize: "190% auto",
-                    backgroundPosition: "50% 0%",
+                    backgroundSize: "320% auto",
+                    backgroundPosition: "22% 0%",
                   }}
                 />
               </div>
