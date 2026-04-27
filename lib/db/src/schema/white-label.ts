@@ -18,6 +18,9 @@ export const whiteLabelConfigsTable = pgTable("white_label_configs", {
   rejectionReason: text("rejection_reason"),
   accountType: text("account_type").$type<"broker" | "builder">().default("broker").notNull(),
   warrantyPeriodMonths: integer("warranty_period_months").default(12),
+  warrantyRepName: text("warranty_rep_name"),
+  warrantyRepPhone: text("warranty_rep_phone"),
+  warrantyRepEmail: text("warranty_rep_email"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

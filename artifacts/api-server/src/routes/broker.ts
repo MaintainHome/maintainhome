@@ -358,13 +358,21 @@ router.patch("/broker/branding", requireAuth as any, async (req: AuthRequest, re
       return;
     }
 
-    const { logoUrl, agentPhotoUrl, phoneNumber, tagline, welcomeMessage } = req.body as Record<string, string | undefined>;
+    const {
+      logoUrl, agentPhotoUrl, phoneNumber, tagline, welcomeMessage,
+      warrantyRepName, warrantyRepPhone, warrantyRepEmail,
+    } = req.body as Record<string, string | undefined>;
     const updates: Record<string, string | null> = {};
-    if (logoUrl !== undefined)        updates.logoUrl       = logoUrl?.trim()        || null;
-    if (agentPhotoUrl !== undefined)  updates.agentPhotoUrl = agentPhotoUrl?.trim()  || null;
-    if (phoneNumber !== undefined)    updates.phoneNumber   = phoneNumber?.trim()    || null;
-    if (tagline !== undefined)        updates.tagline       = tagline?.trim()        || null;
-    if (welcomeMessage !== undefined) updates.welcomeMessage = welcomeMessage?.trim() || null;
+    if (logoUrl !== undefined)          updates.logoUrl          = logoUrl?.trim()        || null;
+    if (agentPhotoUrl !== undefined)    updates.agentPhotoUrl    = agentPhotoUrl?.trim()  || null;
+    if (phoneNumber !== undefined)      updates.phoneNumber      = phoneNumber?.trim()    || null;
+    if (tagline !== undefined)          updates.tagline          = tagline?.trim()        || null;
+    if (welcomeMessage !== undefined)   updates.welcomeMessage   = welcomeMessage?.trim() || null;
+    // Warranty rep fields are only meaningful for builder accounts, but we still
+    // accept the writes — non-builder rows simply won't be read on the dashboard.
+    if (warrantyRepName !== undefined)  updates.warrantyRepName  = warrantyRepName?.trim()  || null;
+    if (warrantyRepPhone !== undefined) updates.warrantyRepPhone = warrantyRepPhone?.trim() || null;
+    if (warrantyRepEmail !== undefined) updates.warrantyRepEmail = warrantyRepEmail?.trim().toLowerCase() || null;
 
     if (Object.keys(updates).length === 0) {
       res.status(400).json({ error: "No fields to update" });

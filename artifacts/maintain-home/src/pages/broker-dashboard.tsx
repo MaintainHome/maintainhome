@@ -48,6 +48,9 @@ interface BrokerConfig {
   createdAt: string;
   accountType?: "broker" | "builder";
   warrantyPeriodMonths?: number | null;
+  warrantyRepName?: string | null;
+  warrantyRepPhone?: string | null;
+  warrantyRepEmail?: string | null;
 }
 
 interface CalendarTask {
@@ -2242,7 +2245,10 @@ export default function BrokerDashboard() {
 
   /* ── Edit Branding modal state ────────────────────────────────── */
   const [editOpen, setEditOpen] = useState(false);
-  const [editForm, setEditForm] = useState({ logoUrl: "", agentPhotoUrl: "", phoneNumber: "", tagline: "", welcomeMessage: "" });
+  const [editForm, setEditForm] = useState({
+    logoUrl: "", agentPhotoUrl: "", phoneNumber: "", tagline: "", welcomeMessage: "",
+    warrantyRepName: "", warrantyRepPhone: "", warrantyRepEmail: "",
+  });
   const [editSaving, setEditSaving] = useState(false);
   const [editSuccess, setEditSuccess] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
@@ -2348,6 +2354,9 @@ Click here to get started: ${link}`;
       phoneNumber: config.phoneNumber ?? "",
       tagline: config.tagline ?? "",
       welcomeMessage: config.welcomeMessage ?? "",
+      warrantyRepName: config.warrantyRepName ?? "",
+      warrantyRepPhone: config.warrantyRepPhone ?? "",
+      warrantyRepEmail: config.warrantyRepEmail ?? "",
     });
     setEditSuccess(null);
     setEditError(null);
@@ -2415,6 +2424,9 @@ Click here to get started: ${link}`;
         phoneNumber: editForm.phoneNumber || null,
         tagline: editForm.tagline || null,
         welcomeMessage: editForm.welcomeMessage || null,
+        warrantyRepName: prev.accountType === "builder" ? (editForm.warrantyRepName || null) : prev.warrantyRepName,
+        warrantyRepPhone: prev.accountType === "builder" ? (editForm.warrantyRepPhone || null) : prev.warrantyRepPhone,
+        warrantyRepEmail: prev.accountType === "builder" ? (editForm.warrantyRepEmail || null) : prev.warrantyRepEmail,
       } : prev);
       setEditSuccess("Branding updated successfully. Changes are live.");
     } catch (err: any) {
@@ -3589,6 +3601,50 @@ Click here to get started: ${link}`;
                 />
                 <p className="text-sm text-slate-400 mt-1">{editForm.welcomeMessage.length}/400</p>
               </div>
+
+              {/* ── Warranty Representative — builder accounts only ───── */}
+              {isBuilder && (
+                <div className="px-4 py-4 rounded-2xl border-2 border-dashed"
+                  style={{ borderColor: MH_PRIMARY + "40", backgroundColor: MH_PRIMARY + "06" }}>
+                  <div className="flex items-start gap-2 mb-3">
+                    <Wrench className="w-4 h-4 mt-0.5 shrink-0" style={{ color: MH_PRIMARY }} />
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">
+                        Warranty Representative <span className="font-normal normal-case text-slate-400 text-xs">(optional)</span>
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        Dedicated contact for buyer warranty questions. If left blank, buyers see your main builder contact.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="space-y-2.5">
+                    <input
+                      type="text"
+                      value={editForm.warrantyRepName}
+                      onChange={(e) => setEditForm((f) => ({ ...f, warrantyRepName: e.target.value }))}
+                      placeholder="Warranty rep name (e.g. Jamie Patel)"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ "--tw-ring-color": MH_PRIMARY } as React.CSSProperties}
+                    />
+                    <input
+                      type="tel"
+                      value={editForm.warrantyRepPhone}
+                      onChange={(e) => setEditForm((f) => ({ ...f, warrantyRepPhone: e.target.value }))}
+                      placeholder="Warranty rep phone (e.g. (555) 867-5309)"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ "--tw-ring-color": MH_PRIMARY } as React.CSSProperties}
+                    />
+                    <input
+                      type="email"
+                      value={editForm.warrantyRepEmail}
+                      onChange={(e) => setEditForm((f) => ({ ...f, warrantyRepEmail: e.target.value }))}
+                      placeholder="Warranty rep email (e.g. warranty@yourbuilder.com)"
+                      className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-900 placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:border-transparent"
+                      style={{ "--tw-ring-color": MH_PRIMARY } as React.CSSProperties}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* ── Save / Cancel ───────────────────────────────────────── */}
               <div className="flex gap-3 pt-1 pb-2">

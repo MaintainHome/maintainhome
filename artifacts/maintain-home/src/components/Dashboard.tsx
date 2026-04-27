@@ -554,6 +554,7 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
   const [extraThisMonthTasks, setExtraThisMonthTasks] = useState<(CalendarTask & { _key: string })[]>([]);
   const [deletingLogId, setDeletingLogId] = useState<number | null>(null);
   const [taskChatOpen, setTaskChatOpen] = useState(false);
+  const [warrantyRepOpen, setWarrantyRepOpen] = useState(false);
   const [taskChatMessage, setTaskChatMessage] = useState<string>("");
 
   // ── Mortgage Rate + Home Profile State ────────────────────────────────
@@ -1994,8 +1995,37 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
                   )}
                 </div>
 
-                {/* Col 3 — Market Update CTA (last on both mobile and desktop) */}
+                {/* Col 3 — Builder: Contact Warranty Agent  /  Broker (or no white-label): Market Update CTA */}
                 {(() => {
+                  const isBuilderClient = branding?.accountType === "builder";
+
+                  if (isBuilderClient) {
+                    const repNameSet = !!branding?.warrantyRepName?.trim();
+                    const repPhone = (branding?.warrantyRepPhone?.trim() || branding?.phoneNumber?.trim()) || null;
+                    const repEmail = (branding?.warrantyRepEmail?.trim() || branding?.contactEmail?.trim()) || null;
+                    const helperText = repNameSet
+                      ? `Got a warranty question? Reach ${branding!.warrantyRepName}, your warranty agent at ${branding!.brokerName}.`
+                      : `Got a warranty question? Get in touch with ${branding!.brokerName} for support during your warranty window.`;
+                    return (
+                      <div className="order-4 sm:order-4 flex flex-col justify-center gap-3 px-6 py-5 sm:w-64 shrink-0 bg-slate-50/60 sm:border-l border-slate-100">
+                        <div className="rounded-xl px-4 py-3" style={{ backgroundColor: "#1f9e6e0d", border: "1px solid #1f9e6e25" }}>
+                          <p className="text-xs text-slate-600 leading-relaxed">{helperText}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setWarrantyRepOpen(true)}
+                          disabled={!repPhone && !repEmail}
+                          className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                          style={{ backgroundColor: "#1f9e6e", boxShadow: "0 2px 12px rgba(31,158,110,0.3)" }}
+                        >
+                          <Wrench className="w-4 h-4 shrink-0" />
+                          Contact Warranty Agent
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  // Default (broker / no white-label) — keep existing market update flow.
                   const addr = homeProfile?.fullAddress?.trim() ?? "";
                   const marketUpdateEmail = branding?.contactEmail ?? "consultingjohnwalker@gmail.com";
                   const marketUpdateSubject = addr
@@ -2531,6 +2561,125 @@ export function Dashboard({ user, savedCalendar, onOpenAIChat }: DashboardProps)
         onAccept={handleAcceptTerms}
         onDecline={handleDeclineTerms}
       />
+
+      {/* ── Warranty Rep Contact Modal (builder accounts only) ── */}
+      <AnimatePresence>
+        {warrantyRepOpen && branding?.accountType === "builder" && (() => {
+          const hasRep = !!branding.warrantyRepName?.trim();
+          const repName = branding.warrantyRepName?.trim() || branding.brokerName;
+          const repPhone = branding.warrantyRepPhone?.trim() || branding.phoneNumber?.trim() || null;
+          const repEmail = branding.warrantyRepEmail?.trim() || branding.contactEmail?.trim() || null;
+          const addr = homeProfile?.fullAddress?.trim() ?? "";
+          const subject = addr ? `Warranty Question — ${addr}` : "Warranty Question";
+          const body = addr
+            ? `Hi ${repName},\n\nI have a question about my home warranty for the property at ${addr}. Could you help?\n\nThanks!`
+            : `Hi ${repName},\n\nI have a question about my home warranty. Could you help?\n\nThanks!`;
+          return (
+            <motion.div
+              key="warranty-rep-modal"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+              onClick={(e) => { if (e.target === e.currentTarget) setWarrantyRepOpen(false); }}
+            >
+              <motion.div
+                initial={{ y: 24, opacity: 0, scale: 0.97 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: 16, opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden"
+              >
+                {/* Header */}
+                <div className="relative px-6 py-5 text-white" style={{ background: "linear-gradient(135deg, #1f9e6e, #0f7a52)" }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                      <Wrench className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-base font-black leading-tight">Warranty Agent</h2>
+                      <p className="text-xs text-white/80 mt-0.5 leading-snug">
+                        {hasRep ? `Your dedicated warranty contact at ${branding.brokerName}` : `Reach out to ${branding.brokerName} for warranty support`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setWarrantyRepOpen(false)}
+                      className="p-1.5 rounded-lg hover:bg-white/20 text-white/80 hover:text-white transition-colors shrink-0"
+                      aria-label="Close"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5 space-y-4">
+                  {/* Name card */}
+                  <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-50 border border-slate-100">
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0"
+                      style={{ backgroundColor: "#1f9e6e18", border: "2px solid #1f9e6e40" }}>
+                      <User className="w-5 h-5" style={{ color: "#1f9e6e" }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-base font-bold text-slate-900 leading-tight truncate">{repName}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {hasRep ? "Warranty representative" : "Builder contact (no dedicated warranty rep)"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Contact actions */}
+                  <div className="space-y-2">
+                    {repPhone && (
+                      <a
+                        href={`tel:${repPhone}`}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                      >
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: "#1f9e6e15" }}>
+                          <Phone className="w-4 h-4" style={{ color: "#1f9e6e" }} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Call</p>
+                          <p className="text-sm font-bold text-slate-900 truncate">{repPhone}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                      </a>
+                    )}
+                    {repEmail && (
+                      <a
+                        href={`mailto:${repEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
+                      >
+                        <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: "#1f9e6e15" }}>
+                          <Mail className="w-4 h-4" style={{ color: "#1f9e6e" }} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Email</p>
+                          <p className="text-sm font-bold text-slate-900 truncate">{repEmail}</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+                      </a>
+                    )}
+                    {!repPhone && !repEmail && (
+                      <div className="flex items-start gap-2 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+                        <Info className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+                        <p className="text-xs text-amber-800 leading-relaxed">
+                          No contact info is available yet. Please reach out to your builder directly.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Footer note */}
+                  <p className="text-[11px] text-slate-400 text-center leading-relaxed pt-1">
+                    For repairs and safety issues, always consult a licensed professional in addition to your warranty contact.
+                  </p>
+                </div>
+              </motion.div>
+            </motion.div>
+          );
+        })()}
+      </AnimatePresence>
     </div>
   );
 }

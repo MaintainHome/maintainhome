@@ -12,6 +12,9 @@ export interface BrandingConfig {
   contactEmail: string | null;
   accountType?: "broker" | "builder";
   warrantyPeriodMonths?: number | null;
+  warrantyRepName?: string | null;
+  warrantyRepPhone?: string | null;
+  warrantyRepEmail?: string | null;
 }
 
 interface BrandingContextType {

@@ -4,6 +4,7 @@ import {
   HardHat, CheckCircle2, AlertCircle, Loader2,
   ChevronRight, Upload, X, ImageIcon, Phone, Camera,
   Sparkles, Star, ArrowRight, Eye, ShieldCheck, Clock, FileText,
+  Mail, User, Wrench,
 } from "lucide-react";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -138,6 +139,9 @@ export default function BuilderOnboard() {
     welcomeMessage: "",
     contactEmail: "",
     warrantyPeriodMonths: "12",
+    warrantyRepName: "",
+    warrantyRepPhone: "",
+    warrantyRepEmail: "",
   });
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -235,6 +239,9 @@ export default function BuilderOnboard() {
           giftDuration: "1year",
           accountType: "builder",
           warrantyPeriodMonths: form.warrantyPeriodMonths,
+          warrantyRepName: form.warrantyRepName,
+          warrantyRepPhone: form.warrantyRepPhone,
+          warrantyRepEmail: form.warrantyRepEmail,
         }),
       });
       const data = await res.json();
@@ -650,6 +657,50 @@ export default function BuilderOnboard() {
                     onChange={(e) => handle("warrantyPeriodMonths", e.target.value)}
                     placeholder="12"
                     className="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900 text-base transition-all hover:shadow-sm" />
+                </div>
+
+                {/* ── Warranty Representative — builder-specific (optional) ── */}
+                <div className="px-5 py-5 rounded-2xl border-2 border-dashed"
+                  style={{ borderColor: ACCENT + "40", backgroundColor: ACCENT + "06" }}>
+                  <div className="flex items-start gap-2 mb-1">
+                    <Wrench className="w-4 h-4 mt-0.5 shrink-0" style={{ color: ACCENT }} />
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-slate-700">
+                        Warranty Representative{" "}
+                        <span className="text-slate-400 font-normal text-xs">(optional)</span>
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        Add a dedicated warranty contact for your buyers. If left blank, buyers will see your main builder contact above for warranty questions.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 mt-4">
+                    {/* Name */}
+                    <div className="relative">
+                      <User className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input type="text" value={form.warrantyRepName}
+                        onChange={(e) => handle("warrantyRepName", e.target.value)}
+                        placeholder="Warranty rep name (e.g. Jamie Patel)"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900 text-sm bg-white" />
+                    </div>
+                    {/* Phone */}
+                    <div className="relative">
+                      <Phone className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input type="tel" value={form.warrantyRepPhone}
+                        onChange={(e) => handle("warrantyRepPhone", e.target.value)}
+                        placeholder="Warranty rep phone (e.g. (555) 867-5309)"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900 text-sm bg-white" />
+                    </div>
+                    {/* Email */}
+                    <div className="relative">
+                      <Mail className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input type="email" value={form.warrantyRepEmail}
+                        onChange={(e) => handle("warrantyRepEmail", e.target.value)}
+                        placeholder="Warranty rep email (e.g. warranty@yourbuilder.com)"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-slate-900 text-sm bg-white" />
+                    </div>
+                  </div>
                 </div>
 
                 {/* Tagline */}

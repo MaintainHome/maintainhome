@@ -63,6 +63,9 @@ router.get("/branding", async (req: Request, res: Response) => {
         contactEmail: config.contactEmail,
         accountType: config.accountType,
         warrantyPeriodMonths: config.warrantyPeriodMonths,
+        warrantyRepName: config.warrantyRepName,
+        warrantyRepPhone: config.warrantyRepPhone,
+        warrantyRepEmail: config.warrantyRepEmail,
       },
     });
   } catch (err) {

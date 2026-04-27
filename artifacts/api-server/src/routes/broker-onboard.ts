@@ -76,6 +76,9 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       giftDuration,
       accountType,
       warrantyPeriodMonths,
+      warrantyRepName,
+      warrantyRepPhone,
+      warrantyRepEmail,
     } = req.body as Record<string, string>;
 
     if (!subdomain || !brokerName || !contactEmail || !type) {
@@ -162,6 +165,9 @@ router.post("/broker-onboard", async (req: Request, res: Response) => {
       giftDuration: validGiftDuration,
       accountType: validAccountType,
       warrantyPeriodMonths: validWarrantyMonths,
+      warrantyRepName: validAccountType === "builder" ? (warrantyRepName?.trim() || null) : null,
+      warrantyRepPhone: validAccountType === "builder" ? (warrantyRepPhone?.trim() || null) : null,
+      warrantyRepEmail: validAccountType === "builder" ? (warrantyRepEmail?.trim().toLowerCase() || null) : null,
       status: "pending",
     });
 
