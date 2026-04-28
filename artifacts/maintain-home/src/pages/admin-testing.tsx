@@ -89,6 +89,7 @@ export default function AdminTesting() {
   const [accounts, setAccounts] = useState<TestAccount[]>([]);
   const [creating, setCreating] = useState(false);
   const [createMsg, setCreateMsg] = useState<string | null>(null);
+  const [createMsgKind, setCreateMsgKind] = useState<"success" | "error">("success");
   const [clearing, setClearing] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -104,7 +105,19 @@ export default function AdminTesting() {
       });
       if (res.status === 401) {
         setAuthenticated(false);
-        setAuthError("Invalid token");
+        setAuthError("Invalid token. Double-check the value of ADMIN_SECRET.");
+        return;
+      }
+      if (res.status === 503) {
+        setAuthenticated(false);
+        setAuthError(
+          "Admin access is not configured on this server. Set the ADMIN_SECRET deployment secret and redeploy.",
+        );
+        return;
+      }
+      if (!res.ok) {
+        setAuthenticated(false);
+        setAuthError(`Server error (${res.status}). Try again.`);
         return;
       }
       const data = await res.json();
@@ -181,6 +194,11 @@ export default function AdminTesting() {
     } catch {}
   }
 
+  function showMsg(kind: "success" | "error", text: string) {
+    setCreateMsgKind(kind);
+    setCreateMsg(text);
+  }
+
   async function createTestAccounts() {
     setCreating(true);
     setCreateMsg(null);
@@ -189,15 +207,24 @@ export default function AdminTesting() {
         method: "POST",
         headers: { "X-Admin-Token": token },
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setCreateMsg(data.error ?? "Failed to create");
+        if (res.status === 503) {
+          showMsg(
+            "error",
+            "Admin access is not configured on this server. Set the ADMIN_SECRET deployment secret and redeploy.",
+          );
+        } else if (res.status === 401) {
+          showMsg("error", "Invalid admin token. Log out and try again.");
+        } else {
+          showMsg("error", data.error ?? `Failed to create (status ${res.status})`);
+        }
         return;
       }
       setAccounts(data.accounts ?? []);
-      setCreateMsg(`Created ${data.created} test accounts.`);
+      showMsg("success", `Created ${data.created} test accounts.`);
     } catch {
-      setCreateMsg("Network error");
+      showMsg("error", "Network error");
     } finally {
       setCreating(false);
     }
@@ -211,11 +238,24 @@ export default function AdminTesting() {
         method: "DELETE",
         headers: { "X-Admin-Token": token },
       });
-      const data = await res.json();
-      setCreateMsg(data.message ?? "Cleared");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        if (res.status === 503) {
+          showMsg(
+            "error",
+            "Admin access is not configured on this server. Set the ADMIN_SECRET deployment secret and redeploy.",
+          );
+        } else if (res.status === 401) {
+          showMsg("error", "Invalid admin token. Log out and try again.");
+        } else {
+          showMsg("error", data.error ?? `Failed to clear (status ${res.status})`);
+        }
+        return;
+      }
+      showMsg("success", data.message ?? "Cleared");
       setAccounts([]);
     } catch {
-      setCreateMsg("Network error");
+      showMsg("error", "Network error");
     } finally {
       setClearing(false);
     }
@@ -345,7 +385,13 @@ export default function AdminTesting() {
             </div>
           </div>
           {createMsg && (
-            <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg px-3 py-2 mb-3">
+            <div
+              className={
+                createMsgKind === "success"
+                  ? "bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold rounded-lg px-3 py-2 mb-3"
+                  : "bg-red-50 border border-red-200 text-red-700 text-xs font-semibold rounded-lg px-3 py-2 mb-3"
+              }
+            >
               {createMsg}
             </div>
           )}
