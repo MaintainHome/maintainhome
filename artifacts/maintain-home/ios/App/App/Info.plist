@@ -3,61 +3,49 @@
 <plist version="1.0">
 <dict>
     <key>CAPACITOR_DEBUG</key>
-        <string>$(CAPACITOR_DEBUG)</string>
-        <key>CFBundleDevelopmentRegion</key>
-        <string>en</string>
-        <key>CFBundleDisplayName</key>
+	<string>$(CAPACITOR_DEBUG)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>en</string>
+	<key>CFBundleDisplayName</key>
         <string>MaintainHome</string>
-        <key>CFBundleExecutable</key>
-        <string>$(EXECUTABLE_NAME)</string>
-        <key>CFBundleIdentifier</key>
-        <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-        <key>CFBundleInfoDictionaryVersion</key>
-        <string>6.0</string>
-        <key>CFBundleName</key>
-        <string>$(PRODUCT_NAME)</string>
-        <key>CFBundlePackageType</key>
-        <string>APPL</string>
-        <key>CFBundleShortVersionString</key>
-        <string>$(MARKETING_VERSION)</string>
-        <key>CFBundleVersion</key>
-        <string>$(CURRENT_PROJECT_VERSION)</string>
-        <key>LSRequiresIPhoneOS</key>
-        <true/>
-        <key>UILaunchStoryboardName</key>
-        <string>LaunchScreen</string>
-        <key>UIMainStoryboardFile</key>
-        <string>Main</string>
-        <key>UIRequiredDeviceCapabilities</key>
-        <array>
-                <string>armv7</string>
-        </array>
-        <key>UISupportedInterfaceOrientations</key>
-        <array>
-                <string>UIInterfaceOrientationPortrait</string>
-                <string>UIInterfaceOrientationLandscapeLeft</string>
-                <string>UIInterfaceOrientationLandscapeRight</string>
-        </array>
-        <key>UISupportedInterfaceOrientations~ipad</key>
-        <array>
-                <string>UIInterfaceOrientationPortrait</string>
-                <string>UIInterfaceOrientationPortraitUpsideDown</string>
-                <string>UIInterfaceOrientationLandscapeLeft</string>
-                <string>UIInterfaceOrientationLandscapeRight</string>
-        </array>
-        <key>UIViewControllerBasedStatusBarAppearance</key>
-        <true/>
-        <!-- ── Permission usage strings (required by Apple App Store) ── -->
-        <key>NSCameraUsageDescription</key>
-        <string>MaintainHome needs camera access so you can snap photos of appliances, model numbers, and home maintenance issues to share with Maintly.</string>
-        <key>NSPhotoLibraryUsageDescription</key>
-        <string>MaintainHome needs photo library access so you can attach existing photos of your home, appliances, and documents to your maintenance plan.</string>
-        <key>NSPhotoLibraryAddUsageDescription</key>
-        <string>MaintainHome saves photos and documents from your maintenance history to your photo library when you choose to export them.</string>
-        <key>NSDocumentsFolderUsageDescription</key>
-        <string>MaintainHome accesses your documents folder so you can upload warranties, manuals, and inspection reports to your home file.</string>
-        <!-- Allow microphone for future video walkthroughs of issues -->
-        <key>NSMicrophoneUsageDescription</key>
-        <string>MaintainHome uses the microphone for voice notes when documenting home maintenance issues.</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>armv7</string>
+	</array>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
 </dict>
 </plist>
